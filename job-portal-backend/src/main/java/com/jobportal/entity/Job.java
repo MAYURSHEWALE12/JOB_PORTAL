@@ -1,0 +1,87 @@
+package com.jobportal.entity;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
+@Entity
+@Table(name = "jobs")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Job {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "employer_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    private User employer;
+
+    @Column(nullable = false)
+    private String title;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String description;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String requirements;
+
+    private BigDecimal salaryMin;
+    private BigDecimal salaryMax;
+
+    @Column(nullable = false)
+    private String location;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private JobType jobType;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private JobStatus status;
+
+    private String experienceRequired;
+    private String educationRequired;
+    private Integer positionsAvailable;
+    private LocalDateTime expiryDate;
+
+    @Column(columnDefinition = "TEXT")
+    private String skills;
+
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(nullable = false)
+    private LocalDateTime updatedAt;
+
+    @Column(columnDefinition = "INT DEFAULT 0")
+    private Integer viewCount = 0;
+
+    @Column(columnDefinition = "INT DEFAULT 0")
+    private Integer applicationCount = 0;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        // ✅ status is NOT set here — JobService controls it
+        if (viewCount == null) viewCount = 0;
+        if (applicationCount == null) applicationCount = 0;
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
