@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal - Project Documentation</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+            @top-center { content: "Job Portal - Project Documentation"; font-size: 9pt; color: #666; }
+            @bottom-center { content: "Page " counter(page); font-size: 9pt; color: #666; }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1a1a1a; line-height: 1.6; font-size: 11pt; }
+        
+        .cover {
+            page-break-after: always;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            border: 3px solid #ea580c;
+            padding: 60px;
+            margin: 0;
+        }
+        .cover h1 { font-size: 36pt; color: #ea580c; margin-bottom: 10px; letter-spacing: -1px; }
+        .cover h2 { font-size: 18pt; color: #333; font-weight: 400; margin-bottom: 40px; }
+        .cover .info { font-size: 12pt; color: #555; line-height: 2; }
+        .cover .divider { width: 120px; height: 3px; background: #ea580c; margin: 30px auto; }
+        
+        h1 { font-size: 22pt; color: #ea580c; border-bottom: 3px solid #ea580c; padding-bottom: 8px; margin: 40px 0 20px; page-break-before: always; }
+        h1:first-of-type { page-break-before: avoid; }
+        h2 { font-size: 16pt; color: #333; margin: 30px 0 15px; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        h3 { font-size: 13pt; color: #444; margin: 20px 0 10px; }
+        p { margin-bottom: 12px; text-align: justify; }
+        
+        table { width: 100%; border-collapse: collapse; margin: 15px 0 25px; font-size: 10pt; }
+        th { background: #ea580c; color: white; padding: 10px 12px; text-align: left; font-weight: 600; }
+        td { padding: 8px 12px; border-bottom: 1px solid #e5e5e5; }
+        tr:nth-child(even) { background: #fafafa; }
+        tr:hover { background: #fff5f0; }
+        
+        .diagram {
+            background: #f8f8f8;
+            border: 2px solid #e0e0e0;
+            border-left: 4px solid #ea580c;
+            padding: 20px;
+            margin: 20px 0;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 9pt;
+            line-height: 1.4;
+            overflow-x: auto;
+            white-space: pre;
+        }
+        
+        .module-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 15px 0 25px; }
+        .module-card { border: 2px solid #e0e0e0; padding: 12px 15px; border-left: 4px solid #ea580c; }
+        .module-card h4 { color: #ea580c; margin-bottom: 4px; font-size: 11pt; }
+        .module-card p { font-size: 9.5pt; color: #555; margin: 0; }
+        
+        code { background: #f0f0f0; padding: 2px 6px; border-radius: 3px; font-size: 10pt; font-family: 'Consolas', monospace; }
+        .endpoint { background: #f8f8f8; padding: 8px 12px; margin: 4px 0; border-left: 3px solid #ea580c; font-family: monospace; font-size: 10pt; }
+        
+        ul, ol { margin: 10px 0 15px 25px; }
+        li { margin-bottom: 5px; }
+        
+        .toc { background: #fafafa; border: 2px solid #e0e0e0; padding: 25px 30px; margin: 20px 0 40px; }
+        .toc h2 { border: none; margin: 0 0 15px; font-size: 16pt; }
+        .toc ol { margin-left: 20px; }
+        .toc li { margin-bottom: 6px; }
+        .toc a { color: #ea580c; text-decoration: none; }
+        
+        .security-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0 25px; }
+        .security-item { background: #f8f8f8; padding: 10px 15px; border-left: 3px solid #22c55e; }
+        .security-item h4 { color: #22c55e; font-size: 10pt; margin-bottom: 2px; }
+        .security-item p { font-size: 9.5pt; color: #555; margin: 0; }
+        
+        .future-list { list-style: none; margin-left: 0; }
+        .future-list li { padding: 6px 0 6px 25px; position: relative; }
+        .future-list li::before { content: "→"; position: absolute; left: 0; color: #ea580c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- COVER PAGE -->
+<div class="cover">
+    <h1>JOB PORTAL</h1>
+    <h2>Full-Stack Web Application</h2>
+    <div class="divider"></div>
+    <div class="info">
+        <strong>Project Documentation</strong><br>
+        Spring Boot + React + MySQL<br><br>
+        <strong>Technologies:</strong> Java 25, Spring Boot 4.0.4, React 19, MySQL 8.0<br>
+        <strong>Architecture:</strong> RESTful API + Single Page Application<br>
+        <strong>Database:</strong> Relational (14 tables)<br>
+    </div>
+</div>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+    <h2>Table of Contents</h2>
+    <ol>
+        <li><a href="#introduction">Introduction</a></li>
+        <li><a href="#architecture">System Architecture</a></li>
+        <li><a href="#modules">Modules</a></li>
+        <li><a href="#erd">Entity Relationship Diagram (ERD)</a></li>
+        <li><a href="#usecase">Use Case Diagram</a></li>
+        <li><a href="#sequence">Sequence Diagrams</a></li>
+        <li><a href="#class">Class Diagram</a></li>
+        <li><a href="#database">Database Schema</a></li>
+        <li><a href="#api">API Documentation</a></li>
+        <li><a href="#tech">Technology Stack</a></li>
+        <li><a href="#security">Security Features</a></li>
+        <li><a href="#future">Future Enhancements</a></li>
+    </ol>
+</div>
+
+<!-- 1. INTRODUCTION -->
+<h1 id="introduction">1. Introduction</h1>
+<p>The Job Portal is a full-stack web application designed to bridge the gap between job seekers and employers. It provides a comprehensive platform for posting job listings, submitting applications, tracking application status, communicating in real-time, managing resumes with ATS scoring, conducting skill assessments through quizzes, and administering the entire recruitment lifecycle.</p>
+<p>The system is built using <strong>Spring Boot 4.0.4</strong> for the backend REST API and <strong>React 19</strong> with Vite for the frontend single-page application. It supports three distinct user roles with role-based access control: <strong>Job Seeker</strong>, <strong>Employer</strong>, and <strong>Administrator</strong>.</p>
+<p>Key capabilities include real-time messaging via WebSocket, automated email notifications, JWT-based stateless authentication, and comprehensive analytics dashboards for both employers and administrators.</p>
+
+<!-- 2. SYSTEM ARCHITECTURE -->
+<h1 id="architecture">2. System Architecture</h1>
+<p>The application follows a layered architecture with clear separation of concerns across four tiers:</p>
+<div class="diagram">┌─────────────────────────────────────────────────────────────┐
+│                    CLIENT LAYER (React SPA)                   │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐    │
+│  │  React   │  │ Tailwind │  │ Zustand  │  │  Axios   │    │
+│  │  v19     │  │   CSS    │  │  State   │  │  HTTP    │    │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘    │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ HTTP REST + WebSocket (STOMP)
+┌─────────────────────────────▼───────────────────────────────┐
+│                   API LAYER (Spring Boot)                    │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────────┐  │
+│  │ JWT Filter   │  │ CORS Config  │  │ WebSocket Handler│  │
+│  │ (Security)   │  │              │  │ (Real-time)      │  │
+│  └──────────────┘  └──────────────┘  └──────────────────┘  │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              REST Controllers (12)                    │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────┬───────────────────────────────┘
+                              │
+┌─────────────────────────────▼───────────────────────────────┐
+│                    SERVICE LAYER                             │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐    │
+│  │  User  │ │  Job   │ │  App   │ │ Message│ │ Resume │    │
+│  │ Service│ │ Service│ │ Service│ │ Service│ │ Service│    │
+│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘    │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐    │
+│  │  Quiz  │ │ Admin  │ │ Email  │ │Notifica│ │Company │    │
+│  │ Service│ │ Service│ │ Service│ │ Service│ │ Service│    │
+│  └────────┘ └────────┘ └────────┘ └────────┘ └────────┘    │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ JPA / Hibernate ORM
+┌─────────────────────────────▼───────────────────────────────┐
+│                  DATA ACCESS LAYER                           │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │         Spring Data JPA Repositories (12)             │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────┬───────────────────────────────┘
+                              │ JDBC
+┌─────────────────────────────▼───────────────────────────────┐
+│                       DATABASE                               │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │              MySQL 8.0 — job_portal                   │   │
+│  │              14 Tables, 14 Foreign Keys               │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘</div>
+
+<!-- 3. MODULES -->
+<h1 id="modules">3. Modules</h1>
+<div class="module-grid">
+    <div class="module-card">
+        <h4>1. Authentication & Authorization</h4>
+        <p>Registration, login, JWT tokens, role-based access control (JOBSEEKER, EMPLOYER, ADMIN)</p>
+    </div>
+    <div class="module-card">
+        <h4>2. Job Management</h4>
+        <p>Create, edit, delete, search, and filter job listings by title, location, type, salary, and experience</p>
+    </div>
+    <div class="module-card">
+        <h4>3. Application Management</h4>
+        <p>Apply to jobs, track status through 8-stage pipeline, employer review with ratings and feedback</p>
+    </div>
+    <div class="module-card">
+        <h4>4. Resume Management</h4>
+        <p>Upload multiple resumes, ATS scoring, keyword matching with jobs, resume organization</p>
+    </div>
+    <div class="module-card">
+        <h4>5. Messaging & Communication</h4>
+        <p>Real-time chat between job seekers and employers, unread tracking, conversation history</p>
+    </div>
+    <div class="module-card">
+        <h4>6. Quiz & Assessment</h4>
+        <p>Employers create skill quizzes, candidates take timed assessments, automated scoring</p>
+    </div>
+    <div class="module-card">
+        <h4>7. Admin Management</h4>
+        <p>User management (view/edit roles/delete), job management, platform-wide statistics</p>
+    </div>
+    <div class="module-card">
+        <h4>8. Company Profile</h4>
+        <p>Company branding with logo, banner, description, industry, size, and social links</p>
+    </div>
+    <div class="module-card">
+        <h4>9. Notification System</h4>
+        <p>Real-time in-app notifications via WebSocket, click-to-navigate, mark as read</p>
+    </div>
+    <div class="module-card">
+        <h4>10. Job Alerts</h4>
+        <p>User-configurable alert preferences, automatic job matching, email + in-app notifications</p>
+    </div>
+    <div class="module-card">
+        <h4>11. Saved Jobs</h4>
+        <p>Bookmark and save jobs for later viewing and comparison</p>
+    </div>
+    <div class="module-card">
+        <h4>12. Analytics & Dashboard</h4>
+        <p>Per-job analytics, employer aggregate metrics, application funnel tracking</p>
+    </div>
+</div>
+
+<!-- 4. ERD -->
+<h1 id="erd">4. Entity Relationship Diagram (ERD)</h1>
+<p>The database consists of 14 entities with the following relationships:</p>
+<div class="diagram">                    ┌─────────────┐
+                    │    USER     │
+                    │─────────────│
+                    │ id (PK)     │
+                    │ email (UK)  │
+                    │ password    │
+                    │ first_name  │
+                    │ last_name   │
+                    │ phone       │
+                    │ role (ENUM) │
+                    └──────┬──────┘
+                           │
+        ┌──────────────────┼──────────────────┬──────────────────┐
+        │                  │                  │                  │
+   ┌────▼────┐       ┌────▼────┐       ┌────▼────┐       ┌────▼────┐
+   │  JOB    │       │MESSAGE  │       │ RESUME  │       │NOTIFIC. │
+   │─────────│       │─────────│       │─────────│       │─────────│
+   │id (PK)  │       │id (PK)  │       │id (PK)  │       │id (PK)  │
+   │employer_│       │sender_id│       │user_id  │       │user_id  │
+   │  id(FK) │       │receiver_│       │name     │       │title    │
+   │title    │       │  id(FK) │       │file_name│       │message  │
+   │location │       │content  │       │file_path│       │type     │
+   │job_type │       │is_read  │       │created_ │       │reference│
+   │status   │       │sent_at  │       │  at     │       │_id      │
+   └────┬────┘       └─────────┘       └────┬────┘       └─────────┘
+        │                                   │
+   ┌────▼────────────┐                ┌────▼────────────┐
+   │JOB_APPLICATION  │                │RESUME_ANALYSIS  │
+   │─────────────────│                │─────────────────│
+   │id (PK)          │                │id (PK)          │
+   │job_id (FK)      │                │user_id (FK)     │
+   │jobseeker_id(FK) │                │resume_id (FK)   │
+   │resume_id (FK)   │                │job_id (FK)      │
+   │cover_letter     │                │score            │
+   │status (ENUM)    │                │feedback         │
+   │rating           │                │extracted_skills │
+   │feedback         │                │matched_keywords │
+   │applied_at       │                │missing_keywords │
+   └────────┬────────┘                └─────────────────┘
+            │
+       ┌────▼────┐
+       │QUIZ_    │
+       │RESULT   │
+       │─────────│
+       │id (PK)  │
+       │applicat.│
+       │  _id(FK)│
+       │score    │
+       │passed   │
+       │time_taken│
+       └─────────┘
+
+   ┌─────────────┐          ┌─────────────┐          ┌─────────────┐
+   │    QUIZ     │─────────▶│  QUESTION   │─────────▶│   OPTION    │
+   │─────────────│  1:N     │─────────────│  1:N     │─────────────│
+   │id (PK)      │          │id (PK)      │          │id (PK)      │
+   │job_id (FK)  │          │quiz_id (FK) │          │question_id  │
+   │title        │          │question_text│          │  (FK)       │
+   │passing_score│          │score        │          │option_text  │
+   │time_limit   │          └─────────────┘          │is_correct   │
+   └─────────────┘                                   └─────────────┘
+
+   ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+   │  COMPANY_   │     │  SAVED_     │     │  JOB_ALERT_ │
+   │  PROFILE    │     │   JOB       │     │ PREFERENCE  │
+   │─────────────│     │─────────────│     │─────────────│
+   │id (PK)      │     │id (PK)      │     │id (PK)      │
+   │user_id (FK) │     │user_id (FK) │     │user_id (FK) │
+   │company_name │     │job_id (FK)  │     │keywords     │
+   │industry     │     │saved_at     │     │location     │
+   │description  │     └─────────────┘     │job_type     │
+   │logo_url     │                         │is_active    │
+   │banner_url   │                         │email_enabled│
+   │website      │                         │in_app_enabled│
+   └─────────────┘                         └─────────────┘</div>
+
+<!-- 5. USE CASE DIAGRAM -->
+<h1 id="usecase">5. Use Case Diagram</h1>
+<h3>Job Seeker Use Cases</h3>
+<ul>
+    <li>Register and login with email/password</li>
+    <li>Search and filter jobs (title, location, type, salary, experience)</li>
+    <li>View detailed job descriptions and company information</li>
+    <li>Apply to jobs with cover letter and resume selection</li>
+    <li>Track application status through 8-stage pipeline</li>
+    <li>Take skill assessment quizzes for job screening</li>
+    <li>Upload and manage multiple resumes with ATS scoring</li>
+    <li>Save/bookmark jobs for later viewing</li>
+    <li>Chat with employers in real-time</li>
+    <li>Configure job alert preferences</li>
+    <li>View and manage real-time notifications</li>
+</ul>
+
+<h3>Employer Use Cases</h3>
+<ul>
+    <li>Register and login with email/password</li>
+    <li>Post new job listings with detailed descriptions</li>
+    <li>Edit and manage existing job postings</li>
+    <li>View and filter applications per job</li>
+    <li>Update application status with ratings and feedback</li>
+    <li>Create skill assessment quizzes for candidate screening</li>
+    <li>Chat with candidates in real-time</li>
+    <li>Manage company profile (logo, banner, description)</li>
+    <li>View job analytics (views, applications, status funnel)</li>
+</ul>
+
+<h3>Admin Use Cases</h3>
+<ul>
+    <li>View all registered users on the platform</li>
+    <li>Change user roles (JOBSEEKER ↔ EMPLOYER ↔ ADMIN)</li>
+    <li>Delete users and their associated data</li>
+    <li>View all job listings across the platform</li>
+    <li>Delete jobs and associated applications</li>
+    <li>View platform-wide statistics (users, jobs, applications)</li>
+</ul>
+
+<!-- 6. SEQUENCE DIAGRAMS -->
+<h1 id="sequence">6. Sequence Diagrams</h1>
+
+<h3>6.1 User Registration Flow</h3>
+<div class="diagram">User            Frontend        AuthController    UserService    PasswordEncoder    Database
+ │                │                  │                  │                 │                │
+ │ Enter details  │                  │                  │                 │                │
+ │───────────────▶│                  │                  │                 │                │
+ │                │ POST /register   │                  │                 │                │
+ │                │─────────────────▶│                  │                 │                │
+ │                │                  │ register(data)   │                 │                │
+ │                │                  │─────────────────▶│                 │                │
+ │                │                  │                  │ check email     │                │
+ │                │                  │                  │─────────────────────────────────▶│
+ │                │                  │                  │◀─────────────────────────────────│
+ │                │                  │                  │ encode(password)│                │
+ │                │                  │                  │────────────────▶│                │
+ │                │                  │                  │◀────────────────│                │
+ │                │                  │                  │ INSERT user     │                │
+ │                │                  │                  │─────────────────────────────────▶│
+ │                │                  │                  │◀─────────────────────────────────│
+ │                │                  │                  │ generateToken() │                │
+ │                │                  │◀─────────────────│                 │                │
+ │                │◀─────────────────│                  │                 │                │
+ │◀───────────────│                  │                  │                 │                │
+ │ Redirect to    │                  │                  │                 │                │
+ │ Dashboard      │                  │                  │                 │                │</div>
+
+<h3>6.2 Job Application Flow</h3>
+<div class="diagram">Job Seeker      Frontend        JobController    AppService    NotificationService   Database
+ │                │                  │                  │                  │                │
+ │ Click "Apply"  │                  │                  │                  │                │
+ │───────────────▶│                  │                  │                  │                │
+ │                │ GET /jobs/{id}   │                  │                  │                │
+ │                │─────────────────▶│                  │                  │                │
+ │                │◀─────────────────│                  │                  │                │
+ │ Fill form      │                  │                  │                  │                │
+ │───────────────▶│                  │                  │                  │                │
+ │                │ POST /apply      │                  │                  │                │
+ │                │─────────────────────────────────────▶│                  │                │
+ │                │                  │                  │ check duplicate  │                │
+ │                │                  │                  │─────────────────────────────────▶│
+ │                │                  │                  │◀─────────────────────────────────│
+ │                │                  │                  │ INSERT application│               │
+ │                │                  │                  │─────────────────────────────────▶│
+ │                │                  │                  │◀─────────────────────────────────│
+ │                │                  │                  │ notify employer  │                │
+ │                │                  │                  │─────────────────▶│                │
+ │                │                  │                  │                  │ INSERT notif  │
+ │                │                  │                  │                  │──────────────▶│
+ │                │                  │                  │                  │ WS push       │
+ │                │                  │                  │◀─────────────────│                │
+ │                │◀─────────────────│                  │                  │                │
+ │ Success!       │                  │                  │                  │                │</div>
+
+<h3>6.3 Application Status Update Flow</h3>
+<div class="diagram">Employer        Frontend        AppController    AppService    NotificationService   Database
+ │                │                  │                  │                  │                │
+ │ Select status  │                  │                  │                  │                │
+ │───────────────▶│                  │                  │                  │                │
+ │                │ PUT /status      │                  │                  │                │
+ │                │─────────────────▶│                  │                  │                │
+ │                │                  │ updateStatus()   │                  │                │
+ │                │                  │─────────────────▶│                  │                │
+ │                │                  │                  │ UPDATE status    │                │
+ │                │                  │                  │─────────────────────────────────▶│
+ │                │                  │                  │◀─────────────────────────────────│
+ │                │                  │                  │ notify jobseeker │                │
+ │                │                  │                  │─────────────────▶│                │
+ │                │                  │                  │                  │ INSERT notif  │
+ │                │                  │                  │                  │──────────────▶│
+ │                │                  │                  │                  │ WS push       │
+ │                │                  │                  │◀─────────────────│                │
+ │                │◀─────────────────│                  │                  │                │
+ │ Updated!       │                  │                  │                  │                │</div>
+
+<h3>6.4 Real-Time Messaging Flow</h3>
+<div class="diagram">Sender          WebSocket       MessageController  MessageService  Database    Receiver
+ │                │                  │                  │                │            │
+ │ Connect STOMP  │                  │                  │                │            │
+ │───────────────▶│                  │                  │                │            │
+ │ Subscribe      │                  │                  │                │            │
+ │───────────────▶│                  │                  │                │            │
+ │                │                  │                  │                │            │
+ │ Type & Send    │                  │                  │                │            │
+ │───────────────▶│                  │                  │                │            │
+ │                │ SEND /chat.send  │                  │                │            │
+ │                │─────────────────▶│                  │                │            │
+ │                │                  │ send()           │                │            │
+ │                │                  │─────────────────▶│                │            │
+ │                │                  │                  │ INSERT message │            │
+ │                │                  │                  │───────────────▶│            │
+ │                │                  │                  │◀───────────────│            │
+ │                │                  │                  │ notify receiver│            │
+ │                │                  │                  │ (notification) │            │
+ │                │                  │                  │                │            │
+ │                │◀─────────────────│                  │                │            │
+ │                │◀───────────────────────────────────────────────────────────────────│
+ │                │ Push to receiver │                  │                │            │
+ │                │───────────────────────────────────────────────────────────────────▶│
+ │                │                  │                  │                │  Display   │</div>
+
+<!-- 7. CLASS DIAGRAM -->
+<h1 id="class">7. Class Diagram</h1>
+<div class="diagram">┌──────────────────────────┐
+│         User             │
+│──────────────────────────│
+│ +id: Long               │
+│ +email: String          │
+│ +password: String       │
+│ +firstName: String      │
+│ +lastName: String       │
+│ +phone: String          │
+│ +role: UserRole (ENUM)  │
+│ +profileImageUrl: String│
+│ +createdAt: LocalDateTime│
+│──────────────────────────│
+│ +register()             │
+│ +authenticate()         │
+│ +updateProfile()        │
+│ +changePassword()       │
+└──────────┬───────────────┘
+           │
+    ┌──────┼──────────────┬──────────────┬──────────────┐
+    │      │              │              │              │
+┌───▼──┐ ┌▼─────┐   ┌────▼────┐   ┌────▼────┐   ┌────▼────┐
+│ Job  │ │Message│   │ Resume  │   │Notifica-│   │Company  │
+│      │ │       │   │         │   │  tion   │   │ Profile │
+│      │ │       │   │         │   │         │   │         │
+│1    *│ │*    * │   │1      * │   │1      * │   │1      1 │
+└───┬──┘ └───────┘   └────┬────┘   └─────────┘   └─────────┘
+    │                     │
+┌───▼──────────────┐ ┌───▼──────────────┐
+│  JobApplication  │ │ ResumeAnalysis   │
+│──────────────────│ │──────────────────│
+│ +id: Long       │ │ +id: Long       │
+│ +job_id: FK     │ │ +user_id: FK    │
+│ +jobseeker_id:FK│ │ +resume_id: FK  │
+│ +resume_id: FK  │ │ +job_id: FK     │
+│ +coverLetter    │ │ +score: Integer │
+│ +status: ENUM   │ │ +feedback: Text │
+│ +rating: Integer│ │ +skills: Text   │
+│ +feedback: Text │ │ +keywords: Text │
+│ +appliedAt      │ │ +analyzedAt     │
+└────────┬─────────┘ └──────────────────┘
+         │
+    ┌────▼────┐
+    │QuizResult│
+    │──────────│
+    │+id: Long│
+    │+app_id: │
+    │   FK    │
+    │+score   │
+    │+passed  │
+    │+time    │
+    └─────────┘
+
+┌────────────┐    1:N    ┌────────────┐    1:N    ┌────────────┐
+│   Quiz     │──────────▶│  Question  │──────────▶│   Option   │
+│────────────│           │────────────│           │────────────│
+│+id: Long   │           │+id: Long   │           │+id: Long   │
+│+job_id: FK │           │+quiz_id:FK │           │+question_id│
+│+title      │           │+text: Text │           │+text: Text │
+│+passScore  │           │+score: Int │           │+isCorrect  │
+│+timeLimit  │           └────────────┘           └────────────┘
+└────────────┘</div>
+
+<!-- 8. DATABASE SCHEMA -->
+<h1 id="database">8. Database Schema</h1>
+<table>
+    <tr><th>Table</th><th>Primary Key</th><th>Foreign Keys</th><th>Description</th></tr>
+    <tr><td><strong>users</strong></td><td>id</td><td>—</td><td>User accounts with roles, credentials, profile info</td></tr>
+    <tr><td><strong>jobs</strong></td><td>id</td><td>employer_id → users(id)</td><td>Job listings posted by employers</td></tr>
+    <tr><td><strong>job_applications</strong></td><td>id</td><td>job_id → jobs(id)<br>jobseeker_id → users(id)<br>resume_id → resumes(id)</td><td>Applications submitted by job seekers</td></tr>
+    <tr><td><strong>messages</strong></td><td>id</td><td>sender_id → users(id)<br>receiver_id → users(id)</td><td>Real-time chat messages between users</td></tr>
+    <tr><td><strong>resumes</strong></td><td>id</td><td>user_id → users(id)</td><td>Uploaded resume PDFs with metadata</td></tr>
+    <tr><td><strong>notifications</strong></td><td>id</td><td>user_id → users(id)</td><td>In-app notifications with reference data</td></tr>
+    <tr><td><strong>quizzes</strong></td><td>id</td><td>job_id → jobs(id)</td><td>Skill assessment quizzes per job</td></tr>
+    <tr><td><strong>questions</strong></td><td>id</td><td>quiz_id → quizzes(id)</td><td>Questions belonging to quizzes</td></tr>
+    <tr><td><strong>options</strong></td><td>id</td><td>question_id → questions(id)</td><td>Multiple-choice options per question</td></tr>
+    <tr><td><strong>company_profiles</strong></td><td>id</td><td>user_id → users(id)</td><td>Employer company branding info</td></tr>
+    <tr><td><strong>saved_jobs</strong></td><td>id</td><td>user_id → users(id)<br>job_id → jobs(id)</td><td>Bookmarked jobs by users</td></tr>
+    <tr><td><strong>job_alert_preferences</strong></td><td>id</td><td>user_id → users(id)</td><td>User job alert configuration</td></tr>
+    <tr><td><strong>resume_analyses</strong></td><td>id</td><td>user_id → users(id)<br>resume_id → resumes(id)<br>job_id → jobs(id)</td><td>ATS scoring and keyword matching results</td></tr>
+    <tr><td><strong>quiz_results</strong></td><td>id</td><td>application_id → job_applications(id)</td><td>Candidate quiz scores and pass/fail status</td></tr>
+</table>
+
+<!-- 9. API DOCUMENTATION -->
+<h1 id="api">9. API Documentation</h1>
+
+<h3>9.1 Authentication</h3>
+<table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>POST</td><td><code>/api/auth/register</code></td><td>Public</td><td>Register new user (JOBSEEKER/EMPLOYER)</td></tr>
+    <tr><td>POST</td><td><code>/api/auth/login</code></td><td>Public</td><td>Login with email and password</td></tr>
+    <tr><td>PUT</td><td><code>/api/users/{id}/password</code></td><td>User</td><td>Change password</td></tr>
+</table>
+
+<h3>9.2 Jobs</h3>
+<table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>GET</td><td><code>/api/jobs</code></td><td>Public</td><td>Search & filter jobs (paginated)</td></tr>
+    <tr><td>GET</td><td><code>/api/jobs/{id}</code></td><td>Public</td><td>Get job details with employer info</td></tr>
+    <tr><td>POST</td><td><code>/api/jobs</code></td><td>Employer</td><td>Create new job listing</td></tr>
+    <tr><td>PUT</td><td><code>/api/jobs/{id}</code></td><td>Employer</td><td>Update job listing</td></tr>
+    <tr><td>DELETE</td><td><code>/api/jobs/{id}</code></td><td>Employer/Admin</td><td>Delete job listing</td></tr>
+    <tr><td>GET</td><td><code>/api/jobs/employer/{id}</code></td><td>Public</td><td>Get all jobs by employer</td></tr>
+    <tr><td>GET</td><td><code>/api/jobs/{id}/analytics</code></td><td>Employer</td><td>Job analytics (views, applications)</td></tr>
+</table>
+
+<h3>9.3 Applications</h3>
+<table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>POST</td><td><code>/api/applications</code></td><td>Job Seeker</td><td>Apply to a job</td></tr>
+    <tr><td>GET</td><td><code>/api/applications/seeker/{id}</code></td><td>Job Seeker</td><td>Get my applications</td></tr>
+    <tr><td>GET</td><td><code>/api/applications/employer/{id}</code></td><td>Employer</td><td>Get applications for my jobs</td></tr>
+    <tr><td>PUT</td><td><code>/api/applications/{id}/status</code></td><td>Employer</td><td>Update application status</td></tr>
+    <tr><td>DELETE</td><td><code>/api/applications/{id}</code></td><td>Employer/Admin</td><td>Delete application</td></tr>
+</table>
+
+<h3>9.4 Messaging</h3>
+<table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>GET</td><td><code>/api/messages/inbox/{userId}</code></td><td>User</td><td>Get inbox with unread counts</td></tr>
+    <tr><td>GET</td><td><code>/api/messages/conversation/{userId}</code></td><td>User</td><td>Get conversation with user</td></tr>
+    <tr><td>POST</td><td><code>/api/messages/send</code></td><td>User</td><td>Send a message</td></tr>
+    <tr><td>GET</td><td><code>/api/messages/unread-count/{userId}</code></td><td>User</td><td>Get unread message count</td></tr>
+</table>
+
+<h3>9.5 Resume</h3>
+<table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>POST</td><td><code>/api/resume/upload</code></td><td>User</td><td>Upload resume PDF</td></tr>
+    <tr><td>GET</td><td><code>/api/resume/user/{userId}</code></td><td>User</td><td>Get user's resumes</td></tr>
+    <tr><td>POST</td><td><code>/api/resume/analyze/{resumeId}</code></td><td>User</td><td>ATS analysis of resume</td></tr>
+    <tr><td>POST</td><td><code>/api/resume/match/{resumeId}/{jobId}</code></td><td>User</td><td>Match resume with job</td></tr>
+    <tr><td>DELETE</td><td><code>/api/resume/delete/{resumeId}</code></td><td>User</td><td>Delete resume</td></tr>
+</table>
+
+<h3>9.6 Admin</h3>
+<table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td>GET</td><td><code>/api/admin/users</code></td><td>Admin</td><td>List all users</td></tr>
+    <tr><td>GET</td><td><code>/api/admin/jobs</code></td><td>Admin</td><td>List all jobs</td></tr>
+    <tr><td>GET</td><td><code>/api/admin/stats</code></td><td>Admin</td><td>Platform statistics</td></tr>
+    <tr><td>PUT</td><td><code>/api/admin/users/{id}/role</code></td><td>Admin</td><td>Change user role</td></tr>
+    <tr><td>DELETE</td><td><code>/api/admin/users/{id}</code></td><td>Admin</td><td>Delete user</td></tr>
+    <tr><td>DELETE</td><td><code>/api/admin/jobs/{id}</code></td><td>Admin</td><td>Delete job</td></tr>
+</table>
+
+<!-- 10. TECHNOLOGY STACK -->
+<h1 id="tech">10. Technology Stack</h1>
+
+<h3>Backend</h3>
+<table>
+    <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td>Java</td><td>25</td><td>Programming language</td></tr>
+    <tr><td>Spring Boot</td><td>4.0.4</td><td>Application framework</td></tr>
+    <tr><td>Spring Security</td><td>7.0.6</td><td>Authentication & authorization</td></tr>
+    <tr><td>Spring Data JPA</td><td>—</td><td>Data access abstraction</td></tr>
+    <tr><td>Hibernate</td><td>7.2.7</td><td>ORM framework</td></tr>
+    <tr><td>MySQL Connector/J</td><td>—</td><td>Database driver</td></tr>
+    <tr><td>WebSocket (STOMP)</td><td>—</td><td>Real-time communication</td></tr>
+    <tr><td>JavaMailSender</td><td>—</td><td>Email notifications</td></tr>
+    <tr><td>Lombok</td><td>—</td><td>Boilerplate reduction</td></tr>
+    <tr><td>Maven</td><td>—</td><td>Build automation</td></tr>
+</table>
+
+<h3>Frontend</h3>
+<table>
+    <tr><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+    <tr><td>React</td><td>19</td><td>UI component library</td></tr>
+    <tr><td>Vite</td><td>7</td><td>Build tool & dev server</td></tr>
+    <tr><td>Tailwind CSS</td><td>—</td><td>Utility-first CSS framework</td></tr>
+    <tr><td>Zustand</td><td>—</td><td>State management</td></tr>
+    <tr><td>Axios</td><td>—</td><td>HTTP client</td></tr>
+    <tr><td>Lucide React</td><td>—</td><td>Icon library</td></tr>
+    <tr><td>Recharts</td><td>—</td><td>Charting library</td></tr>
+    <tr><td>React Router</td><td>—</td><td>Client-side routing</td></tr>
+</table>
+
+<!-- 11. SECURITY -->
+<h1 id="security">11. Security Features</h1>
+<div class="security-grid">
+    <div class="security-item">
+        <h4>Password Encryption</h4>
+        <p>BCrypt hashing via Spring Security PasswordEncoder — passwords never stored in plain text</p>
+    </div>
+    <div class="security-item">
+        <h4>JWT Authentication</h4>
+        <p>Stateless token-based auth with 24-hour expiration, signed with HS256 algorithm</p>
+    </div>
+    <div class="security-item">
+        <h4>Role-Based Access</h4>
+        <p>@PreAuthorize annotations enforce role checks on every protected endpoint</p>
+    </div>
+    <div class="security-item">
+        <h4>CORS Configuration</h4>
+        <p>Whitelisted origins restrict API access to authorized frontend domains only</p>
+    </div>
+    <div class="security-item">
+        <h4>Input Validation</h4>
+        <p>@Valid annotations and custom validators on all request bodies</p>
+    </div>
+    <div class="security-item">
+        <h4>SQL Injection Prevention</h4>
+        <p>All queries use JPA parameterized queries — no raw SQL concatenation</p>
+    </div>
+    <div class="security-item">
+        <h4>XSS Prevention</h4>
+        <p>React auto-escapes all output; no dangerouslySetInnerHTML used</p>
+    </div>
+    <div class="security-item">
+        <h4>File Upload Validation</h4>
+        <p>PDF-only restriction, file type and size validation before upload</p>
+    </div>
+</div>
+
+<!-- 12. FUTURE ENHANCEMENTS -->
+<h1 id="future">12. Future Enhancements</h1>
+<ul class="future-list">
+    <li><strong>OAuth2 Login</strong> — Google, GitHub, LinkedIn single sign-on</li>
+    <li><strong>AI Resume Parsing</strong> — LLM-based skill extraction and structured data parsing</li>
+    <li><strong>Video Interviews</strong> — Integrated video calling for remote interviews</li>
+    <li><strong>Push Notifications</strong> — Browser push and mobile push notifications</li>
+    <li><strong>Mobile App</strong> — React Native companion app for iOS and Android</li>
+    <li><strong>Advanced Analytics</strong> — Machine learning-based job-candidate matching</li>
+    <li><strong>Multi-language Support</strong> — Internationalization (i18n) for global reach</li>
+    <li><strong>Payment Integration</strong> — Premium job postings and featured listings</li>
+    <li><strong>Candidate Scoring</strong> — AI-based candidate ranking for employers</li>
+    <li><strong>Interview Scheduling</strong> — Calendar integration with Google/Outlook</li>
+    <li><strong>Application Status Timeline</strong> — Visual timeline of every status change</li>
+    <li><strong>Employer Dashboard</strong> — Aggregate analytics across all job postings</li>
+</ul>
+
+</body>
+</html>
