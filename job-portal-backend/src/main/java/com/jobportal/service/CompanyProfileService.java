@@ -21,6 +21,8 @@ import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
+import java.util.Set;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -28,6 +30,8 @@ public class CompanyProfileService {
 
     private final CompanyProfileRepository companyProfileRepository;
     private final UserRepository userRepository;
+
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".gif", ".webp");
 
     @Value("${app.company.upload-dir}")
     private String uploadDir;
@@ -77,13 +81,23 @@ public class CompanyProfileService {
             throw new CustomException("Please select a file", HttpStatus.BAD_REQUEST);
         }
 
+        String originalFilename = file.getOriginalFilename();
+        String extension = getFileExtension(originalFilename).toLowerCase();
+        if (!ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
+            throw new CustomException("Only image files are allowed (PNG, JPG, JPEG, GIF, WEBP)", HttpStatus.BAD_REQUEST);
+        }
+
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new CustomException("Invalid file content type. Only image files are allowed", HttpStatus.BAD_REQUEST);
+        }
+
         try {
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
             }
 
-            String extension = getFileExtension(file.getOriginalFilename());
             String fileName = imageType + "_" + userId + "_" + UUID.randomUUID() + extension;
             Path filePath = uploadPath.resolve(fileName);
             

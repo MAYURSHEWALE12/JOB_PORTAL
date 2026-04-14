@@ -8,6 +8,7 @@ import com.jobportal.security.JwtUtil;
 import com.jobportal.service.EmailService;
 import com.jobportal.service.NotificationService;
 import com.jobportal.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,7 +22,7 @@ import java.util.Map;
 @RequestMapping("/auth")              // ✅ was "/api/auth" — context-path already adds /api
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Authentication", description = "User registration, login, and token management")
 public class AuthController {
 
     private final UserService userService;
@@ -182,18 +183,24 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/change-password/{userId}")
-    public ResponseEntity<?> changePassword(
-            @PathVariable Long userId,
-            @RequestParam String currentPassword,
-            @RequestParam String newPassword) {
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestHeader("Authorization") String token,
+                                            @RequestBody Map<String, String> body) {
         try {
+            String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+            if (!jwtUtil.validateToken(jwtToken))
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(createErrorResponse("Token is invalid or expired"));
+
+            Long userId = jwtUtil.extractUserId(jwtToken);
+            String currentPassword = body.get("currentPassword");
+            String newPassword = body.get("newPassword");
+
             if (currentPassword == null || currentPassword.isEmpty())
                 return ResponseEntity.badRequest().body(createErrorResponse("Current password is required"));
             if (newPassword == null || newPassword.length() < 6)
                 return ResponseEntity.badRequest().body(createErrorResponse("New password must be at least 6 characters"));
 
-            // ✅ changePassword returns void — don't assign to User
             userService.changePassword(userId, currentPassword, newPassword);
 
             Map<String, Object> response = new HashMap<>();

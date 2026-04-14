@@ -1,11 +1,13 @@
 package com.jobportal.controller;
 
 import com.jobportal.dto.QuizDTO;
+import com.jobportal.dto.QuizResultDTO;
 import com.jobportal.dto.QuizSubmissionDTO;
 import com.jobportal.dto.QuizViewDTO;
 import com.jobportal.entity.QuizResult;
 
 import com.jobportal.service.QuizService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/quizzes")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Quizzes", description = "Assessment creation and submission")
 public class QuizController {
 
     private final QuizService quizService;
@@ -45,17 +47,37 @@ public class QuizController {
      * POST /api/quizzes/submit
      */
     @PostMapping("/submit")
-    public ResponseEntity<QuizResult> submitQuiz(@RequestBody QuizSubmissionDTO submission) {
+    public ResponseEntity<QuizResultDTO> submitQuiz(@RequestBody QuizSubmissionDTO submission) {
         log.info("Submitting quiz for application {}", submission.getApplicationId());
-        return ResponseEntity.ok(quizService.submitQuiz(submission));
+        QuizResult result = quizService.submitQuiz(submission);
+        QuizResultDTO dto = QuizResultDTO.builder()
+                .id(result.getId())
+                .score(result.getScore())
+                .totalQuestions(result.getTotalQuestions())
+                .correctAnswers(result.getCorrectAnswers())
+                .passed(result.isPassed())
+                .completedAt(result.getCompletedAt())
+                .build();
+        return ResponseEntity.ok(dto);
     }
 
     /**
      * GET /api/quizzes/result/{applicationId}
      */
     @GetMapping("/result/{applicationId}")
-    public ResponseEntity<QuizResult> getResult(@PathVariable Long applicationId) {
+    public ResponseEntity<QuizResultDTO> getResult(@PathVariable Long applicationId) {
         QuizResult result = quizService.getResult(applicationId);
-        return ResponseEntity.ok(result); // Return null in body with 200 OK
+        if (result == null) {
+            return ResponseEntity.ok(null);
+        }
+        QuizResultDTO dto = QuizResultDTO.builder()
+                .id(result.getId())
+                .score(result.getScore())
+                .totalQuestions(result.getTotalQuestions())
+                .correctAnswers(result.getCorrectAnswers())
+                .passed(result.isPassed())
+                .completedAt(result.getCompletedAt())
+                .build();
+        return ResponseEntity.ok(dto);
     }
 }

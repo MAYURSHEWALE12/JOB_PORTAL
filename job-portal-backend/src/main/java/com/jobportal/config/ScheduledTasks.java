@@ -1,5 +1,6 @@
 package com.jobportal.config;
 
+import com.jobportal.service.InterviewService;
 import com.jobportal.service.JobService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class ScheduledTasks {
 
     private final JobService jobService;
+    private final InterviewService interviewService;
 
     @Scheduled(cron = "0 0 2 * * ?")
     public void expireJobs() {
@@ -25,6 +27,16 @@ public class ScheduledTasks {
             }
         } catch (Exception e) {
             log.error("Error in scheduled job expiry task: {}", e.getMessage(), e);
+        }
+    }
+
+    @Scheduled(cron = "0 */30 * * * ?")
+    public void sendInterviewReminders() {
+        log.info("Running scheduled interview reminder task...");
+        try {
+            interviewService.sendReminders();
+        } catch (Exception e) {
+            log.error("Error in scheduled interview reminder task: {}", e.getMessage(), e);
         }
     }
 }

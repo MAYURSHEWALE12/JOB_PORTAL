@@ -9,6 +9,9 @@ import com.jobportal.repository.JobApplicationRepository;
 import com.jobportal.repository.ResumeAnalysisRepository;
 import com.jobportal.repository.ResumeRepository;
 import com.jobportal.repository.UserRepository;
+import com.jobportal.security.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,27 +37,28 @@ import java.util.stream.Collectors;
 @RequestMapping("/resume")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173"})
+@Tag(name = "Resumes", description = "Resume upload, preview, download, and management")
 public class ResumeController {
 
     private final ResumeRepository resumeRepository;
     private final UserRepository userRepository;
     private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final JobApplicationRepository jobApplicationRepository;
+    private final SecurityUtil securityUtil;
 
     @Value("${app.resume.upload-dir}")
     private String uploadDir;
 
     /**
-     * POST /api/resume/upload?userId=1&name=My Resume
-     * Upload a new resume PDF
+     * POST /api/resume/upload?name=My Resume
      */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadResume(
-            @RequestParam Long userId,
             @RequestParam(defaultValue = "My Resume") String name,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
 
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -64,6 +68,10 @@ public class ResumeController {
         String originalFilename = file.getOriginalFilename();
         if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
             throw new CustomException("Only PDF files are allowed", HttpStatus.BAD_REQUEST);
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            throw new CustomException("Invalid file content type. Only PDF files are allowed", HttpStatus.BAD_REQUEST);
         }
         if (file.getSize() > 10 * 1024 * 1024) {
             throw new CustomException("File size must be less than 10MB", HttpStatus.BAD_REQUEST);
@@ -109,11 +117,11 @@ public class ResumeController {
     }
 
     /**
-     * GET /api/resume/list?userId=1
-     * Get all resumes for a user
+     * GET /api/resume/list
      */
     @GetMapping("/list")
-    public ResponseEntity<List<ResumeDTO>> getResumes(@RequestParam Long userId) {
+    public ResponseEntity<List<ResumeDTO>> getResumes(HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         List<ResumeDTO> dtos = resumeRepository.findByUserOrderByCreatedAtDesc(user)
@@ -124,11 +132,11 @@ public class ResumeController {
     }
 
     /**
-     * GET /api/resume/check?userId=1
-     * Check if user has any resumes (used by ProfilePage)
+     * GET /api/resume/check
      */
     @GetMapping("/check")
-    public ResponseEntity<Map<String, Object>> checkResumes(@RequestParam Long userId) {
+    public ResponseEntity<Map<String, Object>> checkResumes(HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         List<Resume> resumes = resumeRepository.findByUserOrderByCreatedAtDesc(user);
@@ -142,16 +150,77 @@ public class ResumeController {
     }
 
     /**
-     * GET /api/resume/download/{resumeId}
-     * Download a specific resume
+     * GET /api/resume/preview/{resumeId}?token=xxx
      */
-    @GetMapping("/download/{resumeId}")
-    public ResponseEntity<Resource> downloadResume(@PathVariable Long resumeId) {
+    @GetMapping("/preview/{resumeId}")
+    public ResponseEntity<Resource> previewResume(@PathVariable Long resumeId,
+                                                   @RequestParam(required = false) String token,
+                                                   HttpServletRequest request) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
 
+        Long currentUserId;
+        if (token != null && !token.isEmpty()) {
+            currentUserId = securityUtil.getUserIdFromToken(token);
+        } else {
+            currentUserId = securityUtil.getCurrentUserId(request);
+        }
+
+        boolean isOwner = resume.getUser().getId().equals(currentUserId);
+        boolean isEmployer = false;
+        if (!isOwner) {
+            isEmployer = jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
+        }
+        if (!isOwner && !isEmployer) {
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        }
+
         try {
-            Path filePath = Paths.get(uploadDir).resolve(resume.getFileName());
+            Path filePath = Paths.get(uploadDir).resolve(resume.getFileName()).normalize();
+            if (!filePath.startsWith(Paths.get(uploadDir).normalize())) {
+                throw new CustomException("Invalid file path", HttpStatus.BAD_REQUEST);
+            }
+            Resource resource = new UrlResource(filePath.toUri());
+
+            if (!resource.exists() || !resource.isReadable()) {
+                throw new CustomException("Resume file not found", HttpStatus.NOT_FOUND);
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .header(HttpHeaders.CONTENT_DISPOSITION,
+                            "inline; filename=\"" + resume.getName().replaceAll(" ", "_") + ".pdf\"")
+                    .body(resource);
+
+        } catch (MalformedURLException e) {
+            throw new CustomException("Failed to preview resume", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * GET /api/resume/download/{resumeId}
+     */
+    @GetMapping("/download/{resumeId}")
+    public ResponseEntity<Resource> downloadResume(@PathVariable Long resumeId, HttpServletRequest request) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
+
+        Long currentUserId = securityUtil.getCurrentUserId(request);
+
+        boolean isOwner = resume.getUser().getId().equals(currentUserId);
+        boolean isEmployer = false;
+        if (!isOwner) {
+            isEmployer = jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
+        }
+        if (!isOwner && !isEmployer) {
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        }
+
+        try {
+            Path filePath = Paths.get(uploadDir).resolve(resume.getFileName()).normalize();
+            if (!filePath.startsWith(Paths.get(uploadDir).normalize())) {
+                throw new CustomException("Invalid file path", HttpStatus.BAD_REQUEST);
+            }
             Resource resource = new UrlResource(filePath.toUri());
 
             if (!resource.exists() || !resource.isReadable()) {
@@ -171,25 +240,21 @@ public class ResumeController {
 
     /**
      * DELETE /api/resume/delete/{resumeId}
-     * Delete a specific resume
      */
     @DeleteMapping("/delete/{resumeId}")
     @Transactional
-    public ResponseEntity<?> deleteResume(@PathVariable Long resumeId) {
+    public ResponseEntity<?> deleteResume(@PathVariable Long resumeId, HttpServletRequest request) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
 
-        try {
-            // Clear resume reference from job applications before deleting
-            List<com.jobportal.entity.JobApplication> apps = jobApplicationRepository.findAll();
-            for (com.jobportal.entity.JobApplication app : apps) {
-                if (app.getSelectedResume() != null && app.getSelectedResume().getId().equals(resumeId)) {
-                    app.setSelectedResume(null);
-                    jobApplicationRepository.save(app);
-                }
-            }
+        Long currentUserId = securityUtil.getCurrentUserId(request);
+        if (!resume.getUser().getId().equals(currentUserId)) {
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        }
 
-            // Delete related analyses
+        try {
+            jobApplicationRepository.clearResumeFromApplication(resume);
+
             resumeAnalysisRepository.deleteAll(resumeAnalysisRepository.findByResumeOrderByAnalyzedAtDesc(resume));
 
             Path filePath = Paths.get(uploadDir).resolve(resume.getFileName());
@@ -203,14 +268,20 @@ public class ResumeController {
 
     /**
      * PUT /api/resume/rename/{resumeId}?name=New Name
-     * Rename a resume
      */
     @PutMapping("/rename/{resumeId}")
     public ResponseEntity<ResumeDTO> renameResume(
             @PathVariable Long resumeId,
-            @RequestParam String name) {
+            @RequestParam String name,
+            HttpServletRequest request) {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
+
+        Long currentUserId = securityUtil.getCurrentUserId(request);
+        if (!resume.getUser().getId().equals(currentUserId)) {
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        }
+
         resume.setName(name);
         return ResponseEntity.ok(ResumeDTO.from(resumeRepository.save(resume)));
     }

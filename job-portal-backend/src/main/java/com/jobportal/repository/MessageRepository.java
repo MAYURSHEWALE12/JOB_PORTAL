@@ -56,4 +56,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
 
     // Delete all messages where user is sender or receiver
     void deleteBySenderOrReceiver(User sender, User receiver);
+
+    // Get latest message per conversation partner in a single query
+    @Query("SELECT m FROM Message m WHERE m.id IN (" +
+            "SELECT MAX(m2.id) FROM Message m2 " +
+            "WHERE (m2.sender = :user OR m2.receiver = :user) " +
+            "GROUP BY " +
+            "CASE WHEN m2.sender = :user THEN m2.receiver.id ELSE m2.sender.id END)")
+    List<Message> findLatestMessagesPerPartner(@Param("user") User user);
 }

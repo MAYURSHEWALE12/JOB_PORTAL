@@ -4,6 +4,7 @@ import com.jobportal.entity.JobApplication;
 import com.jobportal.entity.ApplicationStatus;
 import com.jobportal.entity.User;
 import com.jobportal.entity.Job;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -19,32 +20,51 @@ import java.util.Optional;
 @Repository
 public interface JobApplicationRepository extends JpaRepository<JobApplication, Long> {
 
-    // Get all applications by a jobseeker
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker")
     List<JobApplication> findByJobSeeker(User jobSeeker);
+
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker")
     Page<JobApplication> findByJobSeeker(User jobSeeker, Pageable pageable);
 
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job")
     List<JobApplication> findByJob(Job job);
+
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job")
     Page<JobApplication> findByJob(Job job, Pageable pageable);
 
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE j.employer = :employer")
     List<JobApplication> findByJobEmployer(User employer);
+
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE j.employer = :employer")
     Page<JobApplication> findByJobEmployer(User employer, Pageable pageable);
 
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job AND a.jobSeeker = :jobSeeker")
     Optional<JobApplication> findByJobAndJobSeeker(Job job, User jobSeeker);
 
     boolean existsByJobAndJobSeeker(Job job, User jobSeeker);
+    boolean existsByJobAndJobSeekerAndStatusNot(Job job, User jobSeeker, ApplicationStatus status);
+    
+    @Query("SELECT COUNT(a) > 0 FROM JobApplication a WHERE (a.jobSeeker = :u1 AND a.job.employer = :u2) OR (a.jobSeeker = :u2 AND a.job.employer = :u1)")
+    boolean existsRelationship(@Param("u1") User u1, @Param("u2") User u2);
 
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker AND a.status = :status")
     List<JobApplication> findByJobSeekerAndStatus(User jobSeeker, ApplicationStatus status);
+
+    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker AND a.status = :status")
     Page<JobApplication> findByJobSeekerAndStatus(User jobSeeker, ApplicationStatus status, Pageable pageable);
 
-    // Delete all applications by a jobseeker
     void deleteByJobSeeker(User jobSeeker);
 
-    // Delete all applications for a job
     void deleteByJob(Job job);
 
-    // Set resume reference to null for all applications using this resume
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional
     @Query("UPDATE JobApplication a SET a.selectedResume = null WHERE a.selectedResume = :resume")
     void clearResumeFromApplication(@Param("resume") com.jobportal.entity.Resume resume);
+
+    @Query("SELECT COUNT(a) > 0 FROM JobApplication a WHERE a.selectedResume = :resume AND a.job.employer.id = :employerId")
+    boolean existsByResumeAndJobEmployer(@Param("resume") com.jobportal.entity.Resume resume, @Param("employerId") Long employerId);
+
+    @Query("SELECT a FROM JobApplication a JOIN FETCH a.job j JOIN FETCH j.employer JOIN FETCH a.jobSeeker WHERE a.id = :id")
+    Optional<JobApplication> findByIdWithDetails(@Param("id") Long id);
 }

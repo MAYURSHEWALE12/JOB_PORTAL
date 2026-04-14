@@ -1,7 +1,10 @@
 package com.jobportal.controller;
 
 import com.jobportal.entity.CompanyProfile;
+import com.jobportal.security.SecurityUtil;
 import com.jobportal.service.CompanyProfileService;
+import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -21,42 +24,52 @@ import java.net.MalformedURLException;
 @RequestMapping("/companies")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Companies", description = "Company profile and branding")
 public class CompanyProfileController {
 
     @Value("${app.company.upload-dir}")
     private String uploadDir;
 
     private final CompanyProfileService companyProfileService;
+    private final SecurityUtil securityUtil;
 
     @GetMapping
     public ResponseEntity<List<CompanyProfile>> getAllCompanies() {
         return ResponseEntity.ok(companyProfileService.getAllCompanies());
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<CompanyProfile> getCompanyByUser(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<CompanyProfile> getCompanyByUser(HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         return ResponseEntity.ok(companyProfileService.getCompanyByUser(userId));
     }
 
-    @PutMapping("/user/{userId}")
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<CompanyProfile> getCompanyByUserId(@PathVariable Long userId) {
+        return ResponseEntity.ok(companyProfileService.getCompanyByUser(userId));
+    }
+
+    @PutMapping("/user")
     public ResponseEntity<CompanyProfile> updateCompanyProfile(
-            @PathVariable Long userId,
-            @RequestBody CompanyProfile profileData) {
+            @RequestBody CompanyProfile profileData,
+            HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         return ResponseEntity.ok(companyProfileService.updateCompanyProfile(userId, profileData));
     }
 
-    @PostMapping("/user/{userId}/upload-logo")
+    @PostMapping("/user/upload-logo")
     public ResponseEntity<CompanyProfile> uploadLogo(
-            @PathVariable Long userId,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         return ResponseEntity.ok(companyProfileService.uploadImage(userId, file, "logo"));
     }
 
-    @PostMapping("/user/{userId}/upload-banner")
+    @PostMapping("/user/upload-banner")
     public ResponseEntity<CompanyProfile> uploadBanner(
-            @PathVariable Long userId,
-            @RequestParam("file") MultipartFile file) {
+            @RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         return ResponseEntity.ok(companyProfileService.uploadImage(userId, file, "banner"));
     }
 
@@ -64,7 +77,10 @@ public class CompanyProfileController {
     @GetMapping("/image/{fileName:.+}")
     public ResponseEntity<Resource> getImage(@PathVariable String fileName) {
         try {
-            Path filePath = Paths.get(uploadDir).resolve(fileName);
+            Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
+            if (!filePath.startsWith(Paths.get(uploadDir).normalize())) {
+                return ResponseEntity.badRequest().build();
+            }
             Resource resource = new UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {

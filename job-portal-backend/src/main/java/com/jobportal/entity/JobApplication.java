@@ -1,6 +1,7 @@
 package com.jobportal.entity;
 
 import jakarta.persistence.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -11,7 +12,13 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "job_applications")
+@Table(name = "job_applications", indexes = {
+    @Index(name = "idx_app_job", columnList = "job_id"),
+    @Index(name = "idx_app_jobseeker", columnList = "jobseeker_id"),
+    @Index(name = "idx_app_jobseeker_status", columnList = "jobseeker_id, status"),
+    @Index(name = "idx_app_job_employer", columnList = "job_id, status"),
+    @Index(name = "idx_app_resume", columnList = "resume_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,12 +29,12 @@ public class JobApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "job_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Job job;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jobseeker_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User jobSeeker;
@@ -35,8 +42,8 @@ public class JobApplication {
     @Column(columnDefinition = "LONGTEXT")
     private String coverLetter;
 
-    @ManyToOne
-    @JoinColumn(name = "resume_id")          // ✅ new field
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "resume_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Resume selectedResume;
 
@@ -49,17 +56,27 @@ public class JobApplication {
     @Column(columnDefinition = "LONGTEXT")
     private String feedback;
 
+    @Column(columnDefinition = "LONGTEXT")
+    private String offerLetterContent;
+
+    private LocalDateTime offerSentAt;
+
+    private LocalDateTime offerAcceptedAt;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime appliedAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
 
+    private LocalDateTime statusUpdatedAt;
+
     @PrePersist
     protected void onCreate() {
         appliedAt  = LocalDateTime.now();
         updatedAt  = LocalDateTime.now();
         status     = ApplicationStatus.PENDING;
+        statusUpdatedAt = LocalDateTime.now();
     }
 
     @PreUpdate

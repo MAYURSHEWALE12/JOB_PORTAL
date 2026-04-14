@@ -6,6 +6,7 @@ import com.jobportal.security.SecurityUtil;
 import com.jobportal.service.JobService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +20,7 @@ import java.util.Map;
 @RequestMapping("/jobs")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Jobs", description = "Job posting CRUD, search, and analytics")
 public class JobController {
 
     private final JobService jobService;

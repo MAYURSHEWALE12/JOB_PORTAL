@@ -2,12 +2,17 @@ package com.jobportal.security;
 
 import com.jobportal.entity.UserRole;
 import com.jobportal.exception.CustomException;
+import com.jobportal.security.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 @Component
+@RequiredArgsConstructor
 public class SecurityUtil {
+
+    private final JwtUtil jwtUtil;
 
     public Long getCurrentUserId(HttpServletRequest request) {
         Object userId = request.getAttribute("userId");
@@ -15,6 +20,13 @@ public class SecurityUtil {
             throw new CustomException("Authentication required", HttpStatus.UNAUTHORIZED);
         }
         return (Long) userId;
+    }
+
+    public Long getUserIdFromToken(String token) {
+        if (!jwtUtil.validateToken(token)) {
+            throw new CustomException("Invalid or expired token", HttpStatus.UNAUTHORIZED);
+        }
+        return jwtUtil.extractUserId(token);
     }
 
     public UserRole getCurrentUserRole(HttpServletRequest request) {

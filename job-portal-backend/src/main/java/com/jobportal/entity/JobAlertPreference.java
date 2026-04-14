@@ -9,7 +9,11 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "job_alert_preferences")
+@Table(name = "job_alert_preferences", indexes = {
+    @Index(name = "idx_alert_pref_user", columnList = "user_id"),
+    @Index(name = "idx_alert_pref_active", columnList = "is_active"),
+    @Index(name = "idx_alert_pref_user_active", columnList = "user_id, is_active")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

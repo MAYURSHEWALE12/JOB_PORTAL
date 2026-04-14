@@ -13,6 +13,9 @@ import com.jobportal.repository.SavedJobRepository;
 import com.jobportal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -54,11 +57,13 @@ public class JobService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "jobDetail", key = "#id")
     public Job getJobById(Long id) {
         return jobRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Job", "id", id));
     }
 
+    @CacheEvict(value = "jobDetail", key = "#id")
     public Job getJobByIdWithViewCount(Long id) {
         Job job = jobRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Job", "id", id));

@@ -13,7 +13,9 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "quizzes")
+@Table(name = "quizzes", indexes = {
+    @Index(name = "idx_quiz_job", columnList = "job_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -40,7 +42,7 @@ public class Quiz {
     private List<Question> questions;
 
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Job job;

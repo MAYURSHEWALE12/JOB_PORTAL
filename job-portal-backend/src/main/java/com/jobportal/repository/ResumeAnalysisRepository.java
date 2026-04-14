@@ -29,4 +29,8 @@ public interface ResumeAnalysisRepository extends JpaRepository<ResumeAnalysis, 
 
     // Delete all analyses for a user
     void deleteByUserId(Long userId);
+
+    // Check if a resume has any analysis linked to a job posted by an employer
+    @Query("SELECT COUNT(ra) > 0 FROM ResumeAnalysis ra WHERE ra.resume.id = :resumeId AND ra.job.employer.id = :employerId")
+    boolean existsByResumeIdAndJobEmployerId(@Param("resumeId") Long resumeId, @Param("employerId") Long employerId);
 }

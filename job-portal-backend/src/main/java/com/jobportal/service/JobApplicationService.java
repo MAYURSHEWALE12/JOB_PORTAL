@@ -18,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,6 +32,7 @@ public class JobApplicationService {
     private final UserRepository           userRepository;
     private final ResumeRepository         resumeRepository;
     private final NotificationService      notificationService;
+    private final EmailService             emailService;
 
     /**
      * Apply for a job
@@ -56,8 +58,8 @@ public class JobApplicationService {
             throw new CustomException("This job is no longer accepting applications", HttpStatus.BAD_REQUEST);
         }
 
-        // Check if already applied
-        if (applicationRepository.existsByJobAndJobSeeker(job, jobSeeker)) {
+        // Check if already applied (ignoring withdrawn ones)
+        if (applicationRepository.existsByJobAndJobSeekerAndStatusNot(job, jobSeeker, ApplicationStatus.WITHDRAWN)) {
             throw new CustomException("You have already applied for this job", HttpStatus.CONFLICT);
         }
 
@@ -201,6 +203,7 @@ public class JobApplicationService {
         }
 
         application.setStatus(newStatus);
+        application.setStatusUpdatedAt(java.time.LocalDateTime.now());
         if (rating != null) application.setRating(rating);
         if (feedback != null) application.setFeedback(feedback);
         
@@ -215,6 +218,199 @@ public class JobApplicationService {
     }
 
     /**
+     * Get application by ID
+     */
+    @Transactional(readOnly = true)
+    public JobApplication getApplicationById(Long applicationId) {
+        return applicationRepository.findByIdWithDetails(applicationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Application", "id", applicationId));
+    }
+
+    /**
+     * Send offer letter to a candidate
+     */
+    public JobApplication sendOfferLetter(Long applicationId,
+                                          Long employerId,
+                                          String offerContent,
+                                          String subject,
+                                          Double salary,
+                                          String startDate) {
+        JobApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Application", "id", applicationId));
+
+        if (!application.getJob().getEmployer().getId().equals(employerId)) {
+            throw new CustomException(
+                    "You can only send offers for your own jobs", HttpStatus.FORBIDDEN);
+        }
+
+        if (application.getStatus() != ApplicationStatus.SHORTLISTED &&
+            application.getStatus() != ApplicationStatus.REVIEWED &&
+            application.getStatus() != ApplicationStatus.INTERVIEWING) {
+            throw new CustomException(
+                    "Can only send offer to candidates in Screening, Shortlisted, or Interviewing stage", HttpStatus.BAD_REQUEST);
+        }
+
+        String content = offerContent != null ? offerContent : buildDefaultOfferLetter(application, salary, startDate);
+        application.setOfferLetterContent(content);
+        application.setOfferSentAt(LocalDateTime.now());
+        application.setStatus(ApplicationStatus.OFFERED);
+        application.setStatusUpdatedAt(LocalDateTime.now());
+        JobApplication updated = applicationRepository.save(application);
+
+        String message = String.format("You have received an offer letter for '%s'!", 
+                application.getJob().getTitle());
+        notificationService.sendNotification(application.getJobSeeker().getId(), "Job Offer Received", message, "OFFER", application.getId(), "APPLICATION");
+
+        emailService.sendOfferLetterEmail(
+                application.getJobSeeker().getEmail(),
+                application.getJobSeeker().getFirstName(),
+                application.getJob().getTitle(),
+                getCompanyName(application.getJob()),
+                content,
+                subject != null ? subject : "Job Offer: " + application.getJob().getTitle()
+        );
+
+        return updated;
+    }
+
+    /**
+     * Accept an offer letter
+     */
+    public JobApplication acceptOffer(Long applicationId, Long jobSeekerId) {
+        JobApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Application", "id", applicationId));
+
+        if (!application.getJobSeeker().getId().equals(jobSeekerId)) {
+            throw new CustomException(
+                    "You can only accept your own offers", HttpStatus.FORBIDDEN);
+        }
+
+        if (application.getStatus() != ApplicationStatus.OFFERED) {
+            throw new CustomException(
+                    "No pending offer to accept", HttpStatus.BAD_REQUEST);
+        }
+
+        application.setStatus(ApplicationStatus.ACCEPTED);
+        application.setStatusUpdatedAt(LocalDateTime.now());
+        application.setOfferAcceptedAt(LocalDateTime.now());
+        JobApplication updated = applicationRepository.save(application);
+
+        String message = String.format("%s %s has ACCEPTED your offer for '%s'!",
+                application.getJobSeeker().getFirstName(), application.getJobSeeker().getLastName(),
+                application.getJob().getTitle());
+        notificationService.sendNotification(application.getJob().getEmployer().getId(), "Offer Accepted", message, "OFFER", application.getId(), "APPLICATION");
+
+        emailService.sendOfferAcceptedEmail(
+                application.getJob().getEmployer().getEmail(),
+                application.getJob().getEmployer().getFirstName(),
+                application.getJobSeeker().getFirstName() + " " + application.getJobSeeker().getLastName(),
+                application.getJob().getTitle(),
+                getCompanyName(application.getJob())
+        );
+
+        return updated;
+    }
+
+    /**
+     * Reject an offer letter
+     */
+    public JobApplication rejectOffer(Long applicationId, Long jobSeekerId) {
+        JobApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Application", "id", applicationId));
+
+        if (!application.getJobSeeker().getId().equals(jobSeekerId)) {
+            throw new CustomException(
+                    "You can only reject your own offers", HttpStatus.FORBIDDEN);
+        }
+
+        if (application.getStatus() != ApplicationStatus.OFFERED) {
+            throw new CustomException(
+                    "No pending offer to reject", HttpStatus.BAD_REQUEST);
+        }
+
+        application.setStatus(ApplicationStatus.REJECTED);
+        application.setStatusUpdatedAt(LocalDateTime.now());
+        JobApplication updated = applicationRepository.save(application);
+
+        String message = String.format("%s %s has declined your offer for '%s'.",
+                application.getJobSeeker().getFirstName(), application.getJobSeeker().getLastName(),
+                application.getJob().getTitle());
+        notificationService.sendNotification(application.getJob().getEmployer().getId(), "Offer Declined", message, "OFFER", application.getId(), "APPLICATION");
+
+        return updated;
+    }
+
+    private String buildDefaultOfferLetter(JobApplication application, Double salary, String startDate) {
+        Job job = application.getJob();
+        String jobTitle = job.getTitle();
+        String company = getCompanyName(job);
+        String location = job.getLocation();
+        String sal = salary != null ? String.format("₹%,.0f per annum", salary) :
+                (job.getSalaryMin() != null && job.getSalaryMax() != null)
+                        ? String.format("₹%,.0f - ₹%,.0f per annum", job.getSalaryMin(), job.getSalaryMax())
+                        : "As discussed";
+        String start = startDate != null ? startDate : "To be confirmed";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("OFFER LETTER\n\n");
+        sb.append(String.format("Date: %s\n", java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy"))));
+        sb.append(String.format("To: %s %s\n", application.getJobSeeker().getFirstName(), application.getJobSeeker().getLastName()));
+        sb.append(String.format("\nDear %s,\n\n", application.getJobSeeker().getFirstName()));
+        sb.append(String.format("We are pleased to offer you the position of %s at %s, based in %s.\n\n", jobTitle, company, location));
+
+        sb.append("POSITION DETAILS\n");
+        sb.append(String.format("- Job Title: %s\n", jobTitle));
+        sb.append(String.format("- Employment Type: %s\n", job.getJobType() != null ? job.getJobType() : "Full-time"));
+        sb.append(String.format("- Salary: %s\n", sal));
+        sb.append(String.format("- Start Date: %s\n", start));
+        sb.append(String.format("- Location: %s\n", location));
+        if (job.getPositionsAvailable() != null) {
+            sb.append(String.format("- Positions Available: %d\n", job.getPositionsAvailable()));
+        }
+        if (job.getExperienceRequired() != null) {
+            sb.append(String.format("- Experience Required: %s\n", job.getExperienceRequired()));
+        }
+        if (job.getEducationRequired() != null) {
+            sb.append(String.format("- Education Required: %s\n", job.getEducationRequired()));
+        }
+        if (job.getSkills() != null && !job.getSkills().isBlank()) {
+            sb.append(String.format("- Key Skills: %s\n", job.getSkills()));
+        }
+
+        if (job.getDescription() != null && !job.getDescription().isBlank()) {
+            sb.append("\nJOB DESCRIPTION\n");
+            sb.append(job.getDescription()).append("\n");
+        }
+
+        if (job.getRequirements() != null && !job.getRequirements().isBlank()) {
+            sb.append("\nREQUIREMENTS\n");
+            sb.append(job.getRequirements()).append("\n");
+        }
+
+        sb.append("\nThis offer is contingent upon successful completion of all pre-employment requirements.\n");
+        sb.append("Please review this offer and respond at your earliest convenience.\n\n");
+        sb.append("We look forward to welcoming you to our team!\n\n");
+        sb.append(String.format("Best regards,\n%s\n%s\n", company, company));
+
+        return sb.toString();
+    }
+
+    private String getCompanyName(Job job) {
+        if (job.getEmployer() != null && job.getEmployer().getCompanyProfile() != null) {
+            String name = job.getEmployer().getCompanyProfile().getCompanyName();
+            if (name != null && !name.isBlank()) return name;
+        }
+        if (job.getEmployer() != null) {
+            return job.getEmployer().getFirstName() + " " + job.getEmployer().getLastName();
+        }
+        return "Unknown Company";
+    }
+
+    /**
      * Check if jobseeker already applied for a job
      */
     @Transactional(readOnly = true)
@@ -223,7 +419,7 @@ public class JobApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId));
         User jobSeeker = userRepository.findById(jobSeekerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", jobSeekerId));
-        return applicationRepository.existsByJobAndJobSeeker(job, jobSeeker);
+        return applicationRepository.existsByJobAndJobSeekerAndStatusNot(job, jobSeeker, ApplicationStatus.WITHDRAWN);
     }
 
     private PageResponse<JobApplication> toPageResponse(Page<JobApplication> page) {

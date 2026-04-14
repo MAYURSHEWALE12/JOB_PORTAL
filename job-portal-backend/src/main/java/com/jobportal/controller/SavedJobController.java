@@ -8,6 +8,9 @@ import com.jobportal.exception.ResourceNotFoundException;
 import com.jobportal.repository.JobRepository;
 import com.jobportal.repository.SavedJobRepository;
 import com.jobportal.repository.UserRepository;
+import com.jobportal.security.SecurityUtil;
+import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,21 +26,23 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = {"http://localhost:5173", "http://127.0.0.1:5173"})
+@Tag(name = "Saved Jobs", description = "Job bookmarking")
 public class SavedJobController {
 
     private final SavedJobRepository savedJobRepository;
     private final JobRepository jobRepository;
     private final UserRepository userRepository;
+    private final SecurityUtil securityUtil;
 
     /**
-     * POST /api/saved-jobs/save?userId=1&jobId=2
-     * Save a job
+     * POST /api/saved-jobs/save?jobId=2
      */
     @PostMapping("/save")
     public ResponseEntity<?> saveJob(
-            @RequestParam Long userId,
-            @RequestParam Long jobId) {
+            @RequestParam Long jobId,
+            HttpServletRequest request) {
 
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -60,15 +65,15 @@ public class SavedJobController {
     }
 
     /**
-     * DELETE /api/saved-jobs/unsave?userId=1&jobId=2
-     * Remove saved job
+     * DELETE /api/saved-jobs/unsave?jobId=2
      */
     @DeleteMapping("/unsave")
     @Transactional
     public ResponseEntity<?> unsaveJob(
-            @RequestParam Long userId,
-            @RequestParam Long jobId) {
+            @RequestParam Long jobId,
+            HttpServletRequest request) {
 
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
@@ -85,25 +90,26 @@ public class SavedJobController {
     }
 
     /**
-     * GET /api/saved-jobs?userId=1
-     * Get all saved jobs for a user
+     * GET /api/saved-jobs
      */
     @GetMapping
-    public ResponseEntity<List<SavedJob>> getSavedJobs(@RequestParam Long userId) {
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<SavedJob>> getSavedJobs(HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         return ResponseEntity.ok(savedJobRepository.findByUser(user));
     }
 
     /**
-     * GET /api/saved-jobs/check?userId=1&jobId=2
-     * Check if job is saved
+     * GET /api/saved-jobs/check?jobId=2
      */
     @GetMapping("/check")
     public ResponseEntity<?> checkSaved(
-            @RequestParam Long userId,
-            @RequestParam Long jobId) {
+            @RequestParam Long jobId,
+            HttpServletRequest request) {
 
+        Long userId = securityUtil.getCurrentUserId(request);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 

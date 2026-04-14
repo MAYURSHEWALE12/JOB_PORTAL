@@ -4,6 +4,7 @@ import com.jobportal.entity.Job;
 import com.jobportal.entity.JobStatus;
 import com.jobportal.entity.JobType;
 import com.jobportal.entity.User;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,44 +21,53 @@ import java.util.List;
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
 
-    // Get all active jobs
+    @EntityGraph(attributePaths = {"employer"})
     List<Job> findByStatus(JobStatus status);
+
+    @EntityGraph(attributePaths = {"employer"})
     Page<Job> findByStatus(JobStatus status, Pageable pageable);
 
-    // Get all jobs by employer
+    long countByStatus(JobStatus status);
+
+    @EntityGraph(attributePaths = {"employer"})
     List<Job> findByEmployer(User employer);
+
+    @EntityGraph(attributePaths = {"employer"})
     Page<Job> findByEmployer(User employer, Pageable pageable);
 
-    // Get active jobs by employer
+    @EntityGraph(attributePaths = {"employer"})
     List<Job> findByEmployerAndStatus(User employer, JobStatus status);
+
+    @EntityGraph(attributePaths = {"employer"})
     Page<Job> findByEmployerAndStatus(User employer, JobStatus status, Pageable pageable);
 
-    // Search by keyword in title or description
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND (" +
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND (" +
             "LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.location) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Job> searchByKeyword(@Param("keyword") String keyword);
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND (" +
+
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND (" +
             "LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.location) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     Page<Job> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
 
-    // Filter by job type
+    @EntityGraph(attributePaths = {"employer"})
     List<Job> findByStatusAndJobType(JobStatus status, JobType jobType);
+
+    @EntityGraph(attributePaths = {"employer"})
     Page<Job> findByStatusAndJobType(JobStatus status, JobType jobType, Pageable pageable);
 
-    // Filter by location
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND " +
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
             "LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))")
     List<Job> findByLocation(@Param("location") String location);
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND " +
+
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
             "LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))")
     Page<Job> findByLocation(@Param("location") String location, Pageable pageable);
 
-    // Full search with keyword + location + jobType (all optional)
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND " +
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
             "(:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
             "(:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
@@ -67,7 +77,8 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             @Param("location") String location,
             @Param("jobType")  JobType jobType
     );
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND " +
+
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
             "(:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
             "(:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
@@ -79,7 +90,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND " +
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
             "(:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
             "LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
             "(:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
@@ -102,7 +113,7 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' AND " +
+    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
             "j.id NOT IN :excludeJobIds AND " +
             "(:jobTypes IS NULL OR j.jobType IN :jobTypes) AND " +
             "(:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
@@ -132,6 +143,5 @@ public interface JobRepository extends JpaRepository<Job, Long> {
     @Query("UPDATE Job j SET j.applicationCount = j.applicationCount + 1 WHERE j.id = :jobId")
     int incrementApplicationCount(@Param("jobId") Long jobId);
 
-    // Delete all jobs by employer
     void deleteByEmployer(User employer);
 }

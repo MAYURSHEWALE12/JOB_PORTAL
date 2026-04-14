@@ -11,7 +11,10 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "messages")
+@Table(name = "messages", indexes = {
+        @Index(name = "idx_message_sender", columnList = "sender_id"),
+        @Index(name = "idx_message_receiver", columnList = "receiver_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,12 +25,12 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sender_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User sender;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiver_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User receiver;
@@ -36,7 +39,23 @@ public class Message {
     private String content;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean isRead = false;
+
+    private LocalDateTime readAt;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private String messageType = "TEXT";
+
+    private String fileUrl;
+
+    private String fileName;
+
+    @Builder.Default
+    private boolean isEdited = false;
+
+    private LocalDateTime editedAt;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime sentAt;

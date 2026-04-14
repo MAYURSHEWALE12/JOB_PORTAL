@@ -11,7 +11,11 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+    @Index(name = "idx_user_role", columnList = "role"),
+    @Index(name = "idx_user_first_name", columnList = "first_name"),
+    @Index(name = "idx_user_last_name", columnList = "last_name")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -44,8 +48,12 @@ public class User {
     @Column(name = "profile_image_url")
     private String profileImageUrl;
 
-    @Column(name = "resume_url")              // ✅ new field
-    private String resumeUrl;
+    @Column(name = "auth_provider")
+    private String authProvider = "LOCAL";
+
+    @Column(name = "provider_id")
+    private String providerId;
+
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JsonManagedReference

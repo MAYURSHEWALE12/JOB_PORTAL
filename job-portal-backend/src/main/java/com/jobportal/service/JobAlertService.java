@@ -52,6 +52,15 @@ public class JobAlertService {
         return alertRepo.save(existing);
     }
 
+    public JobAlertPreference updateAlertForUser(Long alertId, JobAlertPreference updated, Long userId) {
+        JobAlertPreference existing = alertRepo.findById(alertId)
+                .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));
+        if (!existing.getUser().getId().equals(userId)) {
+            throw new RuntimeException("You can only update your own alerts");
+        }
+        return updateAlert(alertId, updated);
+    }
+
     public void deleteAlert(Long alertId, Long userId) {
         JobAlertPreference alert = alertRepo.findById(alertId)
                 .orElseThrow(() -> new RuntimeException("Alert not found: " + alertId));

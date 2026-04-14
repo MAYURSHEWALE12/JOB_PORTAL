@@ -12,7 +12,9 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "notifications")
+@Table(name = "notifications", indexes = {
+        @Index(name = "idx_notification_user", columnList = "user_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -39,8 +41,10 @@ public class Notification {
     
     private String referenceType;
     
+    @Builder.Default
     private boolean isRead = false;
     
+    @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
     
     @PrePersist

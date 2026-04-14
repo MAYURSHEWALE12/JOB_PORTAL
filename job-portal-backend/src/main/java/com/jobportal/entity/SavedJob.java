@@ -11,7 +11,11 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "saved_jobs")
+@Table(name = "saved_jobs", indexes = {
+    @Index(name = "idx_saved_user", columnList = "user_id"),
+    @Index(name = "idx_saved_job", columnList = "job_id"),
+    @Index(name = "idx_saved_user_job", columnList = "user_id, job_id", unique = true)
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,12 +26,12 @@ public class SavedJob {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Job job;

@@ -8,6 +8,7 @@ import com.jobportal.entity.JobApplication;
 import com.jobportal.entity.QuizResult;
 import com.jobportal.entity.ResumeAnalysis;
 import com.jobportal.entity.Quiz;
+import com.jobportal.entity.Interview;
 import com.jobportal.repository.JobApplicationRepository;
 import com.jobportal.repository.JobRepository;
 import com.jobportal.repository.UserRepository;
@@ -15,7 +16,9 @@ import com.jobportal.repository.SavedJobRepository;
 import com.jobportal.repository.QuizResultRepository;
 import com.jobportal.repository.ResumeAnalysisRepository;
 import com.jobportal.repository.QuizRepository;
+import com.jobportal.repository.InterviewRepository;
 import com.jobportal.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -31,8 +34,8 @@ import java.util.Map;
 @RequestMapping("/admin")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
 @PreAuthorize("hasRole('ADMIN')")
+@Tag(name = "Admin", description = "Platform administration")
 public class AdminController {
 
     private final UserRepository userRepository;
@@ -42,6 +45,7 @@ public class AdminController {
     private final QuizResultRepository quizResultRepository;
     private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final QuizRepository quizRepository;
+    private final InterviewRepository interviewRepository;
     private final UserService userService;
 
     /**
@@ -54,9 +58,9 @@ public class AdminController {
         stats.put("totalUsers",        userRepository.count());
         stats.put("totalJobs",         jobRepository.count());
         stats.put("totalApplications", applicationRepository.count());
-        stats.put("totalJobSeekers",   userRepository.findByRole(UserRole.JOBSEEKER).size());
-        stats.put("totalEmployers",    userRepository.findByRole(UserRole.EMPLOYER).size());
-        stats.put("activeJobs",        jobRepository.findByStatus(com.jobportal.entity.JobStatus.ACTIVE).size());
+        stats.put("totalJobSeekers",   userRepository.countByRole(UserRole.JOBSEEKER));
+        stats.put("totalEmployers",    userRepository.countByRole(UserRole.EMPLOYER));
+        stats.put("activeJobs",        jobRepository.countByStatus(com.jobportal.entity.JobStatus.ACTIVE));
         return ResponseEntity.ok(stats);
     }
 
@@ -116,6 +120,7 @@ public class AdminController {
         List<JobApplication> applications = applicationRepository.findByJob(job);
         for (JobApplication app : applications) {
             quizResultRepository.findByApplication(app).ifPresent(quizResultRepository::delete);
+            interviewRepository.deleteAll(interviewRepository.findByApplication(app));
         }
         resumeAnalysisRepository.deleteAll(resumeAnalysisRepository.findByJob(job));
         applicationRepository.deleteAll(applications);

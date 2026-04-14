@@ -3,6 +3,7 @@ package com.jobportal.controller;
 import com.jobportal.dto.UserDTO;
 import com.jobportal.entity.User;
 import com.jobportal.service.UserService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Users", description = "User profile and avatar management")
 public class UserController {
 
     private final UserService userService;
@@ -43,7 +44,10 @@ public class UserController {
     @GetMapping("/avatar/{fileName:.+}")
     public ResponseEntity<org.springframework.core.io.Resource> getAvatar(@PathVariable String fileName) {
         try {
-            java.nio.file.Path filePath = java.nio.file.Paths.get(uploadDir).resolve(fileName);
+            java.nio.file.Path filePath = java.nio.file.Paths.get(uploadDir).resolve(fileName).normalize();
+            if (!filePath.startsWith(java.nio.file.Paths.get(uploadDir).normalize())) {
+                return ResponseEntity.badRequest().build();
+            }
             org.springframework.core.io.Resource resource = new org.springframework.core.io.UrlResource(filePath.toUri());
 
             if (resource.exists() || resource.isReadable()) {

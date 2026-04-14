@@ -1,6 +1,7 @@
 package com.jobportal.service;
 
 import com.jobportal.dto.QuizDTO;
+import com.jobportal.dto.QuizResultDTO;
 import com.jobportal.dto.QuizSubmissionDTO;
 import com.jobportal.dto.QuizViewDTO;
 import com.jobportal.entity.*;
@@ -167,14 +168,16 @@ public class QuizService {
         int scorePercentage = (int) (((double) correctAnswers / totalQuestions) * 100);
         boolean passed = scorePercentage >= quiz.getPassingScore();
 
-        QuizResult result = QuizResult.builder()
-                .application(application)
-                .score(scorePercentage)
-                .totalQuestions(totalQuestions)
-                .correctAnswers(correctAnswers)
-                .passed(passed)
-                .completedAt(LocalDateTime.now())
-                .build();
+        QuizResult result = quizResultRepository.findByApplicationId(application.getId())
+                .orElse(QuizResult.builder()
+                        .application(application)
+                        .build());
+
+        result.setScore(scorePercentage);
+        result.setTotalQuestions(totalQuestions);
+        result.setCorrectAnswers(correctAnswers);
+        result.setPassed(passed);
+        result.setCompletedAt(LocalDateTime.now());
 
         return quizResultRepository.save(result);
     }

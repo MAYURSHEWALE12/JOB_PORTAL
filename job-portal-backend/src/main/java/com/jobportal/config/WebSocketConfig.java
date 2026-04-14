@@ -12,13 +12,39 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic");
+        config.enableSimpleBroker("/topic", "/queue", "/user");
         config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*");
+                .setAllowedOriginPatterns(
+                        "http://localhost:5173",
+                        "http://127.0.0.1:5173",
+                        "http://localhost:5174",
+                        "http://127.0.0.1:5174",
+                        "http://localhost:5175",
+                        "http://127.0.0.1:5175",
+                        "http://localhost:3000",
+                        "http://192.168.0.100:5173",
+                        "http://192.168.0.100:5174"
+                )
+                .withSockJS();
+
+        registry.addEndpoint("/ws-stomp")
+                .setAllowedOriginPatterns(
+                        "http://localhost:5173",
+                        "http://127.0.0.1:5173",
+                        "http://localhost:5174",
+                        "http://127.0.0.1:5174",
+                        "http://localhost:5175",
+                        "http://127.0.0.1:5175",
+                        "http://localhost:3000",
+                        "http://192.168.0.100:5173",
+                        "http://192.168.0.100:5174"
+                )
+                .withSockJS();
     }
 }

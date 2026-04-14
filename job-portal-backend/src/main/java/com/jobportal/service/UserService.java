@@ -2,6 +2,7 @@ package com.jobportal.service;
 
 import com.jobportal.entity.User;
 import com.jobportal.entity.UserRole;
+import com.jobportal.entity.Interview;
 import com.jobportal.repository.*;
 import com.jobportal.dto.UserDTO;
 import com.jobportal.exception.ResourceNotFoundException;
@@ -48,6 +49,7 @@ public class UserService {
     private final QuizResultRepository quizResultRepository;
     private final CompanyProfileRepository companyProfileRepository;
     private final JobRepository jobRepository;
+    private final InterviewRepository interviewRepository;
 
     // ==================== REGISTRATION & AUTHENTICATION ====================
 
@@ -264,6 +266,11 @@ public class UserService {
             throw new BadRequestException("Please select a file to upload");
         }
 
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException("Only image files are allowed for profile pictures");
+        }
+
         try {
             Path path = Paths.get(uploadDir);
             if (!Files.exists(path)) {
@@ -387,6 +394,11 @@ public class UserService {
         notificationRepository.deleteByUserId(id);
         savedJobRepository.deleteByUser(user);
         messageRepository.deleteBySenderOrReceiver(user, user);
+        // Delete interviews for applications before deleting the applications
+        List<com.jobportal.entity.JobApplication> seekerApps = jobApplicationRepository.findByJobSeeker(user);
+        for (com.jobportal.entity.JobApplication app : seekerApps) {
+            interviewRepository.deleteAll(interviewRepository.findByApplication(app));
+        }
         jobApplicationRepository.deleteByJobSeeker(user);
         quizResultRepository.deleteByApplicationJobSeekerId(id);
         companyProfileRepository.deleteByUser(user);
@@ -394,6 +406,11 @@ public class UserService {
         // Delete employer's jobs (cascades to applications, quizzes, etc.)
         List<com.jobportal.entity.Job> employerJobs = jobRepository.findByEmployer(user);
         for (com.jobportal.entity.Job job : employerJobs) {
+            // Delete interviews for applications before deleting applications
+            List<com.jobportal.entity.JobApplication> jobApps = jobApplicationRepository.findByJob(job);
+            for (com.jobportal.entity.JobApplication app : jobApps) {
+                interviewRepository.deleteAll(interviewRepository.findByApplication(app));
+            }
             jobApplicationRepository.deleteByJob(job);
         }
         jobRepository.deleteByEmployer(user);
@@ -409,12 +426,11 @@ public class UserService {
      */
     public void deactivateUser(Long id) {
         log.info("Deactivating user with ID: {}", id);
-
         User user = getUserById(id);
-        // You can implement soft delete by adding an 'active' field
-        // user.setActive(false);
+        user.setRole(UserRole.JOBSEEKER);
+        user.setPassword("DEACTIVATED_" + user.getPassword());
+        user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
-
         log.info("User deactivated successfully with ID: {}", id);
     }
 
@@ -428,13 +444,7 @@ public class UserService {
     @Transactional(readOnly = true)
     public List<User> searchUsersByName(String name) {
         log.debug("Searching users with name: {}", name);
-
-        List<User> users = userRepository.findAll();
-
-        return users.stream()
-                .filter(u -> u.getFirstName().toLowerCase().contains(name.toLowerCase()) ||
-                        u.getLastName().toLowerCase().contains(name.toLowerCase()))
-                .collect(Collectors.toList());
+        return userRepository.searchByName(name);
     }
 
     /**

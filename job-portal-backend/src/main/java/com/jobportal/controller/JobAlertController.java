@@ -1,7 +1,10 @@
 package com.jobportal.controller;
 
 import com.jobportal.entity.JobAlertPreference;
+import com.jobportal.security.SecurityUtil;
 import com.jobportal.service.JobAlertService;
+import jakarta.servlet.http.HttpServletRequest;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -15,33 +18,40 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @CrossOrigin(origins = "http://localhost:5173")
+@Tag(name = "Job Alerts", description = "Job alert subscriptions")
 public class JobAlertController {
 
     private final JobAlertService jobAlertService;
+    private final SecurityUtil securityUtil;
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<JobAlertPreference>> getUserAlerts(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<JobAlertPreference>> getUserAlerts(HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         return ResponseEntity.ok(jobAlertService.getUserAlerts(userId));
     }
 
-    @PostMapping("/user/{userId}")
+    @PostMapping("/user")
     public ResponseEntity<JobAlertPreference> createAlert(
-            @PathVariable Long userId,
-            @RequestBody JobAlertPreference preference) {
+            @RequestBody JobAlertPreference preference,
+            HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         return ResponseEntity.ok(jobAlertService.createAlert(userId, preference));
     }
 
     @PutMapping("/{alertId}")
     public ResponseEntity<JobAlertPreference> updateAlert(
             @PathVariable Long alertId,
-            @RequestBody JobAlertPreference preference) {
-        return ResponseEntity.ok(jobAlertService.updateAlert(alertId, preference));
+            @RequestBody JobAlertPreference preference,
+            HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
+        return ResponseEntity.ok(jobAlertService.updateAlertForUser(alertId, preference, userId));
     }
 
     @DeleteMapping("/{alertId}")
     public ResponseEntity<Map<String, String>> deleteAlert(
             @PathVariable Long alertId,
-            @RequestParam Long userId) {
+            HttpServletRequest request) {
+        Long userId = securityUtil.getCurrentUserId(request);
         jobAlertService.deleteAlert(alertId, userId);
         return ResponseEntity.ok(Map.of("message", "Alert deleted successfully"));
     }

@@ -27,5 +27,8 @@ public class WebConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler("/uploads/avatars/**")
                 .addResourceLocations("file:" + avatarDir + "/");
+
+        registry.addResourceHandler("/messages/files/**")
+                .addResourceLocations("file:uploads/messages/");
     }
 }

@@ -10,7 +10,11 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "company_profiles")
+@Table(name = "company_profiles", indexes = {
+    @Index(name = "idx_company_user", columnList = "user_id"),
+    @Index(name = "idx_company_name", columnList = "company_name"),
+    @Index(name = "idx_company_industry", columnList = "industry")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,7 +25,7 @@ public class CompanyProfile {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false, unique = true)
     @JsonBackReference
     private User user;

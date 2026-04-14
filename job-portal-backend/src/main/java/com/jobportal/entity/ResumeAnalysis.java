@@ -14,7 +14,11 @@ import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "resume_analyses")
+@Table(name = "resume_analyses", indexes = {
+    @Index(name = "idx_analysis_user", columnList = "user_id"),
+    @Index(name = "idx_analysis_resume", columnList = "resume_id"),
+    @Index(name = "idx_analysis_job", columnList = "job_id")
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,18 +30,18 @@ public class ResumeAnalysis {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     @JsonIgnore
     private User user;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Resume resume;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Job job; // Optional: analysis for a specific job

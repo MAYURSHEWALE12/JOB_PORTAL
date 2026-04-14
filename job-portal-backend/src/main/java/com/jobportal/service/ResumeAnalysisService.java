@@ -213,4 +213,9 @@ import java.util.stream.Collectors;
         return analysisRepository.findByResumeAndJob(resume, job)
                 .map(ResumeAnalysisDTO::from);
     }
+
+    @Transactional(readOnly = true)
+    public boolean isEmployerForResume(Long resumeId, Long employerId) {
+        return analysisRepository.existsByResumeIdAndJobEmployerId(resumeId, employerId);
+    }
 }
