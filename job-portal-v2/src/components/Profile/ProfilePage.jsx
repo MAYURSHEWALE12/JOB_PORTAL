@@ -334,16 +334,25 @@ export default function ProfilePage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1">First Name</label>
-                                        <input type="text" name="firstName" value={profileData.firstName} onChange={handleProfileChange} className="hp-input" />
+                                        <div className="hp-input-group">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                            <input type="text" name="firstName" value={profileData.firstName} onChange={handleProfileChange} className="hp-input" />
+                                        </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1">Last Name</label>
-                                        <input type="text" name="lastName" value={profileData.lastName} onChange={handleProfileChange} className="hp-input" />
+                                        <div className="hp-input-group">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                                            <input type="text" name="lastName" value={profileData.lastName} onChange={handleProfileChange} className="hp-input" />
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1">Phone Number</label>
-                                    <input type="tel" name="phone" value={profileData.phone} onChange={handleProfileChange} placeholder="e.g. 9876543210" className="hp-input" />
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                        <input type="tel" name="phone" value={profileData.phone} onChange={handleProfileChange} placeholder="e.g. 9876543210" className="hp-input" />
+                                    </div>
                                 </div>
                                 <div className="flex gap-4 pt-4">
                                     <button type="button" onClick={() => setEditMode(false)} className="hp-btn-ghost flex-1 py-3.5">Cancel</button>
@@ -446,16 +455,25 @@ export default function ProfilePage() {
                         <form onSubmit={handleSavePassword} className="space-y-6 relative z-10">
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1">Current Password</label>
-                                <input type="password" name="currentPassword" value={passwordData.currentPassword} onChange={handlePasswordChange} placeholder="••••••••" className="hp-input" />
+                                <div className="hp-input-group">
+                                    <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                                    <input type="password" name="currentPassword" value={passwordData.currentPassword} onChange={handlePasswordChange} placeholder="••••••••" className="hp-input" />
+                                </div>
                             </div>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1">New Password</label>
-                                    <input type="password" name="newPassword" value={passwordData.newPassword} onChange={handlePasswordChange} placeholder="Min 6 chars" className="hp-input" />
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                        <input type="password" name="newPassword" value={passwordData.newPassword} onChange={handlePasswordChange} placeholder="Min 6 chars" className="hp-input" />
+                                    </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1">Confirm New Password</label>
-                                    <input type="password" name="confirmPassword" value={passwordData.confirmPassword} onChange={handlePasswordChange} placeholder="Repeat new" className="hp-input" />
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+                                        <input type="password" name="confirmPassword" value={passwordData.confirmPassword} onChange={handlePasswordChange} placeholder="Repeat new" className="hp-input" />
+                                    </div>
                                 </div>
                             </div>
                             <button type="submit" disabled={savingPassword} className="hp-btn-primary w-full py-4 text-base mt-4 shadow-xl shadow-purple-500/20" style={{ background: 'linear-gradient(135deg, var(--hp-accent2), #8b5cf6)' }}>
@@ -472,15 +490,6 @@ export default function ProfilePage() {
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pb-20 relative z-10">
-            <style>{`
-                .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); transition: all 0.25s ease; }
-                .hp-input { width: 100%; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); border-radius: 12px; padding: 14px 16px; font-size: 0.9rem; transition: all 0.2s; outline: none; }
-                .hp-input:focus { border-color: rgba(var(--hp-accent-rgb), 0.5); background: var(--hp-surface); box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1); }
-                .hp-btn-primary { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2)); color: #fff; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all .2s; }
-                .hp-btn-primary:hover { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 25px rgba(var(--hp-accent-rgb), .35); }
-                .hp-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); font-weight: 600; border-radius: 12px; cursor: pointer; transition: all .2s; }
-                .hp-btn-ghost:hover { background: rgba(var(--hp-accent-rgb), .1); border-color: rgba(var(--hp-accent-rgb), .3); color: var(--hp-accent); }
-            `}</style>
 
             <div className="mb-10">
                 <h2 className="text-3xl sm:text-4xl font-bold text-[var(--hp-text)] tracking-tight">Account Settings</h2>

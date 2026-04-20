@@ -296,70 +296,6 @@ export default function Messaging() {
             className="pb-8"
         >
             <style>{`
-                /* UI Element Styles (Ported from HomePage/Dashboard) */
-                .hp-card {
-                    background: var(--hp-card, #ffffff);
-                    border: 1px solid var(--hp-border, rgba(0,0,0,0.09));
-                    border-radius: 16px;
-                    transition: border-color .25s, transform .25s, box-shadow .25s, background .25s;
-                    box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08));
-                }
-                
-                .hp-btn-primary {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: linear-gradient(135deg, var(--hp-accent, #0d9488), var(--hp-accent2, #7c3aed));
-                    color: #fff;
-                    font-weight: 700;
-                    border: none;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: opacity .2s, transform .2s, box-shadow .2s;
-                    box-shadow: 0 4px 20px rgba(var(--hp-accent-rgb, 13, 148, 136), .35);
-                }
-                .hp-btn-primary:hover:not(:disabled) { 
-                    opacity: .88; 
-                    transform: translateY(-2px); 
-                    box-shadow: 0 8px 30px rgba(var(--hp-accent-rgb, 13, 148, 136), .45); 
-                }
-                .hp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-
-                .hp-btn-ghost {
-                    display: inline-flex;
-                    align-items: center;
-                    justify-content: center;
-                    background: var(--hp-surface-alt, rgba(0,0,0,0.05));
-                    border: 1px solid var(--hp-border, rgba(0,0,0,0.09));
-                    color: var(--hp-text, #0c1220);
-                    font-weight: 600;
-                    border-radius: 12px;
-                    cursor: pointer;
-                    transition: background .2s, transform .2s, border-color .2s, color .2s;
-                }
-                .hp-btn-ghost:hover:not(:disabled) {
-                    background: rgba(var(--hp-accent-rgb, 13, 148, 136), .1);
-                    border-color: rgba(var(--hp-accent-rgb, 13, 148, 136), .3);
-                    color: var(--hp-accent, #0d9488);
-                }
-
-                .hp-input {
-                    width: 100%;
-                    background: var(--hp-surface-alt, rgba(0,0,0,0.05));
-                    border: 1px solid var(--hp-border, rgba(0,0,0,0.09));
-                    color: var(--hp-text, #0c1220);
-                    border-radius: 12px;
-                    padding: 12px 16px;
-                    font-size: 0.9rem;
-                    transition: all 0.2s;
-                    outline: none;
-                }
-                .hp-input:focus {
-                    border-color: rgba(var(--hp-accent-rgb, 13, 148, 136), 0.5);
-                    background: var(--hp-surface, #ffffff);
-                    box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb, 13, 148, 136), 0.1);
-                }
-
                 .hp-message-mine {
                     background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2));
                     color: #fff;
@@ -413,14 +349,19 @@ export default function Messaging() {
                         <h3 className="font-bold mb-4 text-[var(--hp-text)] text-lg">
                             Start a new conversation
                         </h3>
-                        <input
-                            type="text"
-                            value={searchUser}
-                            onChange={(e) => setSearchUser(e.target.value)}
-                            placeholder="Search by name or email..."
-                            className="hp-input mb-4"
-                            autoFocus
-                        />
+                        <div className="hp-input-group mb-4">
+                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <input
+                                type="text"
+                                value={searchUser}
+                                onChange={(e) => setSearchUser(e.target.value)}
+                                placeholder="Search by name or email..."
+                                className="hp-input"
+                                autoFocus
+                            />
+                        </div>
                         <div className="space-y-2 max-h-60 overflow-y-auto chat-scroll pr-2">
                             {filteredUsers.length === 0 && (
                                 <p className="text-[var(--hp-muted)] text-center py-6">No users found</p>

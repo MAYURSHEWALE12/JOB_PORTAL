@@ -92,58 +92,65 @@ export default function ScheduleInterviewModal({ application, onClose, onSchedul
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="md:col-span-2">
                                 <label className="hp-label">Interview Title *</label>
-                                <input
-                                    type="text"
-                                    value={formData.title}
-                                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                                    className="hp-input"
-                                    placeholder="e.g. Technical Round 1"
-                                    required
-                                />
+                                <div className="hp-input-group">
+                                    <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                    <input
+                                        type="text"
+                                        value={formData.title}
+                                        onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                                        className="hp-input"
+                                        placeholder="e.g. Technical Round 1"
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             <div>
                                 <label className="hp-label">Date & Time *</label>
-                                <input
-                                    type="datetime-local"
-                                    value={formData.scheduledAt}
-                                    onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
-                                    className="hp-input"
-                                    min={new Date().toISOString().slice(0, 16)}
-                                    required
-                                />
+                                <div className="hp-input-group">
+                                    <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                    <input
+                                        type="datetime-local"
+                                        value={formData.scheduledAt}
+                                        onChange={(e) => setFormData({ ...formData, scheduledAt: e.target.value })}
+                                        className="hp-input"
+                                        min={new Date().toISOString().slice(0, 16)}
+                                        required
+                                    />
+                                </div>
                             </div>
 
                             <div>
                                 <label className="hp-label">Duration *</label>
-                                <select
-                                    value={formData.durationMinutes}
-                                    onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
-                                    className="hp-input appearance-none"
-                                    style={{ paddingRight: '2.5rem' }}
-                                >
-                                    <option value={15}>15 minutes</option>
-                                    <option value={30}>30 minutes</option>
-                                    <option value={45}>45 minutes</option>
-                                    <option value={60}>1 hour</option>
-                                    <option value={90}>1.5 hours</option>
-                                    <option value={120}>2 hours</option>
-                                </select>
+                                <div className="hp-input-group">
+                                    <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <select
+                                        value={formData.durationMinutes}
+                                        onChange={(e) => setFormData({ ...formData, durationMinutes: parseInt(e.target.value) })}
+                                        className="hp-input appearance-none"
+                                    >
+                                        <option value={15}>15 minutes</option>
+                                        <option value={30}>30 minutes</option>
+                                        <option value={45}>45 minutes</option>
+                                        <option value={60}>1 hour</option>
+                                        <option value={90}>1.5 hours</option>
+                                        <option value={120}>2 hours</option>
+                                    </select>
+                                    <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-[var(--hp-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                </div>
                             </div>
 
                             <div className="md:col-span-2">
                                 <label className="hp-label">Meeting Link (Virtual) or Physical Location</label>
-                                <div className="relative">
+                                <div className="hp-input-group">
+                                    <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
                                     <input
                                         type="text"
                                         value={formData.meetingLink || formData.location}
                                         onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value, location: e.target.value })}
-                                        placeholder="e.g. Google Meet Link or Office Address"
+                                        placeholder="e.g. Google Meet Link"
                                         className="hp-input"
                                     />
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-30 pointer-events-none">
-                                        🔗
-                                    </div>
                                 </div>
                             </div>
 

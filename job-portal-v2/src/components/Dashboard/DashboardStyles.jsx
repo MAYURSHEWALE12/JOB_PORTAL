@@ -446,7 +446,36 @@ export default function DashboardStyles() {
                 background: var(--hp-card);
                 box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1);
             }
+
             .hp-input::placeholder { color: var(--hp-muted); opacity: 0.6; }
+
+            .hp-input-group {
+                position: relative;
+                display: flex;
+                align-items: center;
+                width: 100%;
+            }
+
+            .hp-input-group .hp-input {
+                padding-left: 48px;
+            }
+
+            .hp-input-icon {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--hp-muted);
+                width: 18px;
+                height: 18px;
+                pointer-events: none;
+                transition: color 0.2s;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .hp-input-group:focus-within .hp-input-icon { color: var(--hp-accent); }
 
             .hp-label {
                 display: block;
@@ -471,6 +500,56 @@ export default function DashboardStyles() {
                     gap: 16px;
                 }
             }
+
+            .hp-textarea {
+                width: 100%;
+                background: var(--hp-surface-alt);
+                border: 1px solid var(--hp-border);
+                color: var(--hp-text);
+                border-radius: 12px;
+                padding: 16px;
+                font-size: 0.9rem;
+                transition: all 0.2s;
+                outline: none;
+                resize: vertical;
+                min-height: 120px;
+            }
+            .hp-textarea:focus {
+                border-color: rgba(var(--hp-accent-rgb), 0.5);
+                background: var(--hp-card);
+                box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1);
+            }
+
+            .hp-modal-overlay {
+                background: rgba(0,0,0,0.6);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+            }
+
+            .action-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+                padding: 10px;
+                border-radius: 12px;
+                background: transparent;
+                border: 1px solid transparent;
+                transition: all 0.2s;
+                color: var(--hp-muted);
+                cursor: pointer;
+            }
+            .action-btn:hover {
+                background: var(--hp-surface-alt);
+                border-color: var(--hp-border);
+                color: var(--hp-text);
+            }
+            
+            .action-btn.edit:hover { color: var(--hp-accent); background: rgba(var(--hp-accent-rgb), 0.1); border-color: rgba(var(--hp-accent-rgb), 0.2); }
+            .action-btn.quiz:hover { color: var(--hp-accent2); background: rgba(var(--hp-accent2-rgb), 0.1); border-color: rgba(var(--hp-accent2-rgb), 0.2); }
+            .action-btn.close:hover { color: #fbbf24; background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.2); }
+            .action-btn.delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); }
 
             section, footer { transition: background-color .3s; }
             .db-card, .hp-card, .db-tab, .db-btn-primary { transition: background-color .25s, border-color .25s, box-shadow .25s, transform .25s; }

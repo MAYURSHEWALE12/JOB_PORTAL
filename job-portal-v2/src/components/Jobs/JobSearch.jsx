@@ -300,23 +300,25 @@ export default function JobSearch() {
                     Find Your Next Role
                 </h2>
 
-                <div className="hero-search-row relative z-10">
-                    <div className="relative">
-                        <svg className="js-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex flex-col lg:flex-row items-center gap-4 relative z-10">
+                    <div className="hp-input-group flex-1">
+                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
-                        <input type="text" name="keyword" value={filters.keyword} onChange={handleChange} placeholder="Job title, skill..." className="js-input" />
+                        <input type="text" name="keyword" value={filters.keyword} onChange={handleChange} placeholder="Job title, skill..." className="hp-input" />
                     </div>
                     
-                    <div className="relative">
-                        <svg className="js-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="hp-input-group flex-1">
+                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         </svg>
-                        <input type="text" name="location" value={filters.location} onChange={handleChange} placeholder="Location" className="js-input" />
+                        <input type="text" name="location" value={filters.location} onChange={handleChange} placeholder="Location" className="hp-input" />
                     </div>
 
-                    <div className="relative">
-                        <select name="jobType" value={filters.jobType} onChange={handleChange} className="js-input js-select appearance-none">
+                    <div className="hp-input-group flex-1">
+                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                        <select name="jobType" value={filters.jobType} onChange={handleChange} className="hp-input appearance-none">
                             <option value="" style={{ background: 'var(--hp-card)' }}>All Job Types</option>
                             <option value="FULL_TIME" style={{ background: 'var(--hp-card)' }}>Full Time</option>
                             <option value="PART_TIME" style={{ background: 'var(--hp-card)' }}>Part Time</option>

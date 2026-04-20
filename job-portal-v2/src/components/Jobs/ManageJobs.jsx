@@ -291,30 +291,6 @@ export default function ManageJobs() {
 
     return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pb-20 relative z-10">
-            <style>{`
-                .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); transition: all 0.25s ease; }
-                .hp-card-hover:hover { border-color: rgba(var(--hp-accent-rgb), 0.35); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.15); }
-                
-                .hp-input { width: 100%; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); border-radius: 12px; padding: 12px 16px; font-size: 0.9rem; transition: all 0.2s; outline: none; }
-                .hp-input:focus { border-color: rgba(var(--hp-accent-rgb), 0.5); background: var(--hp-surface); box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1); }
-                
-                .hp-btn-primary { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2)); color: #fff; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all .2s; box-shadow: 0 4px 20px rgba(var(--hp-accent-rgb), .35); }
-                .hp-btn-primary:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 25px rgba(var(--hp-accent-rgb), .45); }
-                .hp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-                
-                .hp-btn-ghost { display: inline-flex; align-items: center; justify-content: center; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); font-weight: 600; border-radius: 12px; cursor: pointer; transition: all .2s; }
-                .hp-btn-ghost:hover:not(:disabled) { background: rgba(var(--hp-accent-rgb), .1); border-color: rgba(var(--hp-accent-rgb), .3); color: var(--hp-accent); }
-
-                .hp-modal-overlay { background: var(--hp-modal-overlay, rgba(0,0,0,0.6)); backdrop-filter: blur(12px); }
-                
-                .action-btn { display: flex; flex-direction: column; items-center: center; justify-content: center; gap: 4px; padding: 10px; border-radius: 10px; background: transparent; border: 1px solid transparent; transition: all 0.2s; color: var(--hp-muted); cursor: pointer; }
-                .action-btn:hover { background: var(--hp-surface-alt); border-color: var(--hp-border); color: var(--hp-text); }
-                
-                .action-btn.edit:hover { color: var(--hp-accent); background: rgba(var(--hp-accent-rgb), 0.1); border-color: rgba(var(--hp-accent-rgb), 0.2); }
-                .action-btn.quiz:hover { color: var(--hp-accent2); background: rgba(var(--hp-accent2-rgb), 0.1); border-color: rgba(var(--hp-accent2-rgb), 0.2); }
-                .action-btn.close:hover { color: #fbbf24; background: rgba(251,191,36,0.1); border-color: rgba(251,191,36,0.2); }
-                .action-btn.delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); }
-            `}</style>
 
             <div className="mb-8">
                 <h2 className="text-3xl sm:text-4xl font-bold text-[var(--hp-text)] tracking-tight">
@@ -372,18 +348,25 @@ export default function ManageJobs() {
 
                         <form onSubmit={handleSave} className="space-y-5 relative z-10">
                             <div>
-                                <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Job Title *</label>
-                                <input type="text" name="title" value={formData.title} onChange={handleChange} className="hp-input" />
+                                <label className="hp-label">Job Title *</label>
+                                <div className="hp-input-group">
+                                    <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                    <input type="text" name="title" value={formData.title} onChange={handleChange} className="hp-input" />
+                                </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Location *</label>
-                                    <input type="text" name="location" value={formData.location} onChange={handleChange} className="hp-input" />
+                                    <label className="hp-label">Location *</label>
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /></svg>
+                                        <input type="text" name="location" value={formData.location} onChange={handleChange} className="hp-input" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Job Type</label>
-                                    <div className="relative">
+                                    <label className="hp-label">Job Type</label>
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                         <select name="jobType" value={formData.jobType} onChange={handleChange} className="hp-input appearance-none">
                                             <option value="FULL_TIME" style={{ background: 'var(--hp-card)' }}>Full Time</option>
                                             <option value="PART_TIME" style={{ background: 'var(--hp-card)' }}>Part Time</option>
@@ -398,28 +381,40 @@ export default function ManageJobs() {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Min Salary (₹)</label>
-                                    <input type="number" name="salaryMin" value={formData.salaryMin} onChange={handleChange} className="hp-input" />
+                                    <label className="hp-label">Min Salary (₹)</label>
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <input type="number" name="salaryMin" value={formData.salaryMin} onChange={handleChange} className="hp-input" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Max Salary (₹)</label>
-                                    <input type="number" name="salaryMax" value={formData.salaryMax} onChange={handleChange} className="hp-input" />
+                                    <label className="hp-label">Max Salary (₹)</label>
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        <input type="number" name="salaryMax" value={formData.salaryMax} onChange={handleChange} className="hp-input" />
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Experience Required</label>
-                                    <input type="text" name="experienceRequired" value={formData.experienceRequired} onChange={handleChange} placeholder="e.g. 2+ years" className="hp-input" />
+                                    <label className="hp-label">Experience Required</label>
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 14l9-5-9-5-9 5 9 5z" /><path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222" /></svg>
+                                        <input type="text" name="experienceRequired" value={formData.experienceRequired} onChange={handleChange} placeholder="e.g. 2+ years" className="hp-input" />
+                                    </div>
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Positions Available</label>
-                                    <input type="number" name="positionsAvailable" value={formData.positionsAvailable} onChange={handleChange} min="1" className="hp-input" />
+                                    <label className="hp-label">Positions Available</label>
+                                    <div className="hp-input-group">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                                        <input type="number" name="positionsAvailable" value={formData.positionsAvailable} onChange={handleChange} min="1" className="hp-input" />
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide flex justify-between">
+                                <label className="hp-label flex justify-between">
                                     <span>Description *</span>
                                     <span className="text-[10px] text-[var(--hp-muted)]">Supports Markdown</span>
                                 </label>
@@ -427,7 +422,7 @@ export default function ManageJobs() {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide flex justify-between">
+                                <label className="hp-label flex justify-between">
                                     <span>Requirements</span>
                                     <span className="text-[10px] text-[var(--hp-muted)]">Supports Markdown</span>
                                 </label>
@@ -552,110 +547,116 @@ export default function ManageJobs() {
                         >
                             <motion.div
                                 initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-                                className="hp-card hp-modal w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col relative"
+                                className="hp-card w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col relative border-none shadow-[0_32px_64px_rgba(0,0,0,0.4)]"
                                 onClick={(e) => e.stopPropagation()}
                             >
-                                <div className="sticky top-0 p-6 border-b flex justify-between items-center z-10" style={{ background: 'var(--hp-card)', borderColor: 'var(--hp-border)' }}>
+                                {/* Modal Header */}
+                                <div className="sticky top-0 p-6 border-b flex justify-between items-center z-[20] shadow-sm" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>
                                     <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="bg-[var(--hp-accent2)] text-white text-[10px] font-black px-2 py-0.5 rounded tracking-widest uppercase">
+                                                Recruitment Quiz
+                                            </span>
+                                        </div>
                                         <h3 className="text-xl font-bold text-[var(--hp-text)] tracking-tight">
-                                            {existingQuiz ? 'Edit Assessment' : 'Create Assessment'}
+                                            {existingQuiz ? 'Refine Assessment' : 'New Candidate Assessment'}
                                         </h3>
-                                        <p className="text-[var(--hp-accent2)] text-sm font-medium mt-0.5">{selectedJobForQuiz?.title}</p>
+                                        <p className="text-[var(--hp-muted)] text-[11px] font-bold uppercase tracking-wider mt-1">{selectedJobForQuiz?.title}</p>
                                     </div>
-                                    <button onClick={closeQuizModal} className="p-2 rounded-lg hover:bg-[var(--hp-surface-alt)] transition-colors" style={{ color: 'var(--hp-muted)' }}>
+                                    <button onClick={closeQuizModal} className="p-2 rounded-full hover:bg-black/5 transition-colors text-[var(--hp-muted)]">
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
                                 </div>
 
                                 {quizLoading ? (
-                                    <div className="text-center py-20 flex-1">
+                                    <div className="text-center py-20 flex-1 bg-[var(--hp-card)]">
                                         <div className="w-10 h-10 border-2 border-[var(--hp-accent2)] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                        <p className="text-[var(--hp-muted)] font-medium tracking-wide">Loading quiz configuration...</p>
+                                        <p className="text-[var(--hp-muted)] font-bold text-xs uppercase tracking-widest">Compiling Quiz Schema...</p>
                                     </div>
                                 ) : (
-                                    <div className="p-6 space-y-6 flex-1 overflow-y-auto" style={{ background: 'var(--hp-bg)' }}>
-
+                                    <div className="p-6 pb-24 space-y-8 flex-1 bg-[var(--hp-card)]">
                                         <AnimatePresence mode="wait">
                                             {quizError && (
-                                                <motion.div initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0 }}
-                                                    className="p-4 rounded-xl text-sm font-bold flex items-center gap-2 overflow-hidden"
-                                                    style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
-                                                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                                                    className="p-4 rounded-xl text-sm font-bold flex items-center gap-2 bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                                     {quizError}
                                                 </motion.div>
                                             )}
                                             {quizSuccess && (
-                                                <motion.div initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0 }}
-                                                    className="p-4 rounded-xl text-sm font-bold flex items-center gap-2 overflow-hidden"
-                                                    style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>
-                                                    <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                                                    className="p-4 rounded-xl text-sm font-bold flex items-center gap-2 bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
                                                     {quizSuccess}
                                                 </motion.div>
                                             )}
                                         </AnimatePresence>
 
-                                        {/* Settings Block */}
-                                        <div className="hp-card p-5 border shadow-none" style={{ borderColor: 'var(--hp-border)' }}>
-                                            <h4 className="text-[11px] font-bold uppercase tracking-widest mb-4" style={{ color: 'var(--hp-muted)' }}>Configuration</h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                                <div>
-                                                    <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Assessment Title *</label>
-                                                    <input type="text" value={quizForm.title} onChange={(e) => { setQuizForm(prev => ({ ...prev, title: e.target.value })); setQuizError(''); }} placeholder="e.g., Technical Screening" className="hp-input" />
+                                        {/* SECTION: Global Quiz Config */}
+                                        <div className="p-5 rounded-2xl border bg-[var(--hp-surface-alt)]/30 border-[var(--hp-border)]">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest mb-5 text-[var(--hp-muted)]">Assessment Configuration</h4>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="md:col-span-2">
+                                                    <label className="hp-label">Quiz Title *</label>
+                                                    <input type="text" value={quizForm.title} onChange={(e) => { setQuizForm(prev => ({ ...prev, title: e.target.value })); setQuizError(''); }} placeholder="e.g., Core React Principles & Architecture" className="hp-input" style={{ background: 'var(--hp-card)' }} />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-5">
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Passing %</label>
-                                                        <input type="number" value={quizForm.passingScore} onChange={(e) => setQuizForm(prev => ({ ...prev, passingScore: e.target.value }))} className="hp-input" min="0" max="100" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-xs font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Minutes</label>
-                                                        <input type="number" value={quizForm.timeLimit} onChange={(e) => setQuizForm(prev => ({ ...prev, timeLimit: e.target.value }))} className="hp-input" min="1" />
-                                                    </div>
+                                                <div>
+                                                    <label className="hp-label">Passing Score (%)</label>
+                                                    <input type="number" value={quizForm.passingScore} onChange={(e) => setQuizForm(prev => ({ ...prev, passingScore: e.target.value }))} className="hp-input" min="0" max="100" style={{ background: 'var(--hp-card)' }} />
+                                                </div>
+                                                <div>
+                                                    <label className="hp-label">Time Limit (Minutes)</label>
+                                                    <input type="number" value={quizForm.timeLimit} onChange={(e) => setQuizForm(prev => ({ ...prev, timeLimit: e.target.value }))} className="hp-input" min="1" style={{ background: 'var(--hp-card)' }} />
                                                 </div>
                                             </div>
                                         </div>
 
-                                        {/* Questions Block */}
-                                        <div>
-                                            <div className="flex justify-between items-center mb-4 px-1">
-                                                <h4 className="text-[11px] font-bold uppercase tracking-widest" style={{ color: 'var(--hp-muted)' }}>Questions Bank ({quizForm.questions.length})</h4>
-                                                <button type="button" onClick={handleAddQuestion} className="text-xs font-bold tracking-wider uppercase px-3 py-1.5 rounded-lg transition-colors border" style={{ background: 'rgba(var(--hp-accent2-rgb), 0.1)', color: 'var(--hp-accent2)', borderColor: 'rgba(var(--hp-accent2-rgb), 0.2)' }}>
+                                        {/* SECTION: Question Bank */}
+                                        <div className="space-y-6">
+                                            <div className="flex justify-between items-center px-1">
+                                                <h4 className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)]">Question Set ({quizForm.questions.length})</h4>
+                                                <button type="button" onClick={handleAddQuestion} className="text-[10px] font-black tracking-widest uppercase px-4 py-2 rounded-xl transition-all border border-[var(--hp-border)] bg-[var(--hp-surface-alt)] hover:border-[var(--hp-accent2)] hover:text-[var(--hp-accent2)] shadow-sm">
                                                     + Add Question
                                                 </button>
                                             </div>
 
-                                            <div className="space-y-4">
+                                            <div className="space-y-5">
                                                 <AnimatePresence>
                                                     {quizForm.questions.map((q, qIndex) => (
                                                         <motion.div
-                                                            key={qIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
-                                                            className="hp-card p-5 border shadow-none relative" style={{ borderColor: 'var(--hp-border)' }}
+                                                            key={qIndex} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }}
+                                                            className="p-5 rounded-2xl border bg-[var(--hp-surface-alt)]/10 border-[var(--hp-border)] relative group"
                                                         >
-                                                            <div className="flex justify-between items-center mb-4 pb-2 border-b" style={{ borderColor: 'var(--hp-border)' }}>
-                                                                <span className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--hp-accent2)' }}>
-                                                                    <span className="w-6 h-6 rounded bg-[var(--hp-surface-alt)] flex items-center justify-center text-xs">{qIndex + 1}</span>
-                                                                    Question Text *
-                                                                </span>
+                                                            <div className="flex justify-between items-center mb-5 pb-3 border-b border-[var(--hp-border)]">
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="w-8 h-8 rounded-lg bg-[var(--hp-accent2)]/10 text-[var(--hp-accent2)] flex items-center justify-center font-black text-sm">
+                                                                        {qIndex + 1}
+                                                                    </span>
+                                                                    <span className="hp-label mb-0 text-[var(--hp-text)]">Question Prompt</span>
+                                                                </div>
                                                                 {quizForm.questions.length > 1 && (
-                                                                    <button type="button" onClick={() => handleRemoveQuestion(qIndex)} className="p-1 rounded-md text-[var(--hp-muted)] hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                                                                    <button type="button" onClick={() => handleRemoveQuestion(qIndex)} className="p-2 rounded-lg text-[var(--hp-muted)] hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
                                                                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                                     </button>
                                                                 )}
                                                             </div>
 
-                                                            <input type="text" value={q.question} onChange={(e) => { handleQuestionChange(qIndex, 'question', e.target.value); setQuizError(''); }} placeholder="Enter the question prompt here..." className="hp-input mb-5" />
+                                                            <input type="text" value={q.question} onChange={(e) => { handleQuestionChange(qIndex, 'question', e.target.value); setQuizError(''); }} placeholder="e.g., What is the difference between useMemo and useCallback?" className="hp-input mb-6" style={{ background: 'var(--hp-card)' }} />
 
-                                                            <div className="space-y-3">
-                                                                <label className="block text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-wider mb-2">Answers (Select Correct)</label>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                                 {q.options.map((opt, oIndex) => (
-                                                                    <div key={oIndex} className="flex items-center gap-3 p-2 rounded-xl border transition-colors" style={{ background: 'var(--hp-surface-alt)', borderColor: q.correctAnswer === oIndex ? 'var(--hp-accent2)' : 'transparent' }}>
-                                                                        <input
-                                                                            type="radio" name={`correct-${qIndex}`} checked={q.correctAnswer === oIndex}
-                                                                            onChange={() => handleQuestionChange(qIndex, 'correctAnswer', oIndex)}
-                                                                            className="w-5 h-5 ml-2 cursor-pointer"
-                                                                            style={{ accentColor: 'var(--hp-accent2)' }}
-                                                                        />
-                                                                        <input type="text" value={opt} onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)} placeholder={`Option ${oIndex + 1}`} className="hp-input flex-1 py-2 border-none bg-transparent shadow-none px-0 focus:ring-0 focus:shadow-none" />
+                                                                    <div key={oIndex} className={`flex items-center gap-3 p-1 rounded-xl border transition-all ${q.correctAnswer === oIndex ? 'border-[var(--hp-accent2)] bg-[var(--hp-accent2)]/5 shadow-sm' : 'border-transparent bg-[var(--hp-card)]'}`}>
+                                                                        <div className="relative pl-3">
+                                                                            <input
+                                                                                type="radio" name={`correct-${qIndex}`} checked={q.correctAnswer === oIndex}
+                                                                                onChange={() => handleQuestionChange(qIndex, 'correctAnswer', oIndex)}
+                                                                                className="w-5 h-5 cursor-pointer opacity-0 absolute inset-0 z-10"
+                                                                            />
+                                                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${q.correctAnswer === oIndex ? 'border-[var(--hp-accent2)] bg-[var(--hp-accent2)]' : 'border-[var(--hp-border)]'}`}>
+                                                                                {q.correctAnswer === oIndex && <div className="w-2 h-2 rounded-full bg-white" />}
+                                                                            </div>
+                                                                        </div>
+                                                                        <input type="text" value={opt} onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)} placeholder={`Option ${oIndex + 1}`} className="hp-input bg-transparent border-none text-xs py-2 shadow-none focus:ring-0" />
                                                                     </div>
                                                                 ))}
                                                             </div>
@@ -667,13 +668,13 @@ export default function ManageJobs() {
                                     </div>
                                 )}
 
-                                {/* Sticky Footer */}
-                                <div className="p-6 border-t flex flex-col sm:flex-row gap-3 z-10" style={{ background: 'var(--hp-card)', borderColor: 'var(--hp-border)' }}>
-                                    <button type="button" onClick={closeQuizModal} className="hp-btn-ghost flex-1 py-3 text-sm">
+                                {/* Sticky Modal Footer */}
+                                <div className="absolute bottom-0 left-0 right-0 p-6 border-t flex flex-col sm:flex-row gap-3 z-[30] shadow-[0_-8px_32px_rgba(0,0,0,0.2)]" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>
+                                    <button type="button" onClick={closeQuizModal} className="hp-btn-ghost flex-1 py-4 text-sm font-bold uppercase tracking-widest">
                                         Cancel
                                     </button>
-                                    <button type="button" onClick={handleSaveQuiz} disabled={savingQuiz} className="hp-btn-primary flex-1 py-3 text-sm" style={{ background: 'linear-gradient(135deg, var(--hp-accent2), #8b5cf6)' }}>
-                                        {savingQuiz ? 'Saving Configuration...' : 'Publish Assessment'}
+                                    <button type="button" onClick={handleSaveQuiz} disabled={savingQuiz} className="hp-btn-primary flex-1 py-4 text-sm font-bold uppercase tracking-widest" style={{ background: 'linear-gradient(135deg, var(--hp-accent2), #8b5cf6)' }}>
+                                        {savingQuiz ? 'Synchronizing...' : 'Finalize & Publish'}
                                     </button>
                                 </div>
                             </motion.div>

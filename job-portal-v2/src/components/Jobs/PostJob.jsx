@@ -106,25 +106,6 @@ export default function PostJob() {
 
     return (
         <div className="pb-20 relative z-10">
-            <style>{`
-                .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); transition: border-color .25s, box-shadow .25s; }
-                .hp-card:hover { border-color: rgba(var(--hp-accent-rgb), 0.3); box-shadow: 0 12px 40px rgba(0,0,0,.15); }
-                
-                .hp-input { width: 100%; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); border-radius: 12px; padding: 12px 16px 12px 44px; font-size: 0.9rem; transition: all 0.2s; outline: none; }
-                .hp-input:focus { border-color: rgba(var(--hp-accent-rgb), 0.5); background: var(--hp-surface); box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1); }
-                .hp-input-icon { position: absolute; left: 14px; top: 13px; color: var(--hp-muted); width: 18px; height: 18px; pointer-events: none; transition: color 0.2s; }
-                .group-focus-within .hp-input-icon { color: var(--hp-accent); }
-
-                .hp-textarea { width: 100%; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); border-radius: 12px; padding: 16px; font-size: 0.9rem; transition: all 0.2s; outline: none; resize: vertical; min-height: 120px; }
-                .hp-textarea:focus { border-color: rgba(var(--hp-accent-rgb), 0.5); background: var(--hp-surface); box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1); }
-
-                .hp-btn-primary { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2)); color: #fff; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all .2s; }
-                .hp-btn-primary:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 25px rgba(var(--hp-accent-rgb), .35); }
-                .hp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-
-                .form-section-title { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--hp-muted); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--hp-border); }
-                .hp-input option { background: var(--hp-card) !important; color: var(--hp-text) !important; }
-            `}</style>
 
             <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -165,43 +146,48 @@ export default function PostJob() {
 
                         {/* SECTION: Basic Details */}
                         <div>
-                            <h3 className="form-section-title">Basic Details</h3>
+                            <div className="flex items-center gap-3 mb-6 pb-2 border-b border-[var(--hp-border)]">
+                                <span className="w-8 h-8 rounded-lg bg-[var(--hp-accent)]/10 text-[var(--hp-accent)] flex items-center justify-center">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                </span>
+                                <h3 className="db-gradient-text font-black text-xs uppercase tracking-widest">Basic Details</h3>
+                            </div>
                             <div className="space-y-5">
                                 <div>
-                                    <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">
+                                    <label className="hp-label">
                                         Job Title <span className="text-red-400">*</span>
                                     </label>
-                                    <div className="relative group-focus-within">
+                                    <div className="hp-input-group">
                                         <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                         <input
                                             type="text" name="title" value={formData.title} onChange={handleChange}
                                             placeholder="e.g. Senior Full Stack Engineer"
-                                            className="hp-input"
+                                            className="hp-input pl-11"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">
+                                        <label className="hp-label">
                                             Location <span className="text-red-400">*</span>
                                         </label>
-                                        <div className="relative group-focus-within">
+                                        <div className="hp-input-group">
                                             <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                             <input
                                                 type="text" name="location" value={formData.location} onChange={handleChange}
                                                 placeholder="e.g. Pune, Mumbai, Remote"
-                                                className="hp-input"
+                                                className="hp-input pl-11"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Job Type</label>
-                                        <div className="relative group-focus-within">
+                                        <label className="hp-label">Job Type</label>
+                                        <div className="hp-input-group">
                                             <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                             <select
                                                 name="jobType" value={formData.jobType} onChange={handleChange}
-                                                className="hp-input appearance-none"
+                                                className="hp-input pl-11 appearance-none"
                                             >
                                                 <option value="FULL_TIME">Full Time</option>
                                                 <option value="PART_TIME">Part Time</option>
@@ -219,28 +205,33 @@ export default function PostJob() {
 
                         {/* SECTION: Compensation & Logistics */}
                         <div>
-                            <h3 className="form-section-title mt-8">Compensation & Logistics</h3>
+                            <div className="flex items-center gap-3 mb-6 mt-8 pb-2 border-b border-[var(--hp-border)]">
+                                <span className="w-8 h-8 rounded-lg bg-[var(--hp-accent2)]/10 text-[var(--hp-accent2)] flex items-center justify-center">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.407 2.67 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.407-2.67-1M12 16v1m4-12V3c0-1.105-1.343-2-3-2s-3 .895-3 2v2M9 5H1m14 0h8" /></svg>
+                                </span>
+                                <h3 className="db-gradient-text font-black text-xs uppercase tracking-widest">Compensation & Logistics</h3>
+                            </div>
                             <div className="space-y-5">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Min Salary (₹)</label>
-                                        <div className="relative group-focus-within">
+                                        <label className="hp-label">Min Salary (₹)</label>
+                                        <div className="hp-input-group">
                                             <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             <input
                                                 type="number" name="salaryMin" value={formData.salaryMin} onChange={handleChange}
                                                 placeholder="e.g. 500000"
-                                                className="hp-input"
+                                                className="hp-input pl-11"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Max Salary (₹)</label>
-                                        <div className="relative group-focus-within">
+                                        <label className="hp-label">Max Salary (₹)</label>
+                                        <div className="hp-input-group">
                                             <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                                             <input
                                                 type="number" name="salaryMax" value={formData.salaryMax} onChange={handleChange}
                                                 placeholder="e.g. 1200000"
-                                                className="hp-input"
+                                                className="hp-input pl-11"
                                             />
                                         </div>
                                     </div>
@@ -248,23 +239,23 @@ export default function PostJob() {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                     <div>
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Experience Required</label>
-                                        <div className="relative group-focus-within">
+                                        <label className="hp-label">Experience Required</label>
+                                        <div className="hp-input-group">
                                             <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                             <input
                                                 type="text" name="experienceRequired" value={formData.experienceRequired} onChange={handleChange}
                                                 placeholder="e.g. 2-4 years"
-                                                className="hp-input"
+                                                className="hp-input pl-11"
                                             />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Positions Available</label>
-                                        <div className="relative group-focus-within">
+                                        <label className="hp-label">Positions Available</label>
+                                        <div className="hp-input-group">
                                             <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
                                             <input
                                                 type="number" name="positionsAvailable" value={formData.positionsAvailable} onChange={handleChange} min="1"
-                                                className="hp-input"
+                                                className="hp-input pl-11"
                                             />
                                         </div>
                                     </div>
@@ -274,11 +265,16 @@ export default function PostJob() {
 
                         {/* SECTION: Detailed Descriptions */}
                         <div>
-                            <h3 className="form-section-title mt-8">Job Content</h3>
+                            <div className="flex items-center gap-3 mb-6 mt-8 pb-2 border-b border-[var(--hp-border)]">
+                                <span className="w-8 h-8 rounded-lg bg-[var(--hp-accent)]/10 text-[var(--hp-accent)] flex items-center justify-center">
+                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                                </span>
+                                <h3 className="db-gradient-text font-black text-xs uppercase tracking-widest">Job Content</h3>
+                            </div>
                             <div className="space-y-6">
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] uppercase tracking-wide">
+                                        <label className="hp-label mb-0">
                                             Job Description <span className="text-red-400">*</span>
                                         </label>
                                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[var(--hp-muted)]">M↓ Markdown</span>
@@ -292,7 +288,7 @@ export default function PostJob() {
 
                                 <div>
                                     <div className="flex items-center justify-between mb-2">
-                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] uppercase tracking-wide">
+                                        <label className="hp-label mb-0">
                                             Requirements
                                         </label>
                                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[var(--hp-muted)]">M↓ Markdown</span>
