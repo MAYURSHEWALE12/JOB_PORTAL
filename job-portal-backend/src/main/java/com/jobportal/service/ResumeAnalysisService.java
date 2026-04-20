@@ -1,5 +1,6 @@
 package com.jobportal.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jobportal.dto.ResumeAnalysisDTO;
 import com.jobportal.entity.Job;
 import com.jobportal.entity.Resume;
@@ -123,6 +124,8 @@ import java.util.stream.Collectors;
 
         // 4. Job Match (If Job is provided)
         String matchDetails = null;
+        List<String> interviewQuestions = new ArrayList<>();
+        Map<String, Integer> skillMap = new HashMap<>();
 
         if (job != null) {
             MatchComputation matchComputation = calculateMatch(normalizedText, job, suggestions);
@@ -130,6 +133,12 @@ import java.util.stream.Collectors;
 
             score = (score + matchScore) / 2; // Average general + specific
             matchDetails = String.join(",", matchComputation.missingKeywords());
+            
+            // Intelligence: Generate Skill Map
+            skillMap = generateSkillMap(normalizedText, job);
+            
+            // Intelligence: Generate Interview Strategy
+            interviewQuestions = generateInterviewQuestions(matchComputation.missingKeywords());
             
             if (matchScore > 70) {
                 strengths.add("High keyword alignment with the " + job.getTitle() + " role.");
@@ -139,7 +148,15 @@ import java.util.stream.Collectors;
         }
 
         // Final Cap
-        score = Math.min(100, score + 10); // Base boost for having a readable PDF
+        score = Math.min(100, score + 10); 
+
+        ObjectMapper mapper = new ObjectMapper();
+        String skillMapJson = "{}";
+        try {
+            skillMapJson = mapper.writeValueAsString(skillMap);
+        } catch (Exception e) {
+            log.error("Failed to map skills to JSON: {}", e.getMessage());
+        }
 
         ResumeAnalysis analysis = ResumeAnalysis.builder()
                 .resume(resume)
@@ -148,6 +165,8 @@ import java.util.stream.Collectors;
                 .score(score)
                 .suggestions(suggestions)
                 .strengths(strengths)
+                .interviewQuestions(interviewQuestions)
+                .skillAlignmentJson(skillMapJson)
                 .matchDetails(matchDetails)
                 .analyzedAt(LocalDateTime.now())
                 .build();
@@ -196,6 +215,51 @@ import java.util.stream.Collectors;
     }
 
 
+    private Map<String, Integer> generateSkillMap(String resumeText, Job job) {
+        Map<String, Integer> map = new HashMap<>();
+        String jobText = (job.getTitle() + " " + job.getDescription() + " " + job.getRequirements()).toLowerCase();
+        
+        Map<String, List<String>> categories = new HashMap<>();
+        categories.put("Technical", Arrays.asList("react", "java", "python", "sql", "aws", "cloud", "api", "software", "development", "data", "git", "backend", "frontend"));
+        categories.put("Soft Skills", Arrays.asList("communication", "teamwork", "leadership", "agile", "problem-solving", "critical thinking", "collaboration", "adaptability"));
+        categories.put("Experience", Arrays.asList("senior", "years", "management", "directed", "lead", "optimized", "implemented", "managed", "delivered"));
+        categories.put("Education", Arrays.asList("degree", "university", "bachelor", "master", "phd", "certification", "trained", "graduate"));
+
+        for (Map.Entry<String, List<String>> entry : categories.entrySet()) {
+            long jobCount = entry.getValue().stream().filter(jobText::contains).count();
+            if (jobCount == 0) {
+                map.put(entry.getKey(), 50); // Default middle ground if no keywords found in job
+                continue;
+            }
+            long resumeCount = entry.getValue().stream().filter(resumeText::contains).count();
+            int alignment = (int) Math.min(100, ((double) resumeCount / jobCount) * 100);
+            map.put(entry.getKey(), alignment);
+        }
+        return map;
+    }
+
+    private List<String> generateInterviewQuestions(List<String> missingKeywords) {
+        List<String> questions = new ArrayList<>();
+        if (missingKeywords.isEmpty()) {
+            questions.add("Tell me about your most challenging project using the core tech stack.");
+            questions.add("How do you handle conflict in a fast-paced development team?");
+            questions.add("What is your approach to learning new technologies when they are introduced to a project?");
+            return questions;
+        }
+
+        // Targeted questions based on gaps
+        for (int i = 0; i < Math.min(3, missingKeywords.size()); i++) {
+            String keyword = missingKeywords.get(i);
+            questions.add("The candidate seems to lack direct experience with '" + keyword + "'. Ask: 'Can you describe a time when you used a technology similar to " + keyword + ", or how you would approach learning it on the job?'");
+        }
+        
+        if (questions.size() < 3) {
+            questions.add("Walk me through your process for troubleshooting a complex technical bug.");
+        }
+        
+        return questions;
+    }
+
     @Transactional(readOnly = true)
     public List<ResumeAnalysisDTO> getHistory(Long userId) {
         return analysisRepository.findByUserIdOrderByAnalyzedAtDesc(userId)
@@ -217,6 +281,7 @@ import java.util.stream.Collectors;
         ResumeAnalysis analysis = analyses.get(0);
         Hibernate.initialize(analysis.getSuggestions());
         Hibernate.initialize(analysis.getStrengths());
+        Hibernate.initialize(analysis.getInterviewQuestions());
         return Optional.of(ResumeAnalysisDTO.from(analysis));
     }
 

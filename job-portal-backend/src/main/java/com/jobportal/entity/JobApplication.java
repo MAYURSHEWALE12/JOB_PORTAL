@@ -1,5 +1,6 @@
 package com.jobportal.entity;
 
+import com.jobportal.dto.ResumeAnalysisDTO;
 import jakarta.persistence.*;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
@@ -35,10 +36,14 @@ public class JobApplication {
     @Transient
     private boolean hasCompletedInterview; // ✅ added for frontend visibility
 
+    @Transient
+    private ResumeAnalysisDTO matchAnalysis; // ✅ changed to DTO for Vertex Intelligence
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "job_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Job job;
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jobseeker_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

@@ -1,6 +1,7 @@
 package com.jobportal.service;
 
 import com.jobportal.dto.PageResponse;
+import com.jobportal.dto.ResumeAnalysisDTO;
 import com.jobportal.entity.*;
 import com.jobportal.exception.CustomException;
 import com.jobportal.exception.ResourceNotFoundException;
@@ -11,6 +12,7 @@ import com.jobportal.repository.UserRepository;
 import com.jobportal.repository.QuizRepository;
 import com.jobportal.repository.QuizResultRepository;
 import com.jobportal.repository.InterviewRepository;
+import com.jobportal.repository.ResumeAnalysisRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -39,7 +41,8 @@ public class JobApplicationService {
     private final EmailService             emailService;
     private final QuizRepository           quizRepository;
     private final QuizResultRepository     quizResultRepository;
-    private final InterviewRepository      interviewRepository;
+    private final ResumeAnalysisRepository      analysisRepository;
+    private final InterviewRepository           interviewRepository;
 
     /**
      * Apply for a job
@@ -155,6 +158,14 @@ public class JobApplicationService {
             // Check for completed interview
             List<Interview> interviews = interviewRepository.findByApplication(app);
             app.setHasCompletedInterview(interviews.stream().anyMatch(i -> i.getStatus() == InterviewStatus.COMPLETED));
+
+            // Populate Intelligence Analysis
+            if (app.getSelectedResume() != null) {
+                List<ResumeAnalysis> analysisList = analysisRepository.findTopByResumeAndJobOrderByAnalyzedAtDesc(app.getSelectedResume(), app.getJob());
+                if (!analysisList.isEmpty()) {
+                    app.setMatchAnalysis(ResumeAnalysisDTO.from(analysisList.get(0)));
+                }
+            }
         });
         
         return toPageResponse(appPage);
@@ -184,6 +195,14 @@ public class JobApplicationService {
             // Check for completed interview
             List<Interview> interviews = interviewRepository.findByApplication(app);
             app.setHasCompletedInterview(interviews.stream().anyMatch(i -> i.getStatus() == InterviewStatus.COMPLETED));
+
+            // Populate Intelligence Analysis
+            if (app.getSelectedResume() != null) {
+                List<ResumeAnalysis> analysisList = analysisRepository.findTopByResumeAndJobOrderByAnalyzedAtDesc(app.getSelectedResume(), app.getJob());
+                if (!analysisList.isEmpty()) {
+                    app.setMatchAnalysis(ResumeAnalysisDTO.from(analysisList.get(0)));
+                }
+            }
         });
         
         return toPageResponse(appPage);

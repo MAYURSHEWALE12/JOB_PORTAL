@@ -39,11 +39,13 @@ public class ResumeAnalysis {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "resume_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnore
     private Resume resume;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "job_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
+    @JsonIgnore
     private Job job; // Optional: analysis for a specific job
 
     private Integer score; // Overall ATS Score (0-100)
@@ -57,6 +59,14 @@ public class ResumeAnalysis {
     @CollectionTable(name = "analysis_strengths", joinColumns = @JoinColumn(name = "analysis_id"))
     @Column(name = "strength", columnDefinition = "LONGTEXT")
     private List<String> strengths;
+
+    @ElementCollection
+    @CollectionTable(name = "analysis_interview_questions", joinColumns = @JoinColumn(name = "analysis_id"))
+    @Column(name = "question", columnDefinition = "LONGTEXT")
+    private List<String> interviewQuestions;
+
+    @Column(columnDefinition = "LONGTEXT")
+    private String skillAlignmentJson; // Categorized match data (Technical, Soft, etc.)
 
     @Column(columnDefinition = "LONGTEXT")
     private String matchDetails; // JSON/Text summary of comparison for job match

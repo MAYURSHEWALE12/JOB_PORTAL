@@ -1,11 +1,11 @@
 package com.jobportal.dto;
 
 import com.jobportal.entity.ResumeAnalysis;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.lang.String;
-import java.util.ArrayList;
-import java.util.Arrays;
 public class ResumeAnalysisDTO {
     public Long id;
     public Long userId;
@@ -15,6 +15,8 @@ public class ResumeAnalysisDTO {
     public List<String> suggestions;
     public List<String> strengths;
     public List<String> missingKeywords;
+    public List<String> interviewQuestions;
+    public Map<String, Integer> skillMap;
     public String matchDetails;
     public LocalDateTime analyzedAt;
 
@@ -56,8 +58,19 @@ public class ResumeAnalysisDTO {
         dto.strengths = entity.getStrengths() != null ? new ArrayList<>(entity.getStrengths()) : new ArrayList<>();
         dto.matchDetails = entity.getMatchDetails();
         dto.missingKeywords = parseMissingKeywords(entity.getMatchDetails());
+        dto.interviewQuestions = entity.getInterviewQuestions() != null ? new ArrayList<>(entity.getInterviewQuestions()) : new ArrayList<>();
+        dto.skillMap = parseSkillMap(entity.getSkillAlignmentJson());
         dto.analyzedAt = entity.getAnalyzedAt();
         return dto;
+    }
+
+    private static Map<String, Integer> parseSkillMap(String json) {
+        if (json == null || json.isBlank()) return new HashMap<>();
+        try {
+            return new ObjectMapper().readValue(json, new TypeReference<Map<String, Integer>>() {});
+        } catch (Exception e) {
+            return new HashMap<>();
+        }
     }
 
     private static List<String> parseMissingKeywords(String matchDetails) {
