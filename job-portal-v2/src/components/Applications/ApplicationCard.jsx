@@ -107,6 +107,41 @@ export default function ApplicationCard({
         return "text-rose-600 bg-rose-100 border-rose-200";
     };
 
+    const handleDirectHire = async (e) => {
+        e.stopPropagation();
+        if (!window.confirm("⚡ Fast-Track Hire: Are you sure you want to officially hire this candidate immediately? A default offer letter will be logged automatically.")) {
+            return;
+        }
+
+        try {
+            await applicationAPI.directHire(app.id);
+            // Re-use handleUpdateStatus logic to refresh UI
+            if (handleUpdateStatus) {
+                handleUpdateStatus(app.id, 'ACCEPTED');
+            }
+        } catch (err) {
+            console.error("Direct Hire Failed:", err);
+            const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Fast-track hire failed.';
+            alert(errorMsg);
+        }
+    };
+
+    const getNextStatuses = (current) => {
+        if (current === 'REJECTED') return ['REVIEWED'];
+        if (current === 'ACCEPTED' || current === 'WITHDRAWN') return [];
+
+        const funnel = {
+            PENDING: ['REVIEWED'],
+            REVIEWED: ['SHORTLISTED'],
+            SHORTLISTED: ['INTERVIEWING', 'OFFERED'],
+            INTERVIEWING: ['OFFERED', 'SHORTLISTED'],
+            OFFERED: ['ACCEPTED'],
+        };
+
+        const options = funnel[current] || [];
+        return [...options, 'REJECTED'];
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -142,9 +177,22 @@ export default function ApplicationCard({
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h4 className="font-bold text-[var(--hp-text)] text-lg tracking-tight">
+                            <h3 className="text-sm font-bold text-[var(--hp-text)] group-hover:text-[var(--hp-accent)] transition-colors">
                                 {app.jobSeeker?.firstName} {app.jobSeeker?.lastName}
-                            </h4>
+                            </h3>
+                            {app.quizResult ? (
+                                <span className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                                    app.quizResult.passed ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                                }`}>
+                                    {app.quizResult.passed ? '✅ Passed Task' : '❌ Failed Task'}
+                                </span>
+                            ) : (
+                                app.status === 'PENDING' && (
+                                    <span className="text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border bg-amber-500/10 text-amber-500 border-amber-500/20 flex items-center gap-1">
+                                        ⏳ Skill Test Pending
+                                    </span>
+                                )
+                            )}
                         </div>
                         <p className="text-[var(--hp-muted)] text-sm">{app.jobSeeker?.email}</p>
                         <p className="text-[var(--hp-muted)] text-[10px] mt-1.5 flex items-center gap-1.5 uppercase font-black tracking-widest">
@@ -190,21 +238,21 @@ export default function ApplicationCard({
                 </div>
             </div>
 
-            {app.status !== 'WITHDRAWN' && (
+            {app.status !== 'WITHDRAWN' && app.status !== 'ACCEPTED' && (
                 <div className="flex gap-2 mt-4 flex-wrap ml-4">
-                    {['REVIEWED', 'SHORTLISTED', 'ACCEPTED', 'REJECTED'].map(status => (
+                    {getNextStatuses(app.status).map(status => (
                         <button
                             key={status}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 handleUpdateStatus(app.id, status);
                             }}
-                            disabled={app.status === status || updatingId === app.id}
+                            disabled={updatingId === app.id}
                             className={`
-                                px-3 py-1.5 rounded-full text-xs font-medium transition-all
-                                ${app.status === status
-                                    ? 'bg-[var(--color-primary)] text-zinc-900'
-                                    : 'card text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:border-[var(--color-primary)]'}
+                                px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
+                                ${status === 'REJECTED' 
+                                    ? 'bg-rose-500/5 text-rose-500 border-rose-500/20 hover:bg-rose-500/10' 
+                                    : 'bg-[var(--hp-accent)]/5 text-[var(--hp-accent)] border-[var(--hp-accent)]/20 hover:bg-[var(--hp-accent)]/10'}
                             `}
                         >
                             {status}
@@ -224,17 +272,26 @@ export default function ApplicationCard({
                         </button>
                     )}
 
-                    {/* Show Official Offer Button if candidate is shortlisted, reviewed or interviewing and not already offered */}
-                    {(app.status === 'SHORTLISTED' || app.status === 'REVIEWED' || app.status === 'INTERVIEWING') && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowOfferModal(true);
-                            }}
-                            className="px-3 py-1.5 bg-[#4A7C59] text-white rounded-full text-xs font-bold shadow-md hover:bg-[#3d664a] transition-all ml-auto"
-                        >
-                            <span className="mr-1">✉️</span> Send Official Offer
-                        </button>
+                    {/* Show Official Offer Button only if candidate is in INTERVIEWING stage and has a COMPLETED interview */}
+                    {(app.status === 'INTERVIEWING' && app.hasCompletedInterview) && (
+                        <div className="flex gap-2 ml-auto">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowOfferModal(true);
+                                }}
+                                className="px-3 py-1.5 bg-[#4A7C59] text-white rounded-full text-xs font-bold shadow-md hover:bg-[#3d664a] transition-all"
+                            >
+                                <span className="mr-1">✉️</span> Send Official Offer
+                            </button>
+                            <button
+                                onClick={handleDirectHire}
+                                className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-full text-xs font-bold shadow-md hover:opacity-90 transition-all flex items-center gap-1.5"
+                                title="Fast-track hire (Auto-generate & Accept offer)"
+                            >
+                                ⚡ Direct Hire
+                            </button>
+                        </div>
                     )}
                     
                     {app.status === 'INTERVIEWING' && (

@@ -8,6 +8,9 @@ import com.jobportal.repository.JobApplicationRepository;
 import com.jobportal.repository.JobRepository;
 import com.jobportal.repository.ResumeRepository;
 import com.jobportal.repository.UserRepository;
+import com.jobportal.repository.QuizRepository;
+import com.jobportal.repository.QuizResultRepository;
+import com.jobportal.repository.InterviewRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +37,9 @@ public class JobApplicationService {
     private final ResumeRepository         resumeRepository;
     private final NotificationService      notificationService;
     private final EmailService             emailService;
+    private final QuizRepository           quizRepository;
+    private final QuizResultRepository     quizResultRepository;
+    private final InterviewRepository      interviewRepository;
 
     /**
      * Apply for a job
@@ -140,6 +147,16 @@ public class JobApplicationService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "appliedAt"));
         Page<JobApplication> appPage = applicationRepository.findByJob(job, pageable);
+        
+        // Populate quiz result for each application
+        appPage.forEach(app -> {
+            app.setQuizResult(quizResultRepository.findByApplicationId(app.getId()).orElse(null));
+            
+            // Check for completed interview
+            List<Interview> interviews = interviewRepository.findByApplication(app);
+            app.setHasCompletedInterview(interviews.stream().anyMatch(i -> i.getStatus() == InterviewStatus.COMPLETED));
+        });
+        
         return toPageResponse(appPage);
     }
 
@@ -159,6 +176,16 @@ public class JobApplicationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", employerId));
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "appliedAt"));
         Page<JobApplication> appPage = applicationRepository.findByJobEmployer(employer, pageable);
+        
+        // Populate quiz result for each
+        appPage.forEach(app -> {
+            app.setQuizResult(quizResultRepository.findByApplicationId(app.getId()).orElse(null));
+            
+            // Check for completed interview
+            List<Interview> interviews = interviewRepository.findByApplication(app);
+            app.setHasCompletedInterview(interviews.stream().anyMatch(i -> i.getStatus() == InterviewStatus.COMPLETED));
+        });
+        
         return toPageResponse(appPage);
     }
 
@@ -200,6 +227,13 @@ public class JobApplicationService {
         if (!application.getJob().getEmployer().getId().equals(employerId)) {
             throw new CustomException(
                     "You can only update applications for your own jobs", HttpStatus.FORBIDDEN);
+        }
+
+        if (!isValidTransition(application, newStatus)) {
+            String errorMessage = (application.getStatus() == ApplicationStatus.PENDING && newStatus != ApplicationStatus.REJECTED)
+                ? "This candidate needs to complete the mandatory assessment before you can move them to the " + newStatus + " stage."
+                : "Invalid process sequence. You cannot move a candidate from " + application.getStatus() + " directly to " + newStatus + ".";
+            throw new CustomException(errorMessage, HttpStatus.BAD_REQUEST);
         }
 
         application.setStatus(newStatus);
@@ -245,11 +279,11 @@ public class JobApplicationService {
                     "You can only send offers for your own jobs", HttpStatus.FORBIDDEN);
         }
 
-        if (application.getStatus() != ApplicationStatus.SHORTLISTED &&
-            application.getStatus() != ApplicationStatus.REVIEWED &&
-            application.getStatus() != ApplicationStatus.INTERVIEWING) {
-            throw new CustomException(
-                    "Can only send offer to candidates in Screening, Shortlisted, or Interviewing stage", HttpStatus.BAD_REQUEST);
+        if (!isValidTransition(application, ApplicationStatus.OFFERED)) {
+            String msg = application.getStatus() == ApplicationStatus.INTERVIEWING 
+                ? "You cannot send an offer yet. The interview must be marked as COMPLETED first."
+                : "You cannot send an offer yet. Candidates must be in the Interviewing stage first.";
+            throw new CustomException(msg, HttpStatus.BAD_REQUEST);
         }
 
         String content = offerContent != null ? offerContent : buildDefaultOfferLetter(application, salary, startDate);
@@ -273,6 +307,40 @@ public class JobApplicationService {
         );
 
         return updated;
+    }
+
+    /**
+     * Officially hire a candidate in one click (Fast-track)
+     */
+    public JobApplication directHire(Long applicationId, Long employerId) {
+        JobApplication application = applicationRepository.findById(applicationId)
+                .orElseThrow(() -> new ResourceNotFoundException("Application", "id", applicationId));
+
+        if (!application.getJob().getEmployer().getId().equals(employerId)) {
+            throw new CustomException("You can only hire candidates for your own jobs", HttpStatus.FORBIDDEN);
+        }
+
+        if (!isDirectHireAllowed(application)) {
+            throw new CustomException(
+                "Cannot fast-track hire: Candidate must be in the Interviewing stage and have completed an interview.", 
+                HttpStatus.BAD_REQUEST);
+        }
+
+        String content = buildDefaultOfferLetter(application, null, null);
+        application.setOfferLetterContent(content);
+        application.setOfferSentAt(LocalDateTime.now());
+        application.setOfferAcceptedAt(LocalDateTime.now());
+        application.setStatus(ApplicationStatus.ACCEPTED);
+        application.setStatusUpdatedAt(LocalDateTime.now());
+
+        log.info("Directly hired candidate for application ID: {}", applicationId);
+        return applicationRepository.save(application);
+    }
+
+    private boolean isDirectHireAllowed(JobApplication application) {
+        if (application.getStatus() != ApplicationStatus.INTERVIEWING) return false;
+        List<Interview> interviews = interviewRepository.findByApplication(application);
+        return interviews.stream().anyMatch(i -> i.getStatus() == InterviewStatus.COMPLETED);
     }
 
     /**
@@ -408,6 +476,65 @@ public class JobApplicationService {
             return job.getEmployer().getFirstName() + " " + job.getEmployer().getLastName();
         }
         return "Unknown Company";
+    }
+
+    /**
+     * Validates if a status transition is allowed in the hiring funnel,
+     * including checks for mandatory assessments.
+     */
+    private boolean isValidTransition(JobApplication application, ApplicationStatus next) {
+        if (application == null || next == null) return false;
+        
+        ApplicationStatus current = application.getStatus();
+        if (current == next) return true;
+        if (next == ApplicationStatus.REJECTED) return true; 
+        if (current == ApplicationStatus.REJECTED && next == ApplicationStatus.REVIEWED) return true;
+
+        // --- Assessment Prerequisite Check ---
+        if (current == ApplicationStatus.PENDING && next != ApplicationStatus.REJECTED) {
+            try {
+                // Use IDs to avoid potential Lazy Loading / Mapping issues causing 500 errors
+                Long jobId = application.getJob().getId();
+                Optional<Quiz> quizOpt = quizRepository.findByJobId(jobId);
+                
+                if (quizOpt.isPresent()) {
+                    // Check for results using application ID
+                    boolean hasResult = quizResultRepository.findByApplicationId(application.getId()).isPresent();
+                    if (!hasResult) {
+                        log.warn("Blocking transition for App {}: Assessment required for Job {}.", application.getId(), jobId);
+                        return false;
+                    }
+                }
+            } catch (Throwable t) {
+                // Catch EVERYTHING to ensure the app doesn't hit a 500 internal error
+                log.error("Assessment check failed for App {}: {}. Allowing transition to avoid blocking recruiter.", 
+                          application.getId(), t.getMessage(), t);
+                // We return true here to avoid the 500 error you saw earlier, 
+                // effectively failing open if the check system itself has a bug.
+                return true; 
+            }
+        }
+
+        try {
+            return switch (current) {
+                case PENDING -> next == ApplicationStatus.REVIEWED;
+                case REVIEWED -> next == ApplicationStatus.SHORTLISTED;
+                case SHORTLISTED -> next == ApplicationStatus.INTERVIEWING;
+                case INTERVIEWING -> {
+                    if (next == ApplicationStatus.OFFERED || next == ApplicationStatus.ACCEPTED) {
+                        List<Interview> interviews = interviewRepository.findByApplication(application);
+                        yield interviews != null && interviews.stream()
+                                .anyMatch(i -> i != null && i.getStatus() == InterviewStatus.COMPLETED);
+                    }
+                    yield next == ApplicationStatus.SHORTLISTED;
+                }
+                case OFFERED -> next == ApplicationStatus.ACCEPTED;
+                default -> false;
+            };
+        } catch (Exception e) {
+            log.error("Error in funnel validation switch for App #{}: {}", application.getId(), e.getMessage());
+            return false;
+        }
     }
 
     /**

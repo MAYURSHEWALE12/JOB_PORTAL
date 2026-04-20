@@ -134,10 +134,10 @@ export default function ScheduleInterviewModal({ application, onClose, onSchedul
                             Meeting Link
                         </label>
                         <input
-                            type="url"
+                            type="text"
                             value={formData.meetingLink}
                             onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })}
-                            placeholder="https://meet.google.com/..."
+                            placeholder="e.g., https://meet.google.com/..."
                             className="warm-input w-full"
                         />
                     </div>

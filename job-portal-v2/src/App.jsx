@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore } from './store/themeStore';
@@ -126,6 +127,7 @@ function App() {
 
     return (
         <Router>
+            <Toaster position="top-right" reverseOrder={false} />
             <AppRoutes />
         </Router>
     );

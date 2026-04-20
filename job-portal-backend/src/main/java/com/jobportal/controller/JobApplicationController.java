@@ -151,6 +151,17 @@ public class JobApplicationController {
     }
 
     /**
+     * PUT /api/applications/{id}/direct-hire
+     */
+    @PutMapping("/{id}/direct-hire")
+    public ResponseEntity<JobApplication> directHire(
+            @PathVariable Long id,
+            HttpServletRequest request) {
+        Long employerId = securityUtil.getCurrentUserId(request);
+        return ResponseEntity.ok(applicationService.directHire(id, employerId));
+    }
+
+    /**
      * PUT /api/applications/{id}/accept
      */
     @PutMapping("/{id}/accept")

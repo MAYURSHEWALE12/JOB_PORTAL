@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { interviewAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { SkeletonList } from '../Skeleton';
+import CompleteInterviewModal from './CompleteInterviewModal';
+import toast from 'react-hot-toast';
 
 const statusConfig = {
     SCHEDULED: { icon: '⏳', label: 'Scheduled', color: '#fbbf24', bg: 'rgba(251,191,36,0.1)', border: 'rgba(251,191,36,0.2)' },
@@ -18,6 +20,7 @@ export default function InterviewsPage() {
     const [filter, setFilter] = useState('all');
     const [selected, setSelected] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
 
     useEffect(() => {
         fetchInterviews();
@@ -432,6 +435,16 @@ export default function InterviewsPage() {
                                             Cancel Interview
                                         </button>
                                     )}
+                                    
+                                    {user?.role === 'EMPLOYER' && selected.status === 'CONFIRMED' && (
+                                        <button
+                                            onClick={() => setShowCompleteModal(true)}
+                                            className="flex-1 py-3 text-sm font-bold rounded-xl text-white shadow-lg flex items-center justify-center gap-2"
+                                            style={{ background: 'linear-gradient(135deg, #34d399, #059669)' }}
+                                        >
+                                            🏁 Finish & Review
+                                        </button>
+                                    )}
 
                                     {selected.status === 'COMPLETED' && (
                                         <button
@@ -457,6 +470,17 @@ export default function InterviewsPage() {
                     </>
                 )}
             </AnimatePresence>
+
+            {showCompleteModal && selected && (
+                <CompleteInterviewModal 
+                    interview={selected}
+                    onClose={() => setShowCompleteModal(false)}
+                    onCompleted={() => {
+                        fetchInterviews();
+                        setSelected(null);
+                    }}
+                />
+            )}
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 import { jobAPI, applicationAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import Loader from '../Loader';
@@ -95,6 +96,7 @@ export default function ViewApplications() {
         setUpdatingId(applicationId);
         try {
             await applicationAPI.updateStatus(applicationId, user.id, newStatus);
+            toast.success(`Successfully moved to ${newStatus}`);
             setApplications(prev =>
                 prev.map(app =>
                     app.id === applicationId ? { ...app, status: newStatus } : app
@@ -104,7 +106,8 @@ export default function ViewApplications() {
                 setSelectedApp(prev => ({ ...prev, status: newStatus }));
             }
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to update status.');
+            const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Failed to update status.';
+            toast.error(errorMsg, { duration: 5000, icon: '🛡️' });
         } finally {
             setUpdatingId(null);
         }
@@ -124,8 +127,9 @@ export default function ViewApplications() {
                 )
             );
             setSelectedIds(new Set());
+            toast.success(`Updated ${selectedIds.size} applications`);
         } catch (err) {
-            alert('Failed to update some applications.');
+            toast.error('Failed to update some applications.');
         } finally {
             setIsBulkUpdating(false);
         }

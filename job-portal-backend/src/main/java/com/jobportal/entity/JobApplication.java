@@ -29,11 +29,16 @@ public class JobApplication {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Transient
+    private QuizResult quizResult; // ✅ added for frontend visibility
+
+    @Transient
+    private boolean hasCompletedInterview; // ✅ added for frontend visibility
+
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "job_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Job job;
-
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "jobseeker_id", nullable = false)
     @OnDelete(action = OnDeleteAction.CASCADE)

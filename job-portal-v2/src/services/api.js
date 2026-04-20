@@ -78,6 +78,8 @@ export const applicationAPI = {
         apiClient.put(`/applications/${applicationId}/reject-offer`),
     getOfferLetter: (applicationId) => 
         apiClient.get(`/applications/${applicationId}/offer-letter`),
+    directHire: (applicationId) => 
+        apiClient.put(`/applications/${applicationId}/direct-hire`),
 };
 
 export const savedJobAPI = {
