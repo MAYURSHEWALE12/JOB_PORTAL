@@ -41,9 +41,12 @@ export default function KanbanCard({ application, onSelect, onDragEnd }) {
             whileDrag={{ 
                 scale: 1.05, 
                 zIndex: 100, 
-                boxShadow: '0 20px 50px rgba(0,0,0,0.3)',
+                boxShadow: window.innerWidth < 768 
+                    ? '0 8px 24px rgba(0,0,0,0.35)' 
+                    : '0 20px 50px rgba(0,0,0,0.3)',
                 cursor: 'grabbing'
             }}
+            style={{ willChange: 'transform' }}
             onDragEnd={(e, info) => onDragEnd?.(application, info)}
             onClick={() => onSelect(application)}
             className="kanban-card hp-card p-3 sm:p-4 space-y-3 group select-none shadow-sm hover:shadow-md transition-shadow"

@@ -54,16 +54,32 @@ export default function DashboardStyles() {
 
             .db-nav {
                 background: var(--hp-nav-bg);
-                backdrop-filter: blur(22px);
-                -webkit-backdrop-filter: blur(22px);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
                 border-bottom: 1px solid var(--hp-border);
+            }
+
+            @media (max-width: 768px) {
+                .db-nav {
+                    backdrop-filter: blur(8px);
+                    -webkit-backdrop-filter: blur(8px);
+                }
+                .db-particles { display: none !important; }
+                .db-orb { filter: blur(60px); opacity: 0.5; }
             }
 
             .db-tabbar {
                 background: var(--hp-nav-bg);
-                backdrop-filter: blur(18px);
-                -webkit-backdrop-filter: blur(18px);
+                backdrop-filter: blur(16px);
+                -webkit-backdrop-filter: blur(16px);
                 border-bottom: 1px solid var(--hp-border);
+            }
+
+            @media (max-width: 768px) {
+                .db-tabbar {
+                    backdrop-filter: blur(6px);
+                    -webkit-backdrop-filter: blur(6px);
+                }
             }
 
             .db-tab {
@@ -275,12 +291,13 @@ export default function DashboardStyles() {
                 flex-grow: 1;
                 display: flex;
                 flex-direction: column;
-                margin-top: 88px;
+                margin-top: 110px;
                 padding: 28px 20px 32px;
+                scroll-margin-top: 120px;
             }
 
             @media (max-width: 640px) {
-                .db-content { margin-top: 82px; padding: 16px 12px 24px; }
+                .db-content { margin-top: 104px; padding: 16px 12px 24px; }
                 .db-tab { padding: 5px 10px; font-size: .72rem; }
             }
 
@@ -294,9 +311,8 @@ export default function DashboardStyles() {
                 background-clip: text;
             }
 
-            section, footer { transition: background .3s; }
-            *, *::before, *::after { transition: background-color .25s, border-color .25s, color .25s; }
-            .db-btn-primary { transition: opacity .2s, transform .2s, box-shadow .2s; }
+            section, footer { transition: background-color .3s; }
+            .db-card, .hp-card, .db-tab, .db-btn-primary { transition: background-color .25s, border-color .25s, box-shadow .25s, transform .25s; }
         `}</style>
     );
 }
