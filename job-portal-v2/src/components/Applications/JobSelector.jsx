@@ -27,11 +27,11 @@ export default function JobSelector({ jobs, onSelect, loading, error }) {
 
     return (
         <div className="max-w-[1200px] mx-auto relative z-10">
-            <div className="hp-particles-bg fixed inset-0 pointer-events-none overflow-hidden z-[-1]">
+            <div className="hp-particles-bg">
                 {particles.map((p, i) => (
                     <div
                         key={i}
-                        className="hp-particle-anim absolute rounded-full opacity-0"
+                        className="hp-particle-anim"
                         style={{
                             width: `${p.size}px`, height: `${p.size}px`, left: p.left, backgroundColor: p.color,
                             animation: `hp-float-up ${p.duration}s linear ${p.delay}s infinite`,

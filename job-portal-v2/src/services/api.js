@@ -15,13 +15,37 @@ apiClient.interceptors.request.use(
     (error) => Promise.reject(error)
 );
 
+import toast from 'react-hot-toast';
+
 apiClient.interceptors.response.use(
     (response) => response,
     (error) => {
-        if (error.response?.status === 401) {
-            localStorage.removeItem('authToken');
-            localStorage.removeItem('user');
-            window.location.href = '/login';
+        const status = error.response?.status;
+        const message = error.response?.data?.message || error.response?.data?.error || error.message;
+
+        switch (status) {
+            case 401:
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('user');
+                // Only redirect if not already on login/register
+                if (!window.location.pathname.includes('login') && !window.location.pathname.includes('register')) {
+                    window.location.href = '/login';
+                }
+                break;
+            case 403:
+                toast.error('Access Denied: You do not have permission for this action.', { id: 'api-403' });
+                break;
+            case 500:
+                toast.error('Server Error: Our background systems are experiencing turbulence. Please try again.', { id: 'api-500' });
+                break;
+            case 502:
+            case 503:
+            case 504:
+                toast.error('Network Error: The server is currently unreachable. Please check your connection.', { id: 'api-off' });
+                break;
+            default:
+                // For other errors, we let the component handle specialized logic, but log it
+                console.error(`API Error [${status || 'No Status'}]:`, message);
         }
         return Promise.reject(error);
     }

@@ -311,6 +311,160 @@ export default function DashboardStyles() {
                 background-clip: text;
             }
 
+            /* Shared Vertex Design System Components */
+            .hp-card {
+                background: var(--hp-card);
+                border: 1px solid var(--hp-border);
+                border-radius: 20px;
+                box-shadow: var(--hp-shadow-card);
+                transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                            border-color 0.25s ease, 
+                            box-shadow 0.25s ease, 
+                            background-color 0.25s ease;
+                overflow: hidden;
+            }
+            .hp-card:hover {
+                transform: translateY(-4px);
+                border-color: var(--hp-border-hover);
+                box-shadow: 0 12px 48px rgba(0,0,0,0.15);
+                background: var(--hp-card-hover);
+            }
+
+            .hp-btn-primary {
+                background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2));
+                color: #fff;
+                border: none;
+                border-radius: 12px;
+                padding: 10px 24px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+                box-shadow: 0 4px 15px rgba(var(--hp-accent-rgb), 0.3);
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .hp-btn-primary:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 6px 20px rgba(var(--hp-accent-rgb), 0.4);
+                opacity: 0.95;
+            }
+            .hp-btn-primary:active { transform: translateY(0); }
+
+            .hp-btn-ghost {
+                background: transparent;
+                color: var(--hp-text-sub);
+                border: 1px solid var(--hp-border);
+                border-radius: 12px;
+                padding: 10px 24px;
+                font-weight: 700;
+                cursor: pointer;
+                transition: all 0.20s ease;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+            .hp-btn-ghost:hover {
+                background: var(--hp-surface-alt);
+                border-color: var(--hp-accent);
+                color: var(--hp-accent);
+            }
+
+            .hp-badge, .tag-pill {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 4px 12px;
+                border-radius: 30px;
+                font-size: 0.65rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                border: 1px solid transparent;
+                white-space: nowrap;
+            }
+
+            /* Sizing Utilities for Avatars/Icons/Symbols */
+            .w-4 { width: 1rem; } .h-4 { height: 1rem; }
+            .w-5 { width: 1.25rem; } .h-5 { height: 1.25rem; }
+            .w-6 { width: 1.5rem; } .h-6 { height: 1.5rem; }
+            .w-8 { width: 2rem; } .h-8 { height: 2rem; }
+            .w-11 { width: 2.75rem; } .h-11 { height: 2.75rem; }
+            .w-12 { width: 3rem; } .h-12 { height: 3rem; }
+            .w-14 { width: 3.5rem; } .h-14 { height: 3.5rem; }
+            .w-16 { width: 4rem; } .h-16 { height: 4rem; }
+            
+            .flex { display: flex; }
+            .items-center { align-items: center; }
+            .justify-center { justify-content: center; }
+            .justify-between { justify-content: space-between; }
+            .flex-col { flex-direction: column; }
+            .flex-wrap { flex-wrap: wrap; }
+            .gap-1 { gap: 0.25rem; }
+            .gap-2 { gap: 0.5rem; }
+            .gap-3 { gap: 0.75rem; }
+            .gap-4 { gap: 1rem; }
+            .gap-6 { gap: 1.5rem; }
+            
+            .rounded-lg { border-radius: 0.5rem; }
+            .rounded-xl { border-radius: 0.75rem; }
+            .rounded-2xl { border-radius: 1rem; }
+            .rounded-full { border-radius: 9999px; }
+            
+            .flex-shrink-0 { flex-shrink: 0; }
+            .object-cover { object-fit: cover; }
+            .text-xs { font-size: 0.75rem; }
+            .text-sm { font-size: 0.875rem; }
+            .text-base { font-size: 1rem; }
+            .text-xl { font-size: 1.25rem; }
+            .text-2xl { font-size: 1.5rem; }
+            .text-3xl { font-size: 1.875rem; }
+
+            .opacity-0 { opacity: 0; }
+            .opacity-50 { opacity: 0.5; }
+            .opacity-70 { opacity: 0.7; }
+
+            .hp-particles-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+            .hp-particle-anim {
+                position: absolute;
+                border-radius: 50%;
+                opacity: 0;
+            }
+            @keyframes hp-float-up {
+                0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
+                20% { opacity: 0.8; }
+                80% { opacity: 0.4; }
+                100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+            }
+
+            /* Job Search Specific Inputs & Icons */
+            .js-input {
+                width: 100%;
+                background: var(--hp-surface-alt);
+                border: 1px solid var(--hp-border);
+                color: var(--hp-text);
+                border-radius: 12px;
+                padding: 12px 16px 12px 42px;
+                font-size: 0.88rem;
+                transition: all 0.2s;
+                outline: none;
+            }
+            .js-input:focus {
+                border-color: rgba(var(--hp-accent-rgb), 0.5);
+                box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1);
+            }
+            .js-input-icon {
+                position: absolute;
+                left: 14px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: var(--hp-muted);
+                width: 18px;
+                height: 18px;
+                pointer-events: none;
+            }
+            .js-select { padding-left: 16px !important; }
+
             section, footer { transition: background-color .3s; }
             .db-card, .hp-card, .db-tab, .db-btn-primary { transition: background-color .25s, border-color .25s, box-shadow .25s, transform .25s; }
         `}</style>
