@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { jobAPI, applicationAPI } from '../services/api';
 import { useAuthStore } from '../store/authStore';
 
 export function useApplications() {
     const { user } = useAuthStore();
+    const [searchParams, setSearchParams] = useSearchParams();
     
     const [jobs, setJobs] = useState([]);
     const [selectedJob, setSelectedJob] = useState(null);
@@ -13,11 +15,22 @@ export function useApplications() {
     const [loadingApps, setLoadingApps] = useState(false);
     const [updatingId, setUpdatingId] = useState(null);
     const [error, setError] = useState('');
-    const [activeStage, setActiveStage] = useState('ALL');
+    const [activeStage, setActiveStage] = useState(searchParams.get('stage') || 'ALL');
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [isBulkUpdating, setIsBulkUpdating] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [viewMode, setViewMode] = useState('list');
+
+    const updateUrlParams = useCallback((params) => {
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            Object.entries(params).forEach(([key, value]) => {
+                if (value) next.set(key, value);
+                else next.delete(key);
+            });
+            return next;
+        }, { replace: true });
+    }, [setSearchParams]);
 
     const fetchMyJobs = useCallback(async () => {
         setLoadingJobs(true);
@@ -26,10 +39,13 @@ export function useApplications() {
             const res = await jobAPI.getAll();
             const data = Array.isArray(res.data) ? res.data : (res.data?.content || []);
             const myJobs = data.filter(job => job.employer?.id === user.id);
-            setJobs(myJobs.reverse());
+            const reversed = myJobs.reverse();
+            setJobs(reversed);
+            return reversed;
         } catch (err) {
             console.error('Failed to load jobs:', err);
             setError('Failed to load jobs.');
+            return [];
         } finally {
             setLoadingJobs(false);
         }
@@ -40,8 +56,11 @@ export function useApplications() {
         setSelectedJob(job);
         setApplications([]);
         setSelectedIds(new Set());
-        setActiveStage('ALL');
         setLoadingApps(true);
+        
+        // Sync URL with jobId
+        updateUrlParams({ jobId: job.id, stage: activeStage });
+
         try {
             const res = await applicationAPI.getJobApplications(job.id, user.id);
             const data = Array.isArray(res.data) ? res.data : (res.data?.content || []);
@@ -52,11 +71,25 @@ export function useApplications() {
         } finally {
             setLoadingApps(false);
         }
-    }, [user.id]);
+    }, [user.id, activeStage, updateUrlParams]);
 
+    // Initial load + URL jobId matching
     useEffect(() => {
-        fetchMyJobs();
-    }, [fetchMyJobs]);
+        const init = async () => {
+            const myJobs = await fetchMyJobs();
+            const urlJobId = searchParams.get('jobId');
+            if (urlJobId && myJobs.length > 0) {
+                const jobToSelect = myJobs.find(j => String(j.id) === urlJobId);
+                if (jobToSelect) fetchApplications(jobToSelect);
+            }
+        };
+        init();
+    }, [fetchMyJobs, fetchApplications, searchParams]);
+
+    const handleUpdateStage = (stage) => {
+        setActiveStage(stage);
+        updateUrlParams({ stage });
+    };
 
     const handleUpdateStatus = async (applicationId, newStatus) => {
         setUpdatingId(applicationId);
@@ -108,7 +141,7 @@ export function useApplications() {
         jobs, selectedJob, setSelectedJob, 
         applications, setApplications,
         loadingJobs, loadingApps, updatingId, 
-        error, activeStage, setActiveStage,
+        error, activeStage, setActiveStage: handleUpdateStage,
         selectedIds, setSelectedIds,
         isBulkUpdating, searchQuery, setSearchQuery, 
         viewMode, setViewMode,

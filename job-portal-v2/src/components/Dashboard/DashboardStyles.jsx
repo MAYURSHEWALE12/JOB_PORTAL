@@ -394,48 +394,11 @@ export default function DashboardStyles() {
             .w-14 { width: 3.5rem; } .h-14 { height: 3.5rem; }
             .w-16 { width: 4rem; } .h-16 { height: 4rem; }
             
-            .flex { display: flex; }
-            .items-center { align-items: center; }
-            .justify-center { justify-content: center; }
-            .justify-between { justify-content: space-between; }
-            .flex-col { flex-direction: column; }
-            .flex-wrap { flex-wrap: wrap; }
-            .gap-1 { gap: 0.25rem; }
-            .gap-2 { gap: 0.5rem; }
-            .gap-3 { gap: 0.75rem; }
-            .gap-4 { gap: 1rem; }
-            .gap-6 { gap: 1.5rem; }
-            
-            .rounded-lg { border-radius: 0.5rem; }
-            .rounded-xl { border-radius: 0.75rem; }
-            .rounded-2xl { border-radius: 1rem; }
-            .rounded-full { border-radius: 9999px; }
-            
-            .flex-shrink-0 { flex-shrink: 0; }
-            .object-cover { object-fit: cover; }
-            .text-xs { font-size: 0.75rem; }
-            .text-sm { font-size: 0.875rem; }
-            .text-base { font-size: 1rem; }
-            .text-xl { font-size: 1.25rem; }
-            .text-2xl { font-size: 1.5rem; }
-            .text-3xl { font-size: 1.875rem; }
-
             .opacity-0 { opacity: 0; }
             .opacity-50 { opacity: 0.5; }
             .opacity-70 { opacity: 0.7; }
 
             .hp-particles-bg { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
-            .hp-particle-anim {
-                position: absolute;
-                border-radius: 50%;
-                opacity: 0;
-            }
-            @keyframes hp-float-up {
-                0% { transform: translateY(100vh) scale(0.3); opacity: 0; }
-                20% { opacity: 0.8; }
-                80% { opacity: 0.4; }
-                100% { transform: translateY(-10vh) scale(1); opacity: 0; }
-            }
 
             /* Job Search Specific Inputs & Icons */
             .js-input {
@@ -444,10 +407,11 @@ export default function DashboardStyles() {
                 border: 1px solid var(--hp-border);
                 color: var(--hp-text);
                 border-radius: 12px;
-                padding: 12px 16px 12px 42px;
+                padding: 12px 16px 12px 56px;
                 font-size: 0.88rem;
                 transition: all 0.2s;
                 outline: none;
+                height: 48px;
             }
             .js-input:focus {
                 border-color: rgba(var(--hp-accent-rgb), 0.5);
@@ -459,11 +423,54 @@ export default function DashboardStyles() {
                 top: 50%;
                 transform: translateY(-50%);
                 color: var(--hp-muted);
-                width: 18px;
-                height: 18px;
+                width: 32px;
+                height: 32px;
                 pointer-events: none;
+                opacity: 0.8;
             }
-            .js-select { padding-left: 16px !important; }
+            .js-select { padding-left: 20px !important; }
+
+            .hp-input {
+                width: 100%;
+                background: var(--hp-surface-alt);
+                border: 1px solid var(--hp-border);
+                color: var(--hp-text);
+                border-radius: 12px;
+                padding: 10px 16px;
+                font-size: 0.88rem;
+                transition: all 0.2s;
+                outline: none;
+            }
+            .hp-input:focus {
+                border-color: rgba(var(--hp-accent-rgb), 0.5);
+                background: var(--hp-card);
+                box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1);
+            }
+            .hp-input::placeholder { color: var(--hp-muted); opacity: 0.6; }
+
+            .hp-label {
+                display: block;
+                font-size: 0.65rem;
+                font-weight: 800;
+                color: var(--hp-muted);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                margin-bottom: 0.5rem;
+            }
+
+            .hero-search-row {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr) auto;
+                align-items: center;
+                gap: 12px;
+                width: 100%;
+            }
+            @media (max-width: 1024px) {
+                .hero-search-row { 
+                    grid-template-columns: 1fr;
+                    gap: 16px;
+                }
+            }
 
             section, footer { transition: background-color .3s; }
             .db-card, .hp-card, .db-tab, .db-btn-primary { transition: background-color .25s, border-color .25s, box-shadow .25s, transform .25s; }

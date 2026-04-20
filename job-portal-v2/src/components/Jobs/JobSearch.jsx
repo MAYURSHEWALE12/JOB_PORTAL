@@ -300,19 +300,21 @@ export default function JobSearch() {
                     Find Your Next Role
                 </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 relative z-10">
+                <div className="hero-search-row relative z-10">
                     <div className="relative">
                         <svg className="js-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                         <input type="text" name="keyword" value={filters.keyword} onChange={handleChange} placeholder="Job title, skill..." className="js-input" />
                     </div>
+                    
                     <div className="relative">
                         <svg className="js-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         </svg>
                         <input type="text" name="location" value={filters.location} onChange={handleChange} placeholder="Location" className="js-input" />
                     </div>
+
                     <div className="relative">
                         <select name="jobType" value={filters.jobType} onChange={handleChange} className="js-input js-select appearance-none">
                             <option value="" style={{ background: 'var(--hp-card)' }}>All Job Types</option>
@@ -324,11 +326,11 @@ export default function JobSearch() {
                         </select>
                         <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: 'var(--hp-muted)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
                     </div>
-                    <div className="relative">
-                        <svg className="js-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <input type="number" name="salaryMin" value={filters.salaryMin} onChange={handleChange} placeholder="Min Salary" className="js-input" />
+
+                    <div className="w-full lg:w-auto">
+                        <button type="submit" className="hp-btn-primary w-full" style={{ height: 48, padding: '0 32px' }}>
+                            Search Jobs
+                        </button>
                     </div>
                 </div>
 

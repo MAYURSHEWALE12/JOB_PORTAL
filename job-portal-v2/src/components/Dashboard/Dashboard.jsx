@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { useWebsocketStore } from '../../store/websocketStore';
@@ -44,7 +44,8 @@ export default function Dashboard() {
     const { theme } = useThemeStore();
     const isDark = theme === 'dark';
 
-    const [activeTab, setActiveTab] = useState('search');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'search');
     const [initialUnread, setInitialUnread] = useState(0);
     const [isMoreMenuOpen, setIsMoreMenuOpen] = useState(false);
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
@@ -83,6 +84,16 @@ export default function Dashboard() {
     const handleTabChange = (key) => {
         if (key === 'resume') { navigate('/resume-builder'); return; }
         setActiveTab(key);
+        setSearchParams(prev => {
+            const next = new URLSearchParams(prev);
+            next.set('tab', key);
+            // Clear job/stage if switching away from applicants
+            if (key !== 'viewapps') {
+                next.delete('jobId');
+                next.delete('stage');
+            }
+            return next;
+        });
         if (key === 'messages') fetchUnreadCount();
         setIsMoreMenuOpen(false);
         setProfileMenuOpen(false);

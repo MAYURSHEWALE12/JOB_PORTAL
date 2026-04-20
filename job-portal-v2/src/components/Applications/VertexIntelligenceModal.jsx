@@ -226,7 +226,7 @@ export default function VertexIntelligenceModal({ analysis, onClose }) {
                 <div className="p-4 bg-[var(--hp-surface-alt)] border-t border-[var(--hp-border)] flex justify-end">
                     <button
                         onClick={onClose}
-                        className="px-6 py-2 bg-[var(--hp-text)] text-white font-bold rounded-xl text-sm"
+                        className="hp-btn-primary px-8"
                     >
                         Dismiss Analysis
                     </button>

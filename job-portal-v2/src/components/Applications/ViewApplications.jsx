@@ -171,7 +171,7 @@ export default function ViewApplications() {
                 </AnimatePresence>
             </motion.div>
 
-            <div className="flex flex-col lg:flex-row gap-6">
+            <div className="flex flex-col lg:flex-row items-stretch gap-8">
                 <PipelineSidebar 
                     activeStage={activeStage} 
                     onStageChange={setActiveStage} 
@@ -203,7 +203,7 @@ export default function ViewApplications() {
                                 </motion.div>
                             ) : (
                                 <motion.div key="list" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 px-1 gap-4">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 px-1 gap-4">
                                         <div className="flex items-center gap-3">
                                             <h3 className="text-xl font-bold text-[var(--hp-text)] tracking-tight flex items-center gap-2">
                                                 <span className="text-2xl">{PIPELINE_STAGES.find(s => s.key === activeStage)?.icon}</span>
