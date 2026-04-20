@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
 @Data
@@ -58,13 +59,15 @@ public class QuizDTO {
     public static class OptionDTO {
         private Long id;
         private String text;
-        private boolean isCorrect;
+
+        @JsonProperty("correct")
+        private Boolean correct;
 
         public static OptionDTO from(com.jobportal.entity.Option o) {
             return OptionDTO.builder()
                     .id(o.getId())
                     .text(o.getText())
-                    .isCorrect(o.isCorrect())
+                    .correct(o.isCorrect())
                     .build();
         }
     }

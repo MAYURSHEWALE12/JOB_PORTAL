@@ -7,8 +7,6 @@ import com.jobportal.dto.QuizViewDTO;
 import com.jobportal.entity.*;
 import com.jobportal.exception.ResourceNotFoundException;
 import com.jobportal.repository.*;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,15 +19,25 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
-@Slf4j
 @Transactional
 public class QuizService {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(QuizService.class);
 
     private final QuizRepository           quizRepository;
     private final JobRepository            jobRepository;
     private final JobApplicationRepository applicationRepository;
     private final QuizResultRepository     quizResultRepository;
+
+    public QuizService(QuizRepository quizRepository,
+                       JobRepository jobRepository,
+                       JobApplicationRepository applicationRepository,
+                       QuizResultRepository quizResultRepository) {
+        this.quizRepository = quizRepository;
+        this.jobRepository = jobRepository;
+        this.applicationRepository = applicationRepository;
+        this.quizResultRepository = quizResultRepository;
+    }
 
     /**
      * Create or update a quiz for a job
@@ -85,7 +93,7 @@ public class QuizService {
                     Option.builder()
                             .question(q)
                             .text(oDto.getText())
-                            .isCorrect(oDto.isCorrect())
+                            .isCorrect(Boolean.TRUE.equals(oDto.getCorrect()))
                             .build()
                 ).collect(Collectors.toList());
 
@@ -105,6 +113,22 @@ public class QuizService {
     }
 
 
+
+    /**
+     * Get FULL quiz for a job (employer/edit view - includes correct answers)
+     */
+    @Transactional(readOnly = true)
+    public QuizDTO getFullQuizForJob(Long jobId) {
+        log.info("Fetching full quiz details for job ID: {}", jobId);
+        try {
+            return quizRepository.findByJobId(jobId)
+                    .map(QuizDTO::from)
+                    .orElse(null);
+        } catch (Exception e) {
+            log.warn("No quiz found for job ID: {}", jobId);
+            return null;
+        }
+    }
 
     /**
      * Get quiz for a job (candidate view - no correct answers)

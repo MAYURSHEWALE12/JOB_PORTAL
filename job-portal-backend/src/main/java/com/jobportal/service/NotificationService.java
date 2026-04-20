@@ -52,4 +52,10 @@ public class NotificationService {
             notificationRepository.save(notification);
         });
     }
+
+    public void markAllAsRead(Long userId) {
+        List<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
+        notifications.forEach(notification -> notification.setRead(true));
+        notificationRepository.saveAll(notifications);
+    }
 }

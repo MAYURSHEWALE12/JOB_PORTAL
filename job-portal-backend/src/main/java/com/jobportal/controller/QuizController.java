@@ -8,20 +8,21 @@ import com.jobportal.entity.QuizResult;
 
 import com.jobportal.service.QuizService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/quizzes")
-@RequiredArgsConstructor
-@Slf4j
 @Tag(name = "Quizzes", description = "Assessment creation and submission")
 public class QuizController {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(QuizController.class);
     private final QuizService quizService;
+
+    public QuizController(QuizService quizService) {
+        this.quizService = quizService;
+    }
 
     /**
      * POST /api/quizzes/job/{jobId}
@@ -36,7 +37,20 @@ public class QuizController {
 
 
     /**
+     * GET /api/quizzes/job/{jobId}
+     * Returns full quiz with correct answers (for employers)
+     */
+    @GetMapping("/job/{jobId}")
+    public ResponseEntity<QuizDTO> getFullQuiz(@PathVariable Long jobId) {
+        log.info("Fetching full quiz for job {}", jobId);
+        QuizDTO quiz = quizService.getFullQuizForJob(jobId);
+        return ResponseEntity.ok(quiz);
+    }
+
+
+    /**
      * GET /api/quizzes/job/{jobId}/view
+     * Returns quiz view without correct answers (for candidates)
      */
     @GetMapping("/job/{jobId}/view")
     public ResponseEntity<QuizViewDTO> getQuizForCandidate(@PathVariable Long jobId) {

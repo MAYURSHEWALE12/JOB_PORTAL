@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { resumeAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import PDFPreviewModal from './PDFPreviewModal';
 import Loader from '../Loader';
 
 export default function ResumeManager({ onSelect, selectionMode = false }) {
@@ -17,6 +19,7 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
     const [error, setError]             = useState('');
     const [success, setSuccess]         = useState('');
     const [selectedId, setSelectedId]   = useState(null);
+    const [previewing, setPreviewing] = useState(null);
     const fileInputRef                  = useRef(null);
 
     useEffect(() => {
@@ -100,10 +103,10 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
         setError('');
         try {
             const name = uploadName.trim() || file.name.replace('.pdf', '');
-            await resumeAPI.upload(user.id, file, name);
+            await resumeAPI.uploadWithUserId(user.id, file, name);
             await fetchResumes();
             setUploadName('');
-            setSuccess('✅ Resume uploaded!');
+            setSuccess('Resume uploaded!');
             setTimeout(() => setSuccess(''), 2000);
         } catch (err) {
             setError(err.response?.data?.error || 'Upload failed.');
@@ -129,42 +132,48 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
         <div>
             {!selectionMode && (
                 <div className="mb-6">
-                    <h2 className="text-2xl font-black text-stone-900 dark:text-gray-100 uppercase tracking-tight">📁 My Resumes</h2>
-                    <p className="text-stone-500 dark:text-stone-400 text-xs mt-1 font-bold uppercase tracking-widest">
+                    <h3 className="text-lg font-serif font-semibold text-[var(--color-text-main)]">
                         Manage all your resumes ({resumes.length}/5)
-                    </p>
+                    </h3>
                 </div>
             )}
 
             {success && (
-                <div className="bg-emerald-400 border-[3px] border-stone-900 dark:border-stone-700 text-stone-900 px-4 py-3 mb-4 font-black uppercase text-sm shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]">
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="warm-toast mb-4 text-sm font-medium"
+                >
                     {success}
-                </div>
+                </motion.div>
             )}
             {error && (
-                <div className="bg-rose-500 border-[3px] border-stone-900 dark:border-stone-700 text-white px-4 py-3 mb-4 font-black uppercase text-sm shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]">
+                <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-4 p-4 rounded-xl text-sm font-medium bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 border border-rose-200 dark:border-rose-900/50"
+                >
                     {error}
-                </div>
+                </motion.div>
             )}
 
-            {/* Upload Section */}
             {!selectionMode && resumes.length < 5 && (
-                <div className="bg-white dark:bg-stone-800 border-[3px] border-stone-900 dark:border-stone-700 shadow-[6px_6px_0_#1c1917] dark:shadow-[6px_6px_0_#000] p-5 mb-6">
-                    <h3 className="font-black text-stone-900 dark:text-gray-100 mb-3 text-sm uppercase tracking-widest">📤 Upload Existing Resume</h3>
-                    <div className="flex gap-3">
+                <div className="warm-card p-4 sm:p-5 mb-4 sm:mb-6">
+                    <h4 className="text-sm font-semibold text-[var(--color-text-main)] mb-3">Upload Existing Resume</h4>
+                    <div className="flex flex-col sm:flex-row gap-3">
                         <input
                             type="text"
                             value={uploadName}
                             onChange={(e) => setUploadName(e.target.value)}
                             placeholder="Resume name (optional)"
-                            className="flex-1 px-4 py-2.5 border-[3px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:border-orange-500 focus:shadow-[3px_3px_0_#ea580c] text-sm bg-white dark:bg-stone-900 dark:text-white font-bold uppercase placeholder:normal-case placeholder:font-normal transition-all"
+                            className="warm-input flex-1"
                         />
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
-                            className="bg-orange-500 hover:bg-orange-400 disabled:bg-stone-300 text-stone-900 px-5 py-2.5 border-[3px] border-stone-900 dark:border-stone-700 text-sm font-black uppercase tracking-wider transition-all shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000] hover:-translate-y-0.5 hover:shadow-[5px_5px_0_#1c1917]"
+                            className="warm-btn text-sm whitespace-nowrap"
                         >
-                            {uploading ? 'Uploading...' : '📎 Upload PDF'}
+                            {uploading ? 'Uploading...' : 'Upload PDF'}
                         </button>
                     </div>
                     <input
@@ -177,49 +186,44 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
                 </div>
             )}
 
-            {/* Loading */}
             {loading && <Loader text="Loading resumes..." />}
 
-            {/* Empty */}
             {!loading && resumes.length === 0 && (
-                <div className="bg-white dark:bg-stone-800 border-[3px] border-stone-900 dark:border-stone-700 shadow-[6px_6px_0_#1c1917] dark:shadow-[6px_6px_0_#000] p-10 text-center">
-                    <div className="text-5xl mb-3">📄</div>
-                    <h3 className="font-black text-stone-900 dark:text-gray-100 mb-1 uppercase tracking-tight">No Resumes Yet</h3>
-                    <p className="text-stone-500 dark:text-stone-400 text-sm font-bold uppercase">
+                <div className="warm-card p-6 sm:p-10 text-center">
+                    <div className="text-4xl sm:text-5xl mb-3 sm:4">📄</div>
+                    <h4 className="font-serif font-semibold text-[var(--color-text-main)] text-base sm:text-lg mb-2">No Resumes Yet</h4>
+                    <p className="text-[var(--color-text-muted)] text-sm">
                         Use the Resume Generator or upload an existing PDF
                     </p>
                 </div>
             )}
 
-            {/* Resume List */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
                 {resumes.map(resume => (
-                    <div
+                    <motion.div
                         key={resume.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
                         onClick={() => handleSelect(resume)}
-                        className={`bg-white dark:bg-stone-800 p-4 transition-all border-[3px]
-                            ${selectionMode
-                                ? 'cursor-pointer hover:-translate-y-1 ' +
-                                  (selectedId === resume.id
-                                    ? 'border-orange-500 bg-orange-50 dark:bg-stone-700 shadow-[6px_6px_0_#ea580c] -translate-y-1'
-                                    : 'border-stone-900 dark:border-stone-700 shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000] hover:shadow-[6px_6px_0_#ea580c]')
-                                : 'border-stone-900 dark:border-stone-700 shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]'}`}
+                        className={`warm-card p-3 sm:p-4 cursor-pointer
+                            ${selectionMode && selectedId === resume.id ? 'border-[var(--color-primary)]' : ''}`}
                     >
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                {/* Selected indicator */}
+                        <div className="flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-3 min-w-0">
                                 {selectionMode && (
-                                    <div className={`w-5 h-5 border-[3px] flex items-center justify-center flex-shrink-0
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0
                                         ${selectedId === resume.id
-                                            ? 'border-orange-600 bg-orange-500'
-                                            : 'border-stone-400 dark:border-stone-600'}`}>
+                                            ? 'border-[var(--color-primary)] bg-[var(--color-primary)]'
+                                            : 'border-[var(--color-border)]'}`}>
                                         {selectedId === resume.id && (
-                                            <div className="w-2 h-2 bg-white" />
+                                            <div className="w-2 h-2 rounded-full bg-white" />
                                         )}
                                     </div>
                                 )}
 
-                                <div className="w-10 h-10 bg-orange-100 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 flex items-center justify-center text-xl shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000]">📄</div>
+                                <div className="w-12 h-12 rounded-full flex items-center justify-center text-xl bg-[var(--color-canvas)] border border-[var(--color-border)] text-[var(--color-primary)]">
+                                    📄
+                                </div>
 
                                 <div>
                                     {renaming === resume.id ? (
@@ -233,54 +237,77 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
                                                     if (e.key === 'Escape') setRenaming(null);
                                                 }}
                                                 autoFocus
-                                                className="px-3 py-1 border-[2px] border-orange-500 text-sm focus:outline-none focus:shadow-[2px_2px_0_#ea580c] bg-white dark:bg-stone-900 dark:text-white font-bold"
+                                                className="warm-input py-1 px-3 text-sm w-48"
                                             />
                                             <button onClick={() => handleRename(resume.id)}
-                                                className="text-orange-600 text-xs font-black uppercase">Save</button>
+                                                className="text-[var(--color-primary)] text-xs font-medium">Save</button>
                                             <button onClick={() => setRenaming(null)}
-                                                className="text-stone-400 text-xs font-bold uppercase">Cancel</button>
+                                                className="text-[var(--color-text-muted)] text-xs font-medium">Cancel</button>
                                         </div>
                                     ) : (
-                                        <p className="font-black text-stone-900 dark:text-gray-100 text-sm uppercase tracking-tight">{resume.name}</p>
+                                        <p className="font-medium text-[var(--color-text-main)]">{resume.name}</p>
                                     )}
-                                    <p className="text-stone-400 dark:text-stone-500 text-xs font-bold uppercase mt-0.5">
+                                    <p className="text-[var(--color-text-muted)] text-xs mt-0.5 opacity-70">
                                         📅 {formatDate(resume.createdAt)}
                                     </p>
                                 </div>
                             </div>
 
-                            {/* Action buttons */}
                             {!selectionMode && (
                                 <div className="flex gap-2">
                                     <button
-                                        onClick={() => {
+                                        onClick={(e) => {
+                                            e.stopPropagation();
                                             setRenaming(resume.id);
                                             setNewName(resume.name);
                                         }}
-                                        className="text-xs bg-white dark:bg-stone-700 border-[2px] border-stone-900 dark:border-stone-700 text-stone-900 dark:text-stone-100 font-bold uppercase px-3 py-1.5 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#1c1917] transition-all"
+                                        className="warm-btn-outline text-xs py-2 px-3"
                                     >
                                         ✏️ Rename
                                     </button>
                                     <button
-                                        onClick={() => handleDownload(resume)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setPreviewing(resume);
+                                        }}
                                         disabled={downloading === resume.id}
-                                        className="text-xs bg-orange-100 dark:bg-orange-900/30 border-[2px] border-stone-900 dark:border-stone-700 text-stone-900 dark:text-orange-400 font-bold uppercase px-3 py-1.5 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#1c1917] transition-all disabled:opacity-50"
+                                        className="warm-btn text-xs py-2 px-3"
                                     >
-                                        {downloading === resume.id ? '...' : '⬇️ Download'}
+                                        👁️
                                     </button>
                                     <button
-                                        onClick={() => handleDelete(resume.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDownload(resume);
+                                        }}
+                                        disabled={downloading === resume.id}
+                                        className="warm-btn-outline text-xs py-2 px-3"
+                                    >
+                                        {downloading === resume.id ? '...' : '⬇️'}
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleDelete(resume.id);
+                                        }}
                                         disabled={deleting === resume.id}
-                                        className="text-xs bg-rose-100 dark:bg-rose-900/30 border-[2px] border-stone-900 dark:border-stone-700 text-rose-700 dark:text-rose-400 font-bold uppercase px-3 py-1.5 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#1c1917] transition-all disabled:opacity-50"
+                                        className="warm-btn-outline text-xs py-2 px-3 hover:border-red-500 hover:text-red-500"
                                     >
                                         {deleting === resume.id ? '...' : '🗑️'}
                                     </button>
                                 </div>
                             )}
                         </div>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
+
+            {previewing && (
+                <PDFPreviewModal
+                    resume={previewing}
+                    onClose={() => setPreviewing(null)}
+                />
+            )}
         </div>
     );
 }

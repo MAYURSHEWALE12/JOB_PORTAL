@@ -24,30 +24,33 @@ export default function ApplyResumePicker({ userId, selectedResumeId, onSelect }
     if (loading) return <div className="mb-4"><Loader text="Loading resumes..." /></div>;
 
     if (resumes.length === 0) return (
-        <div className="bg-yellow-300 border-[3px] border-stone-900 dark:border-stone-700 text-stone-900 px-4 py-3 mb-4 text-sm font-bold uppercase shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]">
-            💡 No resumes saved. Go to <strong>📁 My Resumes</strong> to create or upload one.
+        <div className="warm-card p-4 mb-4 text-sm font-semibold text-[var(--color-text-main)] flex items-center gap-3">
+            <span className="text-2xl">💡</span>
+            <div>
+                No resumes saved. Go to <strong>📁 My Resumes</strong> to create or upload one.
+            </div>
         </div>
     );
 
     return (
         <div className="mb-4">
-            <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                Select Resume <span className="text-stone-400 font-bold">(optional)</span>
+            <label className="block text-xs font-black text-[var(--color-text-main)] uppercase tracking-widest mb-3">
+                Select Resume <span className="text-[var(--color-text-muted)] font-bold">(optional)</span>
             </label>
             <div className="space-y-3">
                 {/* Option to apply without a resume */}
                 <div
                     onClick={() => onSelect(null)}
-                    className={`flex items-center gap-3 p-4 border-[3px] cursor-pointer transition-all
+                    className={`flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer transition-all
                         ${!selectedResumeId
-                            ? 'border-orange-500 bg-orange-50 dark:bg-stone-700 shadow-[4px_4px_0_#ea580c] -translate-y-0.5'
-                            : 'border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-800 hover:border-orange-400 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000]'}`}
+                            ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-md -translate-y-0.5'
+                            : 'border-[var(--color-border)] bg-[var(--color-canvas)] hover:border-[var(--color-primary-light)] shadow-sm hover:shadow-md'}`}
                 >
-                    <div className={`w-5 h-5 border-[3px] flex items-center justify-center flex-shrink-0
-                        ${!selectedResumeId ? 'border-orange-600 bg-orange-500' : 'border-stone-400 dark:border-stone-600'}`}>
-                        {!selectedResumeId && <div className="w-2 h-2 bg-white" />}
+                    <div className={`w-5 h-5 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors
+                        ${!selectedResumeId ? 'border-[var(--color-primary)] bg-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}>
+                        {!selectedResumeId && <div className="w-2 h-2 bg-[#0f2620] rounded-full" />}
                     </div>
-                    <span className="text-sm text-stone-700 dark:text-stone-300 font-bold uppercase">No resume (apply without resume)</span>
+                    <span className="text-sm text-[var(--color-text-main)] font-bold uppercase tracking-wide">No resume (apply without resume)</span>
                 </div>
 
                 {/* Map through saved resumes */}
@@ -55,17 +58,17 @@ export default function ApplyResumePicker({ userId, selectedResumeId, onSelect }
                     <div
                         key={resume.id}
                         onClick={() => onSelect(resume.id)}
-                        className={`flex items-center gap-3 p-4 border-[3px] cursor-pointer transition-all
+                        className={`flex items-center gap-4 p-4 border-2 rounded-2xl cursor-pointer transition-all
                             ${selectedResumeId === resume.id
-                                ? 'border-orange-500 bg-orange-50 dark:bg-stone-700 shadow-[4px_4px_0_#ea580c] -translate-y-0.5'
-                                : 'border-stone-900 dark:border-stone-700 bg-white dark:bg-stone-800 hover:border-orange-400 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000]'}`}
+                                ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/5 shadow-md -translate-y-0.5'
+                                : 'border-[var(--color-border)] bg-[var(--color-canvas)] hover:border-[var(--color-primary-light)] shadow-sm hover:shadow-md'}`}
                     >
-                        <div className={`w-5 h-5 border-[3px] flex items-center justify-center flex-shrink-0
-                            ${selectedResumeId === resume.id ? 'border-orange-600 bg-orange-500' : 'border-stone-400 dark:border-stone-600'}`}>
-                            {selectedResumeId === resume.id && <div className="w-2 h-2 bg-white" />}
+                        <div className={`w-5 h-5 border-2 rounded-full flex items-center justify-center flex-shrink-0 transition-colors
+                            ${selectedResumeId === resume.id ? 'border-[var(--color-primary)] bg-[var(--color-primary)]' : 'border-[var(--color-border)] bg-[var(--color-surface)]'}`}>
+                            {selectedResumeId === resume.id && <div className="w-2 h-2 bg-[#0f2620] rounded-full" />}
                         </div>
                         <span className="text-2xl">📄</span>
-                        <span className="text-sm font-black text-stone-900 dark:text-stone-100 uppercase">{resume.name || 'Untitled Resume'}</span>
+                        <span className="text-sm font-bold text-[var(--color-text-main)] uppercase tracking-wide">{resume.name || 'Untitled Resume'}</span>
                     </div>
                 ))}
             </div>

@@ -60,6 +60,10 @@ public class InterviewService {
                 .build();
 
         Interview saved = interviewRepository.save(interview);
+        
+        application.setStatus(ApplicationStatus.INTERVIEWING);
+        applicationRepository.save(application);
+        
         log.info("Interview scheduled: {} for candidate {} at {}", saved.getTitle(), candidate.getEmail(), saved.getScheduledAt());
 
         sendInterviewNotification(saved);

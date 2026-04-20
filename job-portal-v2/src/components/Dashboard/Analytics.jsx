@@ -4,22 +4,21 @@ import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, LineChart, Line, Legend
 } from 'recharts';
-import { applicationAPI, jobAPI, savedJobAPI } from '../../services/api';
+import { applicationAPI, jobAPI, savedJobAPI, adminAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
-import apiClient from '../../services/api';
-import Loader from '../Loader';
+import { Skeleton, SkeletonAnalytics } from '../Skeleton';
 
-const COLORS = ['#C2651A', '#4A7C59', '#D4A574', '#8B7355', '#6B9B7A', '#E8A66A'];
+// Theme-compliant colors (Teal, Purple, Emerald, Rose, Amber, Blue)
+const THEME_COLORS = ['#2dd4bf', '#a78bfa', '#34d399', '#fb7185', '#fbbf24', '#60a5fa'];
 
 export default function Analytics() {
     const { user } = useAuthStore();
-
-    const [loading, setLoading]   = useState(true);
-    const [error, setError]       = useState('');
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     const [myApplications, setMyApplications] = useState([]);
-    const [savedJobs, setSavedJobs]           = useState([]);
-    const [myJobs, setMyJobs]               = useState([]);
+    const [savedJobs, setSavedJobs] = useState([]);
+    const [myJobs, setMyJobs] = useState([]);
     const [allApplications, setAllApplications] = useState([]);
     const [adminStats, setAdminStats] = useState(null);
 
@@ -41,307 +40,249 @@ export default function Analytics() {
             }
 
             if (user?.role === 'EMPLOYER') {
-                const jobsRes = await jobAPI.getAll();
-                const jobs = (Array.isArray(jobsRes.data) ? jobsRes.data : [])
-                    .filter(j => j.employer?.id === user.id);
-                setMyJobs(jobs);
+                const jobsRes = await jobAPI.getByEmployer(user.id);
+                const appsRes = await applicationAPI.getEmployerApplications(0, 500);
 
-                const appsPromises = jobs.map(job =>
-                    applicationAPI.getJobApplications(job.id, user.id)
-                        .then(res => res.data)
-                        .catch(() => [])
-                );
-                const appsArrays = await Promise.all(appsPromises);
-                setAllApplications(appsArrays.flat());
+                let jobs = Array.isArray(jobsRes.data) ? jobsRes.data : (jobsRes.data?.content || []);
+                setMyJobs(jobs);
+                setAllApplications(appsRes.data?.content || appsRes.data || []);
             }
 
             if (user?.role === 'ADMIN') {
-                const res = await apiClient.get('/admin/stats');
+                const res = await adminAPI.getStats();
                 setAdminStats(res.data);
             }
         } catch (err) {
             console.error(err);
-            setError('Failed to load analytics data.');
+            setError('Failed to load insights. Please check your connection.');
         } finally {
             setLoading(false);
         }
     };
 
+    /* ─── Data Formatters ─── */
+
+    // Jobseeker Data
     const applicationStatusData = () => {
         const counts = {};
-        myApplications.forEach(app => {
-            counts[app.status] = (counts[app.status] || 0) + 1;
-        });
+        myApplications.forEach(app => { counts[app.status] = (counts[app.status] || 0) + 1; });
         return Object.entries(counts).map(([name, value]) => ({ name, value }));
     };
 
     const applicationTimelineData = () => {
         const counts = {};
         myApplications.forEach(app => {
-            const date = new Date(app.appliedAt).toLocaleDateString('en-IN', {
-                day: 'numeric', month: 'short'
-            });
+            const date = new Date(app.appliedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
             counts[date] = (counts[date] || 0) + 1;
         });
         return Object.entries(counts).map(([date, count]) => ({ date, count }));
     };
 
-    const jobStatusData = () => {
-        const counts = {};
-        myJobs.forEach(job => {
-            counts[job.status] = (counts[job.status] || 0) + 1;
-        });
-        return Object.entries(counts).map(([name, value]) => ({ name, value }));
-    };
-
+    // Employer Data
     const applicationsPerJobData = () => {
         return myJobs.map(job => ({
-            name: job.title.length > 15 ? job.title.substring(0, 15) + '...' : job.title,
+            name: job.title.length > 12 ? job.title.substring(0, 12) + '...' : job.title,
             applications: allApplications.filter(a => a.job?.id === job.id).length,
         }));
     };
 
     const applicationStatusEmployerData = () => {
         const counts = {};
-        allApplications.forEach(app => {
-            counts[app.status] = (counts[app.status] || 0) + 1;
-        });
+        allApplications.forEach(app => { counts[app.status] = (counts[app.status] || 0) + 1; });
         return Object.entries(counts).map(([name, value]) => ({ name, value }));
     };
 
-    const adminChartData = () => {
-        if (!adminStats) return [];
-        return [
-            { name: 'Job Seekers', value: adminStats.totalJobSeekers },
-            { name: 'Employers',   value: adminStats.totalEmployers  },
-        ];
+    const jobStatusData = () => {
+        const counts = {};
+        myJobs.forEach(job => { counts[job.status] = (counts[job.status] || 0) + 1; });
+        return Object.entries(counts).map(([name, value]) => ({ name, value }));
     };
 
-    const adminOverviewData = () => {
-        if (!adminStats) return [];
-        return [
-            { name: 'Users',        value: adminStats.totalUsers        },
-            { name: 'Jobs',         value: adminStats.totalJobs         },
-            { name: 'Active Jobs',  value: adminStats.activeJobs        },
-            { name: 'Applications', value: adminStats.totalApplications },
-        ];
+    // Custom Tooltip Component for all charts
+    const CustomTooltip = ({ active, payload, label }) => {
+        if (active && payload && payload.length) {
+            return (
+                <div className="p-3 rounded-xl border shadow-xl" style={{ background: 'var(--hp-nav-bg)', backdropFilter: 'blur(10px)', borderColor: 'var(--hp-border)' }}>
+                    <p className="text-xs font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--hp-muted)' }}>{label}</p>
+                    <p className="text-sm font-bold" style={{ color: 'var(--hp-accent)' }}>
+                        {payload[0].name}: {payload[0].value}
+                    </p>
+                </div>
+            );
+        }
+        return null;
     };
 
     if (loading) {
-        return <Loader text="Loading analytics..." />;
+        return (
+            <div className="pb-12">
+                <div className="mb-8">
+                    <Skeleton variant="title" className="w-40 mb-2" />
+                    <Skeleton variant="text" className="w-64" />
+                </div>
+                <SkeletonAnalytics />
+            </div>
+        );
     }
 
     if (error) {
         return (
-            <div className="text-center py-16 text-[#C2651A] font-medium">{error}</div>
+            <div className="hp-card p-12 text-center max-w-md mx-auto mt-10">
+                <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                </div>
+                <p className="font-bold text-[var(--hp-text)]">{error}</p>
+                <button onClick={fetchData} className="hp-btn-ghost mt-4 px-6 py-2 text-sm">Retry Load</button>
+            </div>
         );
     }
 
     return (
-        <div className="pb-12">
-            <div className="mb-8">
-                <h2 className="text-2xl font-serif font-semibold text-[#2D1F14]">📊 Analytics</h2>
-                <p className="text-[#8B7355] mt-1">Your activity overview and insights</p>
+        <div className="pb-12 relative z-10">
+            <style>{`
+                .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); transition: all 0.25s ease; }
+                .hp-card:hover { border-color: rgba(var(--hp-accent-rgb), 0.3); transform: translateY(-2px); }
+                .chart-container { width: 100%; height: 300px; margin-top: 20px; }
+            `}</style>
+
+            <div className="mb-10">
+                <h2 className="text-3xl font-bold text-[var(--hp-text)] tracking-tight">Insights</h2>
+                <p className="text-[var(--hp-muted)] mt-1 font-medium">Visualizing your platform activity and progress</p>
             </div>
 
+            {/* ── JOBSEEKER VIEW ── */}
             {user?.role === 'JOBSEEKER' && (
                 <div className="space-y-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                            { label: 'Total Applied',  value: myApplications.length, color: '#F5EDE3' },
-                            { label: 'Pending',        value: myApplications.filter(a => a.status === 'PENDING').length,      color: '#FFF3E0' },
-                            { label: 'Shortlisted',    value: myApplications.filter(a => a.status === 'SHORTLISTED').length,  color: '#E8F5E9' },
-                            { label: 'Saved Jobs',     value: savedJobs.length,                                               color: '#E3F2FD' },
+                            { label: 'Applied', value: myApplications.length, icon: '🚀' },
+                            { label: 'Pending', value: myApplications.filter(a => a.status === 'PENDING').length, icon: '⏳' },
+                            { label: 'Shortlisted', value: myApplications.filter(a => a.status === 'SHORTLISTED').length, icon: '⭐' },
+                            { label: 'Saved', value: savedJobs.length, icon: '🔖' },
                         ].map(stat => (
-                            <div key={stat.label} className="warm-card p-6 text-center">
-                                <p className="text-4xl font-serif font-semibold mb-2" style={{ color: '#C2651A' }}>{stat.value}</p>
-                                <p className="text-xs font-medium text-[#8B7355] uppercase tracking-wider">{stat.label}</p>
+                            <div key={stat.label} className="hp-card p-6 text-center group">
+                                <span className="text-2xl mb-2 block opacity-80 group-hover:scale-125 transition-transform">{stat.icon}</span>
+                                <p className="text-4xl font-black mb-1" style={{ color: 'var(--hp-accent)' }}>{stat.value}</p>
+                                <p className="text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-widest">{stat.label}</p>
                             </div>
                         ))}
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="warm-card p-6"
-                        >
-                            <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Status Breakdown</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="hp-card p-6">
+                            <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-2" style={{ borderColor: 'var(--hp-border)' }}>Status Distribution</h3>
                             {applicationStatusData().length === 0 ? (
-                                <div className="text-center py-12 text-[#8B7355]">No applications yet</div>
+                                <div className="h-[280px] flex items-center justify-center text-[var(--hp-muted)] italic">No applications recorded</div>
                             ) : (
                                 <ResponsiveContainer width="100%" height={280}>
                                     <PieChart>
-                                        <Pie
-                                            data={applicationStatusData()}
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={90}
-                                            dataKey="value"
-                                            label={({ name, value }) => `${name}: ${value}`}
-                                        >
-                                            {applicationStatusData().map((_, index) => (
-                                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                            ))}
+                                        <Pie data={applicationStatusData()} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
+                                            {applicationStatusData().map((_, i) => <Cell key={i} fill={THEME_COLORS[i % THEME_COLORS.length]} stroke="none" />)}
                                         </Pie>
-                                        <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             )}
                         </motion.div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="warm-card p-6"
-                        >
-                            <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Applications by Status</h3>
-                            {applicationStatusData().length === 0 ? (
-                                <div className="text-center py-12 text-[#8B7355]">No applications yet</div>
-                            ) : (
-                                <ResponsiveContainer width="100%" height={280}>
-                                    <BarChart data={applicationStatusData()}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#EAD9C4" vertical={false} />
-                                        <XAxis dataKey="name" tick={{ fontSize: 12 }} stroke="#8B7355" />
-                                        <YAxis allowDecimals={false} stroke="#8B7355" />
-                                        <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
-                                        <Bar dataKey="value" fill="#C2651A" radius={[8, 8, 0, 0]} />
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            )}
+                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="hp-card p-6">
+                            <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-2" style={{ borderColor: 'var(--hp-border)' }}>Activity Volume</h3>
+                            <ResponsiveContainer width="100%" height={280}>
+                                <BarChart data={applicationStatusData()}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--hp-border)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                    <Tooltip cursor={{ fill: 'var(--hp-surface-alt)' }} content={<CustomTooltip />} />
+                                    <Bar dataKey="value" fill="var(--hp-accent)" radius={[6, 6, 0, 0]} barSize={40} />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </motion.div>
                     </div>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="warm-card p-6"
-                    >
-                        <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Application Timeline</h3>
-                        {applicationTimelineData().length === 0 ? (
-                            <div className="text-center py-12 text-[#8B7355]">No applications yet</div>
-                        ) : (
-                            <ResponsiveContainer width="100%" height={300}>
-                                <LineChart data={applicationTimelineData()}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#EAD9C4" vertical={false} />
-                                    <XAxis dataKey="date" tick={{ fontSize: 12 }} stroke="#8B7355" />
-                                    <YAxis allowDecimals={false} stroke="#8B7355" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
-                                    <Legend />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="count"
-                                        stroke="#C2651A"
-                                        strokeWidth={3}
-                                        dot={{ fill: '#C2651A', r: 5 }}
-                                        activeDot={{ r: 7, fill: '#4A7C59' }}
-                                        name="Applications"
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        )}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="hp-card p-6">
+                        <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-2" style={{ borderColor: 'var(--hp-border)' }}>Application Timeline</h3>
+                        <ResponsiveContainer width="100%" height={300}>
+                            <LineChart data={applicationTimelineData()}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--hp-border)" />
+                                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                <Tooltip content={<CustomTooltip />} />
+                                <Line type="monotone" dataKey="count" name="Apps" stroke="var(--hp-accent2)" strokeWidth={4} dot={{ r: 6, fill: 'var(--hp-accent2)', strokeWidth: 0 }} activeDot={{ r: 8, strokeWidth: 0 }} />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </motion.div>
                 </div>
             )}
 
+            {/* ── EMPLOYER VIEW ── */}
             {user?.role === 'EMPLOYER' && (
                 <div className="space-y-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-2 md:grid-cols-4 gap-4"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                            { label: 'Total Jobs',      value: myJobs.length,                                                color: '#F5EDE3' },
-                            { label: 'Active Jobs',     value: myJobs.filter(j => j.status === 'ACTIVE').length,            color: '#E8F5E9' },
-                            { label: 'Total Apps',      value: allApplications.length,                                      color: '#E3F2FD' },
-                            { label: 'Shortlisted',     value: allApplications.filter(a => a.status === 'SHORTLISTED').length, color: '#FFF3E0' },
+                            { label: 'Total Postings', value: myJobs.length, color: 'var(--hp-text)' },
+                            { label: 'Active Roles', value: myJobs.filter(j => j.status === 'ACTIVE').length, color: 'var(--hp-accent)' },
+                            { label: 'Total Applicants', value: allApplications.length, color: 'var(--hp-accent2)' },
+                            { label: 'Hiring Stage', value: allApplications.filter(a => a.status === 'SHORTLISTED').length, color: '#34d399' },
                         ].map(stat => (
-                            <div key={stat.label} className="warm-card p-6 text-center">
-                                <p className="text-4xl font-serif font-semibold mb-2" style={{ color: '#4A7C59' }}>{stat.value}</p>
-                                <p className="text-xs font-medium text-[#8B7355] uppercase tracking-wider">{stat.label}</p>
+                            <div key={stat.label} className="hp-card p-6 text-center">
+                                <p className="text-4xl font-black mb-1" style={{ color: stat.color }}>{stat.value}</p>
+                                <p className="text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-widest">{stat.label}</p>
                             </div>
                         ))}
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="warm-card p-6"
-                        >
-                            <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Applications per Job</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        {/* CHART 1: Applications per Job */}
+                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="hp-card p-6">
+                            <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-2" style={{ borderColor: 'var(--hp-border)' }}>Applicant Volume per Job</h3>
                             {applicationsPerJobData().length === 0 ? (
-                                <div className="text-center py-12 text-[#8B7355]">No jobs posted yet</div>
+                                <div className="h-[280px] flex items-center justify-center text-[var(--hp-muted)] italic">No jobs posted yet</div>
                             ) : (
                                 <ResponsiveContainer width="100%" height={280}>
-                                    <BarChart data={applicationsPerJobData()}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#EAD9C4" vertical={false} />
-                                        <XAxis dataKey="name" tick={{ fontSize: 10 }} stroke="#8B7355" />
-                                        <YAxis allowDecimals={false} stroke="#8B7355" />
-                                        <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
-                                        <Bar dataKey="applications" fill="#4A7C59" radius={[8, 8, 0, 0]} />
+                                    <BarChart data={applicationsPerJobData()} layout="vertical" margin={{ left: 20 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--hp-border)" />
+                                        <XAxis type="number" hide />
+                                        <YAxis type="category" dataKey="name" width={100} axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-text)', fontSize: 11, fontWeight: 600 }} />
+                                        <Tooltip cursor={{ fill: 'var(--hp-surface-alt)' }} content={<CustomTooltip />} />
+                                        <Bar dataKey="applications" fill="var(--hp-accent)" radius={[0, 6, 6, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer>
                             )}
                         </motion.div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="warm-card p-6"
-                        >
-                            <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Applicant Status</h3>
+                        {/* CHART 2: Applicant Lifecycle (Pie) */}
+                        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.1 }} className="hp-card p-6">
+                            <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-2" style={{ borderColor: 'var(--hp-border)' }}>Applicant Lifecycle</h3>
                             {applicationStatusEmployerData().length === 0 ? (
-                                <div className="text-center py-12 text-[#8B7355]">No applications yet</div>
+                                <div className="h-[280px] flex items-center justify-center text-[var(--hp-muted)] italic">No applications yet</div>
                             ) : (
                                 <ResponsiveContainer width="100%" height={280}>
                                     <PieChart>
-                                        <Pie
-                                            data={applicationStatusEmployerData()}
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={90}
-                                            dataKey="value"
-                                            label={({ name, value }) => `${name}: ${value}`}
-                                        >
-                                            {applicationStatusEmployerData().map((_, index) => (
-                                                <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                            ))}
+                                        <Pie data={applicationStatusEmployerData()} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
+                                            {applicationStatusEmployerData().map((_, i) => <Cell key={i} fill={THEME_COLORS[i % THEME_COLORS.length]} stroke="none" />)}
                                         </Pie>
-                                        <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend verticalAlign="bottom" height={36} />
                                     </PieChart>
                                 </ResponsiveContainer>
                             )}
                         </motion.div>
                     </div>
 
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                        className="warm-card p-6"
-                    >
-                        <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Job Status Overview</h3>
+                    {/* CHART 3: Job Status Overview (Bar) */}
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="hp-card p-6">
+                        <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-2" style={{ borderColor: 'var(--hp-border)' }}>Job Status Overview</h3>
                         {jobStatusData().length === 0 ? (
-                            <div className="text-center py-12 text-[#8B7355]">No jobs yet</div>
+                            <div className="h-[280px] flex items-center justify-center text-[var(--hp-muted)] italic">No jobs yet</div>
                         ) : (
                             <ResponsiveContainer width="100%" height={280}>
                                 <BarChart data={jobStatusData()}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#EAD9C4" vertical={false} />
-                                    <XAxis dataKey="name" stroke="#8B7355" />
-                                    <YAxis allowDecimals={false} stroke="#8B7355" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
-                                    <Bar dataKey="value" fill="#C2651A" radius={[8, 8, 0, 0]} name="Jobs" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--hp-border)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                    <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                    <Tooltip cursor={{ fill: 'var(--hp-surface-alt)' }} content={<CustomTooltip />} />
+                                    <Bar dataKey="value" fill="var(--hp-accent2)" radius={[6, 6, 0, 0]} name="Jobs" barSize={50} />
                                 </BarChart>
                             </ResponsiveContainer>
                         )}
@@ -349,73 +290,59 @@ export default function Analytics() {
                 </div>
             )}
 
+            {/* ── ADMIN VIEW ── */}
             {user?.role === 'ADMIN' && adminStats && (
                 <div className="space-y-8">
-                    <motion.div
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4"
-                    >
+                    <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                         {[
-                            { label: 'Total Users',   value: adminStats.totalUsers,        color: '#F5EDE3' },
-                            { label: 'Job Seekers',   value: adminStats.totalJobSeekers,   color: '#E3F2FD' },
-                            { label: 'Employers',     value: adminStats.totalEmployers,    color: '#FCE4EC' },
-                            { label: 'Total Jobs',    value: adminStats.totalJobs,         color: '#E8F5E9' },
-                            { label: 'Active Jobs',   value: adminStats.activeJobs,        color: '#FFF3E0' },
-                            { label: 'Applications',  value: adminStats.totalApplications, color: '#F3E5F5' },
+                            { label: 'Users', value: adminStats.totalUsers },
+                            { label: 'Seekers', value: adminStats.totalJobSeekers },
+                            { label: 'Employers', value: adminStats.totalEmployers },
+                            { label: 'Jobs', value: adminStats.totalJobs },
+                            { label: 'Active', value: adminStats.activeJobs },
+                            { label: 'Apps', value: adminStats.totalApplications },
                         ].map(stat => (
-                            <div key={stat.label} className="warm-card p-4 text-center">
-                                <p className="text-2xl font-serif font-semibold mb-1" style={{ color: '#C2651A' }}>{stat.value}</p>
-                                <p className="text-[10px] font-medium text-[#8B7355] uppercase tracking-wider">{stat.label}</p>
+                            <div key={stat.label} className="hp-card p-4 text-center">
+                                <p className="text-2xl font-black text-[var(--hp-accent)]">{stat.value}</p>
+                                <p className="text-[9px] font-bold text-[var(--hp-muted)] uppercase tracking-wider">{stat.label}</p>
                             </div>
                         ))}
                     </motion.div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="warm-card p-6"
-                        >
-                            <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">Platform Overview</h3>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="hp-card p-6">
+                            <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-4" style={{ borderColor: 'var(--hp-border)' }}>Platform Footprint</h3>
                             <ResponsiveContainer width="100%" height={280}>
-                                <BarChart data={adminOverviewData()}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#EAD9C4" vertical={false} />
-                                    <XAxis dataKey="name" tick={{ fontSize: 11 }} stroke="#8B7355" />
-                                    <YAxis allowDecimals={false} stroke="#8B7355" />
-                                    <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
-                                    <Bar dataKey="value" fill="#C2651A" radius={[8, 8, 0, 0]} />
+                                <BarChart data={[
+                                    { name: 'Users', val: adminStats.totalUsers },
+                                    { name: 'Jobs', val: adminStats.totalJobs },
+                                    { name: 'Apps', val: adminStats.totalApplications }
+                                ]}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--hp-border)" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--hp-muted)', fontSize: 11 }} />
+                                    <Tooltip cursor={{ fill: 'var(--hp-surface-alt)' }} content={<CustomTooltip />} />
+                                    <Bar dataKey="val" fill="var(--hp-accent2)" radius={[6, 6, 0, 0]} barSize={50} />
                                 </BarChart>
                             </ResponsiveContainer>
-                        </motion.div>
+                        </div>
 
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2 }}
-                            className="warm-card p-6"
-                        >
-                            <h3 className="font-serif font-semibold text-[#2D1F14] mb-6">User Distribution</h3>
+                        <div className="hp-card p-6">
+                            <h3 className="font-bold text-[var(--hp-text)] text-lg border-b pb-4 mb-4" style={{ borderColor: 'var(--hp-border)' }}>User Split</h3>
                             <ResponsiveContainer width="100%" height={280}>
                                 <PieChart>
-                                    <Pie
-                                        data={adminChartData()}
-                                        cx="50%"
-                                        cy="50%"
-                                        outerRadius={90}
-                                        dataKey="value"
-                                        label={({ name, value }) => `${name}: ${value}`}
-                                    >
-                                        {adminChartData().map((_, index) => (
-                                            <Cell key={index} fill={COLORS[index % COLORS.length]} />
-                                        ))}
+                                    <Pie data={[
+                                        { name: 'Job Seekers', value: adminStats.totalJobSeekers },
+                                        { name: 'Employers', value: adminStats.totalEmployers }
+                                    ]} cx="50%" cy="50%" innerRadius={70} outerRadius={100} dataKey="value">
+                                        <Cell fill="var(--hp-accent)" stroke="none" />
+                                        <Cell fill="var(--hp-accent2)" stroke="none" />
                                     </Pie>
-                                    <Tooltip contentStyle={{ backgroundColor: '#FFFBF5', border: '1px solid #EAD9C4', borderRadius: '12px' }} />
-                                    <Legend />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend verticalAlign="bottom" height={36} />
                                 </PieChart>
                             </ResponsiveContainer>
-                        </motion.div>
+                        </div>
                     </div>
                 </div>
             )}

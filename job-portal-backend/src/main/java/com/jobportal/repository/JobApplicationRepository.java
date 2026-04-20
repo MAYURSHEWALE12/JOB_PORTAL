@@ -23,20 +23,23 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker")
     List<JobApplication> findByJobSeeker(User jobSeeker);
 
-    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker")
-    Page<JobApplication> findByJobSeeker(User jobSeeker, Pageable pageable);
+    @Query(value = "SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker",
+           countQuery = "SELECT COUNT(a) FROM JobApplication a WHERE a.jobSeeker = :jobSeeker")
+    Page<JobApplication> findByJobSeeker(@Param("jobSeeker") User jobSeeker, Pageable pageable);
 
     @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job")
     List<JobApplication> findByJob(Job job);
 
-    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job")
-    Page<JobApplication> findByJob(Job job, Pageable pageable);
+    @Query(value = "SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job",
+           countQuery = "SELECT COUNT(a) FROM JobApplication a WHERE a.job = :job")
+    Page<JobApplication> findByJob(@Param("job") Job job, Pageable pageable);
 
     @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE j.employer = :employer")
     List<JobApplication> findByJobEmployer(User employer);
 
-    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE j.employer = :employer")
-    Page<JobApplication> findByJobEmployer(User employer, Pageable pageable);
+    @Query(value = "SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE j.employer = :employer",
+           countQuery = "SELECT COUNT(a) FROM JobApplication a JOIN a.job j WHERE j.employer = :employer")
+    Page<JobApplication> findByJobEmployer(@Param("employer") User employer, Pageable pageable);
 
     @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.job = :job AND a.jobSeeker = :jobSeeker")
     Optional<JobApplication> findByJobAndJobSeeker(Job job, User jobSeeker);
@@ -50,8 +53,9 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker AND a.status = :status")
     List<JobApplication> findByJobSeekerAndStatus(User jobSeeker, ApplicationStatus status);
 
-    @Query("SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker AND a.status = :status")
-    Page<JobApplication> findByJobSeekerAndStatus(User jobSeeker, ApplicationStatus status, Pageable pageable);
+    @Query(value = "SELECT a FROM JobApplication a LEFT JOIN FETCH a.job j LEFT JOIN FETCH j.employer LEFT JOIN FETCH a.jobSeeker LEFT JOIN FETCH a.selectedResume WHERE a.jobSeeker = :jobSeeker AND a.status = :status",
+           countQuery = "SELECT COUNT(a) FROM JobApplication a WHERE a.jobSeeker = :jobSeeker AND a.status = :status")
+    Page<JobApplication> findByJobSeekerAndStatus(@Param("jobSeeker") User jobSeeker, @Param("status") ApplicationStatus status, Pageable pageable);
 
     void deleteByJobSeeker(User jobSeeker);
 

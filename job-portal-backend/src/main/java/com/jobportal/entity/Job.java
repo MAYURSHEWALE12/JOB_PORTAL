@@ -80,6 +80,25 @@ public class Job {
     @Builder.Default
     private Integer applicationCount = 0;
 
+    @Transient
+    public String getCompanyName() {
+        if (employer != null && employer.getCompanyProfile() != null) {
+            return employer.getCompanyProfile().getCompanyName();
+        }
+        return employer != null ? employer.getFullName() : null;
+    }
+
+    @Transient
+    public String getCompanyLogo() {
+        if (employer != null && employer.getCompanyProfile() != null) {
+            return employer.getCompanyProfile().getLogoUrl();
+        }
+        if (employer != null && employer.getProfileImageUrl() != null) {
+            return employer.getProfileImageUrl();
+        }
+        return null;
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();

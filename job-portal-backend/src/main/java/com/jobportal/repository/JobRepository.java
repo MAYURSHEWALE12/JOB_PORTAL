@@ -21,24 +21,24 @@ import java.util.List;
 @Repository
 public interface JobRepository extends JpaRepository<Job, Long> {
 
-    @EntityGraph(attributePaths = {"employer"})
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
     List<Job> findByStatus(JobStatus status);
 
-    @EntityGraph(attributePaths = {"employer"})
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
     Page<Job> findByStatus(JobStatus status, Pageable pageable);
 
     long countByStatus(JobStatus status);
 
-    @EntityGraph(attributePaths = {"employer"})
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
     List<Job> findByEmployer(User employer);
 
-    @EntityGraph(attributePaths = {"employer"})
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
     Page<Job> findByEmployer(User employer, Pageable pageable);
 
-    @EntityGraph(attributePaths = {"employer"})
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
     List<Job> findByEmployerAndStatus(User employer, JobStatus status);
 
-    @EntityGraph(attributePaths = {"employer"})
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
     Page<Job> findByEmployerAndStatus(User employer, JobStatus status, Pageable pageable);
 
     @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND (" +
@@ -90,16 +90,17 @@ public interface JobRepository extends JpaRepository<Job, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT j FROM Job j LEFT JOIN FETCH j.employer WHERE j.status = 'ACTIVE' AND " +
-            "(:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
-            "LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) AND " +
-            "(:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))) AND " +
-            "(:jobType IS NULL OR j.jobType = :jobType) AND " +
-            "(:salaryMin IS NULL OR j.salaryMax >= :salaryMin) AND " +
-            "(:salaryMax IS NULL OR j.salaryMin <= :salaryMax) AND " +
-            "(:experienceLevel IS NULL OR LOWER(j.experienceRequired) LIKE LOWER(CONCAT('%', :experienceLevel, '%'))) AND " +
-            "(:educationLevel IS NULL OR LOWER(j.educationRequired) LIKE LOWER(CONCAT('%', :educationLevel, '%'))) AND " +
-            "(:daysPosted IS NULL OR j.createdAt >= :sinceDate)")
+    @EntityGraph(attributePaths = {"employer", "employer.companyProfile"})
+    @Query("SELECT j FROM Job j WHERE j.status = 'ACTIVE' " +
+            "AND (:keyword IS NULL OR LOWER(j.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "OR LOWER(j.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
+            "AND (:location IS NULL OR LOWER(j.location) LIKE LOWER(CONCAT('%', :location, '%'))) " +
+            "AND (:jobType IS NULL OR j.jobType = :jobType) " +
+            "AND (:salaryMin IS NULL OR j.salaryMax >= :salaryMin) " +
+            "AND (:salaryMax IS NULL OR j.salaryMin <= :salaryMax) " +
+            "AND (:experienceLevel IS NULL OR LOWER(j.experienceRequired) LIKE LOWER(CONCAT('%', :experienceLevel, '%'))) " +
+            "AND (:educationLevel IS NULL OR LOWER(j.educationRequired) LIKE LOWER(CONCAT('%', :educationLevel, '%'))) " +
+            "AND (:daysPosted IS NULL OR j.createdAt >= :sinceDate)")
     Page<Job> advancedSearch(
             @Param("keyword") String keyword,
             @Param("location") String location,

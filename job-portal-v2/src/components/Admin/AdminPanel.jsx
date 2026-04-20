@@ -1,17 +1,35 @@
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import apiClient from '../../services/api';
-import Loader from '../Loader';
+import { Skeleton } from '../Skeleton';
+
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { staggerChildren: 0.05 } }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } }
+};
 
 export default function AdminPanel() {
-
     const [stats, setStats] = useState(null);
     const [users, setUsers] = useState([]);
     const [jobs, setJobs] = useState([]);
     const [activeTab, setActiveTab] = useState('users');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // Operation states
     const [deletingId, setDeletingId] = useState(null);
     const [updatingId, setUpdatingId] = useState(null);
+    const [pendingDeletion, setPendingDeletion] = useState(null);
+
+    // Filters
+    const [searchQuery, setSearchQuery] = useState('');
+    const [roleFilter, setRoleFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState('ALL');
 
     useEffect(() => {
         fetchStats();
@@ -19,13 +37,19 @@ export default function AdminPanel() {
         fetchJobs();
     }, []);
 
+    // Auto-clear UI errors after 5 seconds
+    useEffect(() => {
+        if (error) {
+            const timer = setTimeout(() => setError(''), 5000);
+            return () => clearTimeout(timer);
+        }
+    }, [error]);
+
     const fetchStats = async () => {
         try {
             const res = await apiClient.get('/admin/stats');
             setStats(res.data);
-        } catch (err) {
-            console.error('Failed to load stats:', err);
-        }
+        } catch (err) { console.error('Stats synchronization failed:', err); }
     };
 
     const fetchUsers = async () => {
@@ -33,30 +57,34 @@ export default function AdminPanel() {
         try {
             const res = await apiClient.get('/admin/users');
             setUsers(Array.isArray(res.data) ? res.data : []);
-        } catch (err) {
-            setError('Failed to load users.');
-        } finally {
-            setLoading(false);
-        }
+        } catch (err) { setError('System failure: Unable to retrieve user network.'); }
+        finally { setLoading(false); }
     };
 
     const fetchJobs = async () => {
         try {
             const res = await apiClient.get('/admin/jobs');
             setJobs(Array.isArray(res.data) ? res.data : []);
-        } catch (err) {
-            console.error('Failed to load jobs:', err);
-        }
+        } catch (err) { console.error('Market data retrieval failed:', err); }
     };
 
-    const handleDeleteUser = async (userId) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) return;
-        setDeletingId(userId);
+    const confirmDeletion = async () => {
+        if (!pendingDeletion) return;
+        const { id, type } = pendingDeletion;
+        setDeletingId(id);
+        setError('');
+        setPendingDeletion(null);
+
         try {
-            await apiClient.delete(`/admin/users/${userId}`);
-            setUsers(prev => prev.filter(u => u.id !== userId));
+            const endpoint = type === 'user' ? `/admin/users/${id}` : `/admin/jobs/${id}`;
+            await apiClient.delete(endpoint);
+            if (type === 'user') {
+                setUsers(prev => prev.filter(u => u.id !== id));
+            } else {
+                setJobs(prev => prev.filter(j => j.id !== id));
+            }
         } catch (err) {
-            alert(err.response?.data?.error || 'Failed to delete user.');
+            setError(err.response?.data?.error || `Protocol failed: ${type} record is protected.`);
         } finally {
             setDeletingId(null);
         }
@@ -64,219 +92,206 @@ export default function AdminPanel() {
 
     const handleChangeRole = async (userId, newRole) => {
         setUpdatingId(userId);
+        setError('');
         try {
             await apiClient.put(`/admin/users/${userId}/role?role=${newRole}`);
-            setUsers(prev =>
-                prev.map(u => u.id === userId ? { ...u, role: newRole } : u)
-            );
-        } catch (err) {
-            alert(err.response?.data?.error || 'Failed to update role.');
-        } finally {
-            setUpdatingId(null);
-        }
+            setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
+        } catch (err) { setError('Authorization update sequence failed.'); }
+        finally { setUpdatingId(null); }
     };
 
-    const handleDeleteJob = async (jobId) => {
-        if (!window.confirm('Are you sure you want to delete this job?')) return;
-        setDeletingId(jobId);
-        try {
-            await apiClient.delete(`/admin/jobs/${jobId}`);
-            setJobs(prev => prev.filter(j => j.id !== jobId));
-        } catch (err) {
-            alert(err.response?.data?.error || 'Failed to delete job.');
-        } finally {
-            setDeletingId(null);
-        }
-    };
+    const filteredUsers = users.filter(user => {
+        const matchesSearch = searchQuery === '' ||
+            `${user.firstName} ${user.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            user.email.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesRole = roleFilter === 'ALL' || user.role === roleFilter;
+        return matchesSearch && matchesRole;
+    });
 
-    const roleStyles = {
-        JOBSEEKER: 'bg-blue-300 text-stone-900',
-        EMPLOYER: 'bg-purple-300 text-stone-900',
-        ADMIN: 'bg-rose-400 text-white',
-    };
-
-    const jobStatusStyles = {
-        ACTIVE: 'bg-green-300 text-green-900',
-        CLOSED: 'bg-stone-300 text-stone-600',
-        DRAFT: 'bg-yellow-300 text-yellow-900',
-        EXPIRED: 'bg-rose-300 text-rose-900',
-    };
+    const filteredJobs = jobs.filter(job => {
+        const matchesSearch = searchQuery === '' ||
+            job.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            `${job.employer?.firstName} ${job.employer?.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            job.location.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesStatus = statusFilter === 'ALL' || job.status === statusFilter;
+        return matchesSearch && matchesStatus;
+    });
 
     return (
-        <div>
-            {/* ── Header ────────────────────────────────────────────── */}
-            <div className="mb-6">
-                <h2 className="text-2xl font-black text-stone-900 dark:text-gray-100 uppercase tracking-tight">🛡️ Admin Panel</h2>
-                <p className="text-stone-500 dark:text-stone-400 text-xs mt-1 font-bold uppercase tracking-widest">Manage users, jobs and platform data</p>
+        <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-10" style={{ color: 'var(--hp-text)' }}>
+            <style>{`
+                .admin-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 24px; backdrop-filter: blur(20px); box-shadow: var(--hp-shadow-card); }
+                .stat-card { background: var(--hp-surface-alt); border: 1px solid var(--hp-border); border-radius: 20px; transition: all 0.3s ease; }
+                .stat-card:hover { border-color: var(--hp-accent); transform: translateY(-4px); box-shadow: 0 10px 30px rgba(var(--hp-accent-rgb), 0.1); }
+                .tab-btn { padding: 10px 24px; border-radius: 12px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; transition: all 0.2s; }
+                .tab-btn.active { background: var(--hp-accent); color: #07090f; }
+                .tab-btn:not(.active) { color: var(--hp-muted); }
+
+                /* Fix: Popdown Visibility & Select Style */
+                .hp-select { 
+                    appearance: none; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); 
+                    color: var(--hp-text) !important; font-size: 12px; padding: 8px 32px 8px 12px; border-radius: 10px; 
+                    outline: none; cursor: pointer; 
+                    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7799'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+                    background-repeat: no-repeat; background-position: right 10px center; background-size: 14px;
+                }
+                .hp-select option { background-color: var(--hp-card) !important; color: var(--hp-text) !important; }
+                
+                .hp-badge { font-size: 10px; font-weight: 900; text-transform: uppercase; padding: 4px 12px; border-radius: 999px; }
+                
+                /* 🔥 FIXED: Centered Modal Overlay */
+                .hp-modal-overlay { 
+                    position: fixed; 
+                    inset: 0; 
+                    background: rgba(0, 0, 0, 0.75); 
+                    backdrop-filter: blur(12px); 
+                    z-index: 1000; 
+                    display: flex; 
+                    align-items: center; 
+                    justify-content: center; 
+                    padding: 24px;
+                }
+            `}</style>
+
+            {/* Header */}
+            <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+                <div>
+                    <h2 className="text-4xl font-black tracking-tighter mb-2">HireHub Command</h2>
+                    <p className="text-[var(--hp-muted)] font-medium">Core infrastructure and user network management.</p>
+                </div>
+                <div className="flex bg-[var(--hp-surface-alt)] p-1.5 rounded-2xl border border-[var(--hp-border)]">
+                    <button onClick={() => setActiveTab('users')} className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}>Network</button>
+                    <button onClick={() => setActiveTab('jobs')} className={`tab-btn ${activeTab === 'jobs' ? 'active' : ''}`}>Market</button>
+                </div>
             </div>
 
-            {/* ── Stats Cards ───────────────────────────────────────── */}
+            {/* Stats Grid */}
             {stats && (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
+                <motion.div variants={containerVariants} initial="hidden" animate="visible" className="grid grid-cols-2 lg:grid-cols-6 gap-4">
                     {[
-                        { label: 'Total Users', value: stats.totalUsers, bg: 'bg-orange-200 dark:bg-orange-900/30 text-orange-800 dark:text-orange-400' },
-                        { label: 'Job Seekers', value: stats.totalJobSeekers, bg: 'bg-blue-200 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' },
-                        { label: 'Employers', value: stats.totalEmployers, bg: 'bg-purple-200 dark:bg-purple-900/30 text-purple-800 dark:text-purple-400' },
-                        { label: 'Total Jobs', value: stats.totalJobs, bg: 'bg-green-200 dark:bg-green-900/30 text-green-800 dark:text-green-400' },
-                        { label: 'Active Jobs', value: stats.activeJobs, bg: 'bg-emerald-200 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400' },
-                        { label: 'Applications', value: stats.totalApplications, bg: 'bg-yellow-200 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400' },
+                        { label: 'Total Nodes', value: stats.totalUsers, accent: 'var(--hp-accent)' },
+                        { label: 'Seekers', value: stats.totalJobSeekers, accent: '#60a5fa' },
+                        { label: 'Employers', value: stats.totalEmployers, accent: '#a78bfa' },
+                        { label: 'Listings', value: stats.totalJobs, accent: 'var(--hp-text)' },
+                        { label: 'Live', value: stats.activeJobs, accent: '#4ade80' },
+                        { label: 'Flow', value: stats.totalApplications, accent: 'var(--hp-accent2)' },
                     ].map(stat => (
-                        <div key={stat.label} className={`${stat.bg} border-[3px] border-stone-900 dark:border-stone-700 shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000] p-4 text-center`}>
-                            <p className="text-2xl font-black">{stat.value}</p>
-                            <p className="text-xs font-bold uppercase tracking-widest mt-1">{stat.label}</p>
-                        </div>
+                        <motion.div key={stat.label} variants={itemVariants} className="stat-card p-5">
+                            <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-3">{stat.label}</div>
+                            <div className="text-3xl font-black tracking-tight" style={{ color: stat.accent }}>{stat.value}</div>
+                        </motion.div>
                     ))}
-                </div>
+                </motion.div>
             )}
 
-            {/* ── Tabs ──────────────────────────────────────────────── */}
-            <div className="bg-white dark:bg-stone-800 border-[3px] border-stone-900 dark:border-stone-700 shadow-[6px_6px_0_#1c1917] dark:shadow-[6px_6px_0_#000] overflow-hidden">
-                <div className="flex">
-                    {[
-                        { key: 'users', label: `👥 Users (${users.length})` },
-                        { key: 'jobs', label: `💼 Jobs (${jobs.length})` },
-                    ].map(tab => (
-                        <button
-                            key={tab.key}
-                            onClick={() => setActiveTab(tab.key)}
-                            className={`flex-1 py-4 text-sm font-black uppercase tracking-widest border-b-[4px] transition-all
-                                ${activeTab === tab.key
-                                    ? 'border-orange-500 text-stone-900 dark:text-orange-400 bg-orange-50 dark:bg-stone-900'
-                                    : 'border-stone-300 dark:border-stone-700 text-stone-500 dark:text-stone-400 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-50 dark:hover:bg-stone-900'}`}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
+            {/* Main Terminal Area */}
+            <div className="admin-card overflow-hidden">
+                <div className="p-6 border-b border-[var(--hp-border)] flex flex-col md:flex-row gap-4">
+                    <input
+                        type="text" placeholder={`Search ${activeTab}...`} value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 px-4 py-3 rounded-xl border border-[var(--hp-border)] bg-[var(--hp-surface-alt)] text-sm outline-none focus:border-[var(--hp-accent)]"
+                    />
+                    <select value={activeTab === 'users' ? roleFilter : statusFilter}
+                        onChange={(e) => activeTab === 'users' ? setRoleFilter(e.target.value) : setStatusFilter(e.target.value)}
+                        className="hp-select md:w-48">
+                        {activeTab === 'users' ? (
+                            <>
+                                <option value="ALL">All Roles</option>
+                                <option value="JOBSEEKER">Job Seekers</option>
+                                <option value="EMPLOYER">Employers</option>
+                                <option value="ADMIN">Admins</option>
+                            </>
+                        ) : (
+                            <>
+                                <option value="ALL">All Status</option>
+                                <option value="ACTIVE">Active</option>
+                                <option value="CLOSED">Closed</option>
+                                <option value="DRAFT">Draft</option>
+                                <option value="EXPIRED">Expired</option>
+                            </>
+                        )}
+                    </select>
                 </div>
 
-                <div className="p-6">
-                    {error && (
-                        <div className="bg-rose-500 border-[3px] border-stone-900 text-white px-4 py-3 mb-4 font-black uppercase text-sm shadow-[4px_4px_0_#1c1917]">
-                            {error}
-                        </div>
-                    )}
-
-                    {/* ── Users Table ───────────────────────────────── */}
-                    {activeTab === 'users' && (
-                        <div>
-                            {loading && <Loader text="Loading users..." />}
-                            {!loading && users.length === 0 && (
-                                <div className="text-center py-8 text-stone-400 dark:text-stone-500 font-bold uppercase">No users found.</div>
-                            )}
-                            {!loading && users.length > 0 && (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b-[3px] border-stone-900 dark:border-stone-700">
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">ID</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Name</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Email</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Phone</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Role</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y-[2px] divide-stone-200 dark:divide-stone-700">
-                                            {users.map(user => (
-                                                <tr key={user.id} className="hover:bg-orange-50 dark:hover:bg-stone-900 transition">
-                                                    <td className="py-3 text-stone-400 dark:text-stone-500 font-bold">#{user.id}</td>
-                                                    <td className="py-3 font-black text-stone-900 dark:text-gray-100 uppercase">
-                                                        {user.firstName} {user.lastName}
-                                                    </td>
-                                                    <td className="py-3 text-stone-600 dark:text-stone-400 font-bold">{user.email}</td>
-                                                    <td className="py-3 text-stone-600 dark:text-stone-400 font-bold">{user.phone || '—'}</td>
-                                                    <td className="py-3">
-                                                        <span className={`text-xs font-black px-2 py-1 border-[2px] border-stone-900 dark:border-stone-700 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] uppercase ${roleStyles[user.role]}`}>
-                                                            {user.role}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3">
-                                                        <div className="flex gap-2 items-center">
-                                                            <select
-                                                                value={user.role}
-                                                                onChange={(e) => handleChangeRole(user.id, e.target.value)}
-                                                                disabled={updatingId === user.id}
-                                                                className="text-xs border-[2px] border-stone-900 dark:border-stone-700 px-2 py-1 bg-white dark:bg-stone-900 dark:text-white focus:outline-none focus:border-orange-500 disabled:opacity-50 font-bold uppercase shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000]"
-                                                            >
-                                                                <option value="JOBSEEKER">JOBSEEKER</option>
-                                                                <option value="EMPLOYER">EMPLOYER</option>
-                                                                <option value="ADMIN">ADMIN</option>
-                                                            </select>
-                                                            <button
-                                                                onClick={() => handleDeleteUser(user.id)}
-                                                                disabled={deletingId === user.id}
-                                                                className="text-xs bg-rose-100 dark:bg-rose-900/30 border-[2px] border-stone-900 dark:border-stone-700 text-rose-700 dark:text-rose-400 font-bold uppercase px-3 py-1 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#1c1917] transition-all disabled:opacity-50"
-                                                            >
-                                                                {deletingId === user.id ? '...' : '🗑️ Delete'}
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
+                <div className="p-8">
+                    <AnimatePresence>
+                        {error && (
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    <span>{error}</span>
                                 </div>
-                            )}
-                        </div>
-                    )}
+                                <button onClick={() => setError('')} className="opacity-50 hover:opacity-100 transition-opacity">✕</button>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                    {/* ── Jobs Table ────────────────────────────────── */}
-                    {activeTab === 'jobs' && (
-                        <div>
-                            {jobs.length === 0 && (
-                                <div className="text-center py-8 text-stone-400 dark:text-stone-500 font-bold uppercase">No jobs found.</div>
-                            )}
-                            {jobs.length > 0 && (
-                                <div className="overflow-x-auto">
-                                    <table className="w-full text-sm">
-                                        <thead>
-                                            <tr className="border-b-[3px] border-stone-900 dark:border-stone-700">
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">ID</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Title</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Employer</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Location</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Type</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Status</th>
-                                                <th className="pb-3 text-stone-500 dark:text-stone-400 font-black uppercase tracking-widest text-xs text-left">Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody className="divide-y-[2px] divide-stone-200 dark:divide-stone-700">
-                                            {jobs.map(job => (
-                                                <tr key={job.id} className="hover:bg-orange-50 dark:hover:bg-stone-900 transition">
-                                                    <td className="py-3 text-stone-400 dark:text-stone-500 font-bold">#{job.id}</td>
-                                                    <td className="py-3 font-black text-stone-900 dark:text-gray-100 uppercase">{job.title}</td>
-                                                    <td className="py-3 text-stone-600 dark:text-stone-400 font-bold">
-                                                        {job.employer?.firstName} {job.employer?.lastName}
-                                                    </td>
-                                                    <td className="py-3 text-stone-600 dark:text-stone-400 font-bold">{job.location}</td>
-                                                    <td className="py-3 text-stone-600 dark:text-stone-400 font-bold uppercase">
-                                                        {job.jobType?.replace('_', ' ')}
-                                                    </td>
-                                                    <td className="py-3">
-                                                        <span className={`text-xs font-black px-2 py-1 border-[2px] border-stone-900 dark:border-stone-700 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] uppercase
-                                                            ${jobStatusStyles[job.status] || 'bg-stone-200 text-stone-600'}`}>
-                                                            {job.status}
-                                                        </span>
-                                                    </td>
-                                                    <td className="py-3">
-                                                        <button
-                                                            onClick={() => handleDeleteJob(job.id)}
-                                                            disabled={deletingId === job.id}
-                                                            className="text-xs bg-rose-100 dark:bg-rose-900/30 border-[2px] border-stone-900 dark:border-stone-700 text-rose-700 dark:text-rose-400 font-bold uppercase px-3 py-1 shadow-[2px_2px_0_#1c1917] dark:shadow-[2px_2px_0_#000] hover:-translate-y-0.5 hover:shadow-[3px_3px_0_#1c1917] transition-all disabled:opacity-50"
-                                                        >
-                                                            {deletingId === job.id ? '...' : '🗑️ Delete'}
-                                                        </button>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            )}
-                        </div>
-                    )}
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)]">
+                                <tr><th className="pb-6 pl-4">ID</th><th className="pb-6">Profile</th><th className="pb-6">Authority/Status</th><th className="pb-6 text-right pr-4">Operations</th></tr>
+                            </thead>
+                            <tbody className="text-sm">
+                                {activeTab === 'users' ? filteredUsers.map(user => (
+                                    <tr key={user.id} className="border-b border-[var(--hp-border)] hover:bg-white/[0.02] transition-colors">
+                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs">#{user.id}</td>
+                                        <td className="py-5 font-bold">{user.firstName} {user.lastName} <br /><span className="text-[10px] font-medium opacity-50">{user.email}</span></td>
+                                        <td className="py-5"><span className={`hp-badge ${user.role === 'ADMIN' ? 'bg-teal-500/10 text-teal-500' : 'bg-blue-500/10 text-blue-500'}`}>{user.role}</span></td>
+                                        <td className="py-5 text-right pr-4">
+                                            <div className="flex justify-end gap-3">
+                                                <select value={user.role} onChange={(e) => handleChangeRole(user.id, e.target.value)} disabled={updatingId === user.id} className="hp-select text-[10px] font-bold">
+                                                    <option value="JOBSEEKER">Seeker</option>
+                                                    <option value="EMPLOYER">Employer</option>
+                                                    <option value="ADMIN">Admin</option>
+                                                </select>
+                                                <button onClick={() => setPendingDeletion({ id: user.id, type: 'user', name: user.firstName })} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-lg text-xs font-black uppercase transition-all">Terminate</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )) : filteredJobs.map(job => (
+                                    <tr key={job.id} className="border-b border-[var(--hp-border)] hover:bg-white/[0.02] transition-colors">
+                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs">#{job.id}</td>
+                                        <td className="py-5 font-bold">{job.title} <br /><span className="text-[10px] font-medium opacity-50">{job.location}</span></td>
+                                        <td className="py-5"><span className="hp-badge bg-emerald-500/10 text-emerald-500">{job.status}</span></td>
+                                        <td className="py-5 text-right pr-4">
+                                            <button onClick={() => setPendingDeletion({ id: job.id, type: 'job', name: job.title })} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-lg text-xs font-black uppercase transition-all">Delete Record</button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+
+            {/* 🔥 CUSTOM CENTERED CONFIRMATION MODAL */}
+            <AnimatePresence>
+                {pendingDeletion && (
+                    <div className="hp-modal-overlay" onClick={() => setPendingDeletion(null)}>
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                            className="hp-card max-w-sm w-full p-10 text-center relative overflow-hidden"
+                            onClick={e => e.stopPropagation()}
+                        >
+                            {/* Warning Icon */}
+                            <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-3xl mx-auto mb-6">⚠️</div>
+
+                            <h3 className="text-2xl font-black tracking-tight mb-2">Confirm Purge</h3>
+                            <p className="text-sm text-[var(--hp-muted)] mb-10 leading-relaxed">
+                                Are you sure you want to permanently delete <span className="text-[var(--hp-text)] font-bold">{pendingDeletion.name}</span>? This action will overwrite existing records and is irreversible.
+                            </p>
+
+                            <div className="flex gap-4">
+                                <button onClick={() => setPendingDeletion(null)} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest bg-[var(--hp-surface-alt)] rounded-xl hover:bg-[var(--hp-surface)] transition-colors border border-[var(--hp-border)]">Abort</button>
+                                <button onClick={confirmDeletion} className="flex-1 py-4 text-[10px] font-black uppercase tracking-widest bg-red-600 text-white rounded-xl shadow-lg shadow-red-600/20 hover:opacity-90 transition-all">Confirm</button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+        </motion.div>
     );
 }

@@ -21,8 +21,14 @@ public interface ResumeAnalysisRepository extends JpaRepository<ResumeAnalysis, 
     // Get analyses for a specific resume
     List<ResumeAnalysis> findByResumeOrderByAnalyzedAtDesc(Resume resume);
 
-    // Get a specific match analysis
-    Optional<ResumeAnalysis> findByResumeAndJob(Resume resume, Job job);
+    // Get the latest specific match analysis with eager loading for DTO conversion
+    @Query("SELECT ra FROM ResumeAnalysis ra " +
+           "JOIN FETCH ra.job j " +
+           "JOIN FETCH j.employer e " +
+           "LEFT JOIN FETCH e.companyProfile cp " +
+           "WHERE ra.resume = :resume AND ra.job = :job " +
+           "ORDER BY ra.analyzedAt DESC")
+    List<ResumeAnalysis> findTopByResumeAndJobOrderByAnalyzedAtDesc(@Param("resume") Resume resume, @Param("job") Job job);
 
     // Get all analyses for a specific job
     List<ResumeAnalysis> findByJob(Job job);

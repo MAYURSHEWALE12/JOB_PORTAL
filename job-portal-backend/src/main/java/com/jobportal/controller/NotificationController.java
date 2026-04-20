@@ -45,4 +45,14 @@ public class NotificationController {
         notificationService.markAsRead(id);
         return ResponseEntity.ok().build();
     }
+
+    @PutMapping("/read-all")
+    public ResponseEntity<Void> markAllAsRead(@RequestParam Long userId, HttpServletRequest request) {
+        Long currentUserId = securityUtil.getCurrentUserId(request);
+        if (!currentUserId.equals(userId)) {
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        }
+        notificationService.markAllAsRead(userId);
+        return ResponseEntity.ok().build();
+    }
 }

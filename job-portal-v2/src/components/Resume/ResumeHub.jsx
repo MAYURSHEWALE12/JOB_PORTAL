@@ -1,36 +1,56 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ResumeGenerator from './ResumeGenerator';
 import ResumeManager from './ResumeManager';
+import ATSCheck from './ATSCheck';
 
 export default function ResumeHub() {
     const [view, setView] = useState('manager');
 
+    const tabs = [
+        { key: 'manager',    label: 'My Resumes',    icon: '📁' },
+        { key: 'generator', label: 'Create New',  icon: '✨' },
+        { key: 'atscheck',  label: 'ATS Check',   icon: '🎯' },
+    ];
+
     return (
         <div>
-            {/* Tab switcher */}
-            <div className="flex gap-4 mb-6">
-                <button
-                    onClick={() => setView('manager')}
-                    className={`px-6 py-3 font-black uppercase tracking-widest text-sm transition-all border-[3px]
-                        ${view === 'manager'
-                            ? 'bg-orange-500 text-stone-900 border-stone-900 shadow-[4px_4px_0_#1c1917]'
-                            : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-900 dark:border-stone-700 hover:bg-stone-100 hover:-translate-y-1 hover:shadow-[4px_4px_0_#ea580c]'}`}
-                >
-                    📁 My Resumes
-                </button>
-                <button
-                    onClick={() => setView('generator')}
-                    className={`px-6 py-3 font-black uppercase tracking-widest text-sm transition-all border-[3px]
-                        ${view === 'generator'
-                            ? 'bg-orange-500 text-stone-900 border-stone-900 shadow-[4px_4px_0_#1c1917]'
-                            : 'bg-white dark:bg-stone-800 text-stone-600 dark:text-stone-300 border-stone-900 dark:border-stone-700 hover:bg-stone-100 hover:-translate-y-1 hover:shadow-[4px_4px_0_#ea580c]'}`}
-                >
-                    📄 Create Resume
-                </button>
+            <div className="mb-6 sm:mb-8">
+                <h2 className="text-xl sm:text-2xl font-serif font-bold text-[var(--color-text-main)]">My Resumes</h2>
+                <p className="text-[var(--color-text-muted)] mt-1 sm:mt-2 text-sm sm:text-base">Manage and create professional resumes that stand out</p>
             </div>
 
-            {view === 'manager'   && <ResumeManager onResumeSaved={() => {}} />}
-            {view === 'generator' && <ResumeGenerator onResumeSaved={() => setView('manager')} />}
+            <div className="flex gap-2 sm:gap-3 mb-6 sm:mb-8 overflow-x-auto pb-2 scrollbar-hide">
+                {tabs.map((tab) => (
+                    <motion.button
+                        key={tab.key}
+                        onClick={() => setView(tab.key)}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl text-sm font-semibold transition-all duration-300 flex items-center gap-2 whitespace-nowrap
+                            ${view === tab.key
+                                ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-dark)] text-[#0f2620] shadow-lg shadow-[var(--color-primary)]/30'
+                                : 'border-2 border-[var(--color-border)] text-[var(--color-text-muted)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] bg-[var(--color-surface)]'}`}
+                    >
+                        <span>{tab.icon}</span>
+                        <span>{tab.label}</span>
+                    </motion.button>
+                ))}
+            </div>
+
+            <AnimatePresence mode="wait">
+                <motion.div
+                    key={view}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                >
+                    {view === 'manager'   && <ResumeManager onResumeSaved={() => {}} />}
+                    {view === 'generator' && <ResumeGenerator onResumeSaved={() => setView('manager')} />}
+                    {view === 'atscheck'  && <ATSCheck />}
+                </motion.div>
+            </AnimatePresence>
         </div>
     );
 }

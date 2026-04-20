@@ -33,8 +33,9 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     long countByReceiverAndIsReadFalse(User receiver);
 
     // Get all unique users who have messaged with this user
-    @Query("SELECT DISTINCT m.sender FROM Message m WHERE m.receiver = :user " +
-            "UNION SELECT DISTINCT m.receiver FROM Message m WHERE m.sender = :user")
+    @Query("SELECT DISTINCT u FROM User u WHERE " +
+            "u IN (SELECT m.sender FROM Message m WHERE m.receiver = :user) OR " +
+            "u IN (SELECT m.receiver FROM Message m WHERE m.sender = :user)")
     List<User> findConversationPartners(@Param("user") User user);
 
     // Mark all messages from sender to receiver as read
@@ -53,6 +54,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
     List<Message> findLatestMessage(
             @Param("user1") User user1,
             @Param("user2") User user2);
+
+    // Check if any message exists between two users
+    @Query("SELECT COUNT(m) > 0 FROM Message m WHERE " +
+            "(m.sender = :u1 AND m.receiver = :u2) OR " +
+            "(m.sender = :u2 AND m.receiver = :u1)")
+    boolean existsMessageBetweenUsers(@Param("u1") User u1, @Param("u2") User u2);
 
     // Delete all messages where user is sender or receiver
     void deleteBySenderOrReceiver(User sender, User receiver);

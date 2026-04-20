@@ -83,7 +83,7 @@ public class ResumeController {
 
         try {
             log.info("Upload dir: {}", uploadDir);
-            Path uploadPath = Paths.get(uploadDir);
+            Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
             log.info("Upload path resolved to: {}", uploadPath.toAbsolutePath());
             if (!Files.exists(uploadPath)) {
                 Files.createDirectories(uploadPath);
@@ -108,6 +108,67 @@ public class ResumeController {
 
             ResumeDTO dto = ResumeDTO.from(saved);
             log.info("Returning DTO: id={}, name={}", dto.id, dto.name);
+            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+
+        } catch (Exception e) {
+            log.error("Failed to upload resume - {}: {}", e.getClass().getName(), e.getMessage(), e);
+            throw new CustomException("Failed to upload resume: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * POST /api/resume/upload/with-user?userId=123&name=My Resume
+     */
+    @PostMapping("/upload/with-user")
+    public ResponseEntity<?> uploadResumeWithUserId(
+            @RequestParam Long userId,
+            @RequestParam(defaultValue = "My Resume") String name,
+            @RequestParam("file") MultipartFile file) {
+        
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+
+        if (file.isEmpty()) {
+            throw new CustomException("Please select a file", HttpStatus.BAD_REQUEST);
+        }
+        String originalFilename = file.getOriginalFilename();
+        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
+            throw new CustomException("Only PDF files are allowed", HttpStatus.BAD_REQUEST);
+        }
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            throw new CustomException("Invalid file content type. Only PDF files are allowed", HttpStatus.BAD_REQUEST);
+        }
+        if (file.getSize() > 10 * 1024 * 1024) {
+            throw new CustomException("File size must be less than 10MB", HttpStatus.BAD_REQUEST);
+        }
+
+        if (resumeRepository.countByUser(user) >= 5) {
+            throw new CustomException("Maximum 5 resumes allowed. Please delete one first.", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            String fileName = "resume_" + userId + "_" + UUID.randomUUID() + ".pdf";
+            Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+            Path filePath = uploadPath.resolve(fileName);
+            log.info("Saving file to: {}", filePath.toAbsolutePath());
+            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            log.info("File saved successfully");
+
+            Resume resume = Resume.builder()
+                    .user(user)
+                    .name(name)
+                    .fileName(fileName)
+                    .build();
+
+            log.info("Saving resume record to DB...");
+            Resume saved = resumeRepository.save(resume);
+            log.info("Resume saved to DB with id {}", saved.getId());
+
+            ResumeDTO dto = ResumeDTO.from(saved);
             return ResponseEntity.status(HttpStatus.CREATED).body(dto);
 
         } catch (Exception e) {
@@ -176,8 +237,8 @@ public class ResumeController {
         }
 
         try {
-            Path filePath = Paths.get(uploadDir).resolve(resume.getFileName()).normalize();
-            if (!filePath.startsWith(Paths.get(uploadDir).normalize())) {
+            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(resume.getFileName()).normalize();
+            if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
                 throw new CustomException("Invalid file path", HttpStatus.BAD_REQUEST);
             }
             Resource resource = new UrlResource(filePath.toUri());
@@ -217,8 +278,8 @@ public class ResumeController {
         }
 
         try {
-            Path filePath = Paths.get(uploadDir).resolve(resume.getFileName()).normalize();
-            if (!filePath.startsWith(Paths.get(uploadDir).normalize())) {
+            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(resume.getFileName()).normalize();
+            if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
                 throw new CustomException("Invalid file path", HttpStatus.BAD_REQUEST);
             }
             Resource resource = new UrlResource(filePath.toUri());
@@ -257,7 +318,7 @@ public class ResumeController {
 
             resumeAnalysisRepository.deleteAll(resumeAnalysisRepository.findByResumeOrderByAnalyzedAtDesc(resume));
 
-            Path filePath = Paths.get(uploadDir).resolve(resume.getFileName());
+            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(resume.getFileName());
             Files.deleteIfExists(filePath);
             resumeRepository.delete(resume);
             return ResponseEntity.ok(Map.of("message", "Resume deleted successfully"));

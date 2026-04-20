@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -210,8 +211,13 @@ import java.util.stream.Collectors;
         Job job = jobRepository.findById(jobId)
                 .orElseThrow(() -> new ResourceNotFoundException("Job", "id", jobId));
 
-        return analysisRepository.findByResumeAndJob(resume, job)
-                .map(ResumeAnalysisDTO::from);
+        List<ResumeAnalysis> analyses = analysisRepository.findTopByResumeAndJobOrderByAnalyzedAtDesc(resume, job);
+        if (analyses.isEmpty()) return Optional.empty();
+
+        ResumeAnalysis analysis = analyses.get(0);
+        Hibernate.initialize(analysis.getSuggestions());
+        Hibernate.initialize(analysis.getStrengths());
+        return Optional.of(ResumeAnalysisDTO.from(analysis));
     }
 
     @Transactional(readOnly = true)

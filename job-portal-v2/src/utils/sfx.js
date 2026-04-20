@@ -1,53 +1,44 @@
-// Neo-Brutalist UI Sound Effects Utility
-// Using high-quality, snappy UI sounds from Mixkit (Royalty-free)
+// UI Sound Effects Utility — lightweight Web Audio API "ting" sounds
+// No external audio files needed
 
-const sfxUrls = {
-    click:   'https://assets.mixkit.co/sfx/preview/mixkit-simple-clicking-interface-2475.mp3',
-    success: 'https://assets.mixkit.co/sfx/preview/mixkit-success-bell-942.mp3',
-    error:   'https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3',
-    tab:     'https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3',
-    toggle:  'https://assets.mixkit.co/sfx/preview/mixkit-mechanical-switch-clack-939.mp3',
+const TING_PRESETS = {
+    click:   { freq: 2200, dur: 0.05, vol: 0.2 },
+    success: { freq: 1600, dur: 0.12, vol: 0.3 },
+    error:   { freq: 400,  dur: 0.15, vol: 0.25 },
+    tab:     { freq: 2000, dur: 0.04, vol: 0.15 },
+    toggle:  { freq: 1800, dur: 0.06, vol: 0.2 },
 };
 
-// Cache for audio objects to avoid latency
-const audioCache = {};
+function playTing(freq, dur, vol) {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        gain.gain.setValueAtTime(vol, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + dur);
+        osc.onended = () => ctx.close();
+    } catch (e) {
+        // Silently fail
+    }
+}
 
 /**
- * Pre-instantiates audio objects to remove the first-click delay.
- * Should be called once at app initialization.
+ * No-op — no preloading needed since sounds are generated programmatically.
  */
-export const preloadSFX = () => {
-    Object.keys(sfxUrls).forEach(key => {
-        if (!audioCache[key]) {
-            const audio = new Audio(sfxUrls[key]);
-            audio.load();
-            audioCache[key] = audio;
-        }
-    });
-};
+export const preloadSFX = () => {};
 
 /**
- * Plays a UI sound by cloning the cached audio object.
- * Cloning allows simultaneous overlapping sounds of the same type.
+ * Plays a short "ting" UI sound.
  */
 export const playSFX = (type) => {
-    try {
-        const cached = audioCache[type];
-        if (!cached) {
-            // Fallback if not preloaded
-            const audio = new Audio(sfxUrls[type]);
-            audio.volume = 0.6;
-            audio.play().catch(() => {});
-            return;
-        }
-
-        // Clone and play to handle rapid-fire clicks
-        const player = cached.cloneNode();
-        player.volume = 0.6;
-        player.play().catch(err => {
-            // Silent catch for browser policy blocks
-        });
-    } catch (err) {
-        console.error("Failed to play SFX:", err);
-    }
+    const preset = TING_PRESETS[type] || TING_PRESETS.click;
+    playTing(preset.freq, preset.dur, preset.vol);
 };

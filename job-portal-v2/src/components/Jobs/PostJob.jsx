@@ -1,24 +1,26 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
+import { jobAPI } from '../../services/api';
 
 export default function PostJob() {
     const { user } = useAuthStore();
 
     const [formData, setFormData] = useState({
-        title:               '',
-        description:         '',
-        requirements:        '',
-        location:            '',
-        jobType:             'FULL_TIME',
-        salaryMin:           '',
-        salaryMax:           '',
-        experienceRequired:  '',
-        positionsAvailable:  1,
+        title: '',
+        description: '',
+        requirements: '',
+        location: '',
+        jobType: 'FULL_TIME',
+        salaryMin: '',
+        salaryMax: '',
+        experienceRequired: '',
+        positionsAvailable: 1,
     });
 
-    const [loading, setLoading]   = useState(false);
-    const [success, setSuccess]   = useState('');
-    const [error, setError]       = useState('');
+    const [loading, setLoading] = useState(false);
+    const [success, setSuccess] = useState('');
+    const [error, setError] = useState('');
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -32,7 +34,6 @@ export default function PostJob() {
         setError('');
         setSuccess('');
 
-        // Basic validation
         if (!formData.title.trim()) {
             setError('Job title is required.');
             setLoading(false);
@@ -52,218 +53,276 @@ export default function PostJob() {
         try {
             const payload = {
                 ...formData,
-                salaryMin:          formData.salaryMin          ? Number(formData.salaryMin)         : null,
-                salaryMax:          formData.salaryMax          ? Number(formData.salaryMax)         : null,
-                positionsAvailable: formData.positionsAvailable ? Number(formData.positionsAvailable): 1,
+                salaryMin: formData.salaryMin ? Number(formData.salaryMin) : null,
+                salaryMax: formData.salaryMax ? Number(formData.salaryMax) : null,
+                positionsAvailable: formData.positionsAvailable ? Number(formData.positionsAvailable) : 1,
             };
 
-            await jobAPI.create(payload, user.id);  // passes ?employerId=user.id
-            setSuccess('🎉 Job posted successfully!');
-            // Reset form
+            await jobAPI.create(payload, user.id);
+            setSuccess('Job posted successfully! Candidates can now apply.');
             setFormData({
-                title:              '',
-                description:        '',
-                requirements:       '',
-                location:           '',
-                jobType:            'FULL_TIME',
-                salaryMin:          '',
-                salaryMax:          '',
+                title: '',
+                description: '',
+                requirements: '',
+                location: '',
+                jobType: 'FULL_TIME',
+                salaryMin: '',
+                salaryMax: '',
                 experienceRequired: '',
                 positionsAvailable: 1,
             });
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to post job. Please try again.');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         } finally {
             setLoading(false);
         }
     };
 
-    // Only employers can post jobs
+    // ── EMPLOYERS ONLY FALLBACK ──
     if (user?.role !== 'EMPLOYER') {
         return (
-            <div className="bg-white dark:bg-stone-800 border-[3px] border-stone-900 dark:border-stone-700 shadow-[6px_6px_0_#1c1917] dark:shadow-[6px_6px_0_#000] p-8 text-center">
-                <div className="text-5xl mb-4">🔒</div>
-                <h2 className="text-xl font-black text-stone-900 dark:text-gray-100 mb-2 uppercase">Employers Only</h2>
-                <p className="text-stone-500 dark:text-stone-400 font-bold uppercase">Only employer accounts can post jobs.</p>
-            </div>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.98, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                className="hp-card p-12 text-center max-w-md mx-auto mt-20 shadow-2xl relative z-10"
+            >
+                <style>{`
+                    .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); }
+                `}</style>
+                <div className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center shadow-inner" style={{ background: 'rgba(var(--hp-accent-rgb), 0.1)' }}>
+                    <svg className="w-10 h-10" style={{ color: 'var(--hp-accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h2 className="font-bold text-2xl mb-3 text-[var(--hp-text)] tracking-tight">Employers Only</h2>
+                <p className="text-[var(--hp-muted)] leading-relaxed">
+                    You need an active employer account to access the job posting portal and recruit candidates.
+                </p>
+            </motion.div>
         );
     }
 
     return (
-        <div className="bg-white dark:bg-stone-800 rounded-xl border-[3px] border-stone-900 dark:border-stone-700 p-5 sm:p-8 max-w-2xl mx-auto relative z-10 transition-all duration-300 shadow-[8px_8px_0_#1c1917] dark:shadow-[8px_8px_0_#000]">
+        <div className="pb-20 relative z-10">
+            <style>{`
+                .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); transition: border-color .25s, box-shadow .25s; }
+                .hp-card:hover { border-color: rgba(var(--hp-accent-rgb), 0.3); box-shadow: 0 12px 40px rgba(0,0,0,.15); }
+                
+                .hp-input { width: 100%; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); border-radius: 12px; padding: 12px 16px 12px 44px; font-size: 0.9rem; transition: all 0.2s; outline: none; }
+                .hp-input:focus { border-color: rgba(var(--hp-accent-rgb), 0.5); background: var(--hp-surface); box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1); }
+                .hp-input-icon { position: absolute; left: 14px; top: 13px; color: var(--hp-muted); width: 18px; height: 18px; pointer-events: none; transition: color 0.2s; }
+                .group-focus-within .hp-input-icon { color: var(--hp-accent); }
 
-            {/* Header */}
-            <h2 className="text-3xl font-black text-stone-900 dark:text-gray-100 mb-2 uppercase tracking-tight">📝 Post a New Job</h2>
-            <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">Fill in the details below to post your job listing.</p>
+                .hp-textarea { width: 100%; background: var(--hp-surface-alt); border: 1px solid var(--hp-border); color: var(--hp-text); border-radius: 12px; padding: 16px; font-size: 0.9rem; transition: all 0.2s; outline: none; resize: vertical; min-height: 120px; }
+                .hp-textarea:focus { border-color: rgba(var(--hp-accent-rgb), 0.5); background: var(--hp-surface); box-shadow: 0 0 0 3px rgba(var(--hp-accent-rgb), 0.1); }
 
-            {/* Success */}
-            {success && (
-                <div className="bg-emerald-400 border-[3px] border-stone-900 dark:border-stone-700 text-stone-900 px-4 py-3 mb-6 font-black uppercase text-sm shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]">
-                    {success}
-                </div>
-            )}
+                .hp-btn-primary { display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2)); color: #fff; font-weight: 700; border: none; border-radius: 12px; cursor: pointer; transition: all .2s; }
+                .hp-btn-primary:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 8px 25px rgba(var(--hp-accent-rgb), .35); }
+                .hp-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-            {/* Error/Success Messages with animation-reset via key */}
-            {error && (
-                <div key={error} className="animate-neo-shake bg-rose-500 border-[3px] border-stone-900 dark:border-stone-700 text-white px-4 py-3 mb-6 font-black uppercase text-sm shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]">
-                    {error}
-                </div>
-            )}
-            {success && (
-                <div key={success} className="bg-emerald-500 border-[3px] border-stone-900 dark:border-stone-700 text-white px-4 py-3 mb-6 font-black uppercase text-sm shadow-[4px_4px_0_#1c1917] dark:shadow-[4px_4px_0_#000]">
-                    {success}
-                </div>
-            )}
+                .form-section-title { font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: var(--hp-muted); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--hp-border); }
+                .hp-input option { background: var(--hp-card) !important; color: var(--hp-text) !important; }
+            `}</style>
 
-            <form onSubmit={handleSubmit} className="space-y-5">
-
-                {/* Job Title */}
-                <div>
-                    <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                        Job Title <span className="text-rose-500">*</span>
-                    </label>
-                    <input
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="e.g. Senior Java Developer"
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000]"
-                    />
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-3xl mx-auto"
+            >
+                <div className="mb-10 text-center">
+                    <h2 className="text-3xl sm:text-4xl font-bold text-[var(--hp-text)] tracking-tight mb-3">
+                        Post a New Role
+                    </h2>
+                    <p className="text-[var(--hp-muted)] text-sm font-medium">Reach thousands of job seekers and find your perfect candidate.</p>
                 </div>
 
-                {/* Location + Job Type */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                            Location <span className="text-rose-500">*</span>
-                        </label>
-                        <input
-                            type="text"
-                            name="location"
-                            value={formData.location}
-                            onChange={handleChange}
-                            placeholder="e.g. Pune, Mumbai, Remote"
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000]"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">Job Type</label>
-                        <select
-                            name="jobType"
-                            value={formData.jobType}
-                            onChange={handleChange}
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] font-bold uppercase"
-                        >
-                            <option value="FULL_TIME">Full Time</option>
-                            <option value="PART_TIME">Part Time</option>
-                            <option value="CONTRACT">Contract</option>
-                            <option value="REMOTE">Remote</option>
-                            <option value="FREELANCE">Freelance</option>
-                            <option value="TEMPORARY">Temporary</option>
-                        </select>
-                    </div>
-                </div>
+                <div className="hp-card p-6 sm:p-10 relative overflow-hidden">
+                    {/* Subtle background decoration */}
+                    <div className="absolute top-0 right-0 w-64 h-64 pointer-events-none" style={{ background: 'radial-gradient(circle, rgba(var(--hp-accent-rgb),0.05) 0%, transparent 70%)' }} />
 
-                {/* Salary Range */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                            Min Salary (₹)
-                        </label>
-                        <input
-                            type="number"
-                            name="salaryMin"
-                            value={formData.salaryMin}
-                            onChange={handleChange}
-                            placeholder="e.g. 500000"
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] font-bold"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                            Max Salary (₹)
-                        </label>
-                        <input
-                            type="number"
-                            name="salaryMax"
-                            value={formData.salaryMax}
-                            onChange={handleChange}
-                            placeholder="e.g. 900000"
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] font-bold"
-                        />
-                    </div>
-                </div>
+                    <AnimatePresence mode="wait">
+                        {success && (
+                            <motion.div initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0 }}
+                                className="mb-8 p-4 rounded-xl text-sm font-bold flex items-center gap-3 overflow-hidden"
+                                style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', border: '1px solid rgba(52,211,153,0.2)' }}>
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                {success}
+                            </motion.div>
+                        )}
+                        {error && (
+                            <motion.div initial={{ opacity: 0, height: 0, y: -10 }} animate={{ opacity: 1, height: 'auto', y: 0 }} exit={{ opacity: 0, height: 0 }}
+                                className="mb-8 p-4 rounded-xl text-sm font-bold flex items-center gap-3 overflow-hidden"
+                                style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)' }}>
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                {error}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                {/* Experience + Positions */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                            Experience Required
-                        </label>
-                        <input
-                            type="text"
-                            name="experienceRequired"
-                            value={formData.experienceRequired}
-                            onChange={handleChange}
-                            placeholder="e.g. 2+ years"
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] font-bold"
-                        />
-                    </div>
-                    <div>
-                        <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                            Positions Available
-                        </label>
-                        <input
-                            type="number"
-                            name="positionsAvailable"
-                            value={formData.positionsAvailable}
-                            onChange={handleChange}
-                            min="1"
-                            className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] font-bold"
-                        />
-                    </div>
-                </div>
+                    <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
 
-                {/* Description */}
-                <div>
-                    <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                        Job Description <span className="text-rose-500">*</span>
-                    </label>
-                    <textarea
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        rows={5}
-                        placeholder="Describe the role, responsibilities, company culture..."
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] resize-none"
-                    />
-                </div>
+                        {/* SECTION: Basic Details */}
+                        <div>
+                            <h3 className="form-section-title">Basic Details</h3>
+                            <div className="space-y-5">
+                                <div>
+                                    <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">
+                                        Job Title <span className="text-red-400">*</span>
+                                    </label>
+                                    <div className="relative group-focus-within">
+                                        <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                        <input
+                                            type="text" name="title" value={formData.title} onChange={handleChange}
+                                            placeholder="e.g. Senior Full Stack Engineer"
+                                            className="hp-input"
+                                        />
+                                    </div>
+                                </div>
 
-                {/* Requirements */}
-                <div>
-                    <label className="block text-xs font-black text-stone-900 dark:text-stone-100 uppercase tracking-widest mb-2">
-                        Requirements
-                    </label>
-                    <textarea
-                        name="requirements"
-                        value={formData.requirements}
-                        onChange={handleChange}
-                        rows={4}
-                        placeholder="List required skills, qualifications, tools..."
-                        className="w-full px-4 py-3 bg-gray-50 dark:bg-stone-900 border-[2px] border-stone-900 dark:border-stone-700 rounded-none focus:outline-none focus:ring-0 focus:border-orange-500 dark:focus:border-orange-400 transition-all duration-200 dark:text-white shadow-[3px_3px_0_#1c1917] dark:shadow-[3px_3px_0_#000] resize-none"
-                    />
-                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">
+                                            Location <span className="text-red-400">*</span>
+                                        </label>
+                                        <div className="relative group-focus-within">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                            <input
+                                                type="text" name="location" value={formData.location} onChange={handleChange}
+                                                placeholder="e.g. Pune, Mumbai, Remote"
+                                                className="hp-input"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Job Type</label>
+                                        <div className="relative group-focus-within">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                            <select
+                                                name="jobType" value={formData.jobType} onChange={handleChange}
+                                                className="hp-input appearance-none"
+                                            >
+                                                <option value="FULL_TIME">Full Time</option>
+                                                <option value="PART_TIME">Part Time</option>
+                                                <option value="CONTRACT">Contract</option>
+                                                <option value="REMOTE">Remote</option>
+                                                <option value="FREELANCE">Freelance</option>
+                                                <option value="TEMPORARY">Temporary</option>
+                                            </select>
+                                            <svg className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none text-[var(--hp-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
-                {/* Submit */}
-                <button
-                    type="submit"
-                    disabled={loading}
-                    className="neo-btn w-full bg-gradient-to-r from-orange-500 to-rose-500 text-white py-4 px-6 text-xl mt-6"
-                >
-                    {loading ? 'Posting...' : '🚀 Post Job Now'}
-                </button>
-            </form>
+                        {/* SECTION: Compensation & Logistics */}
+                        <div>
+                            <h3 className="form-section-title mt-8">Compensation & Logistics</h3>
+                            <div className="space-y-5">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Min Salary (₹)</label>
+                                        <div className="relative group-focus-within">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <input
+                                                type="number" name="salaryMin" value={formData.salaryMin} onChange={handleChange}
+                                                placeholder="e.g. 500000"
+                                                className="hp-input"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Max Salary (₹)</label>
+                                        <div className="relative group-focus-within">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 8h6m-5 0a3 3 0 110 6H9l3 3m-3-6h6m6 1a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            <input
+                                                type="number" name="salaryMax" value={formData.salaryMax} onChange={handleChange}
+                                                placeholder="e.g. 1200000"
+                                                className="hp-input"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Experience Required</label>
+                                        <div className="relative group-focus-within">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
+                                            <input
+                                                type="text" name="experienceRequired" value={formData.experienceRequired} onChange={handleChange}
+                                                placeholder="e.g. 2-4 years"
+                                                className="hp-input"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] mb-2 uppercase tracking-wide">Positions Available</label>
+                                        <div className="relative group-focus-within">
+                                            <svg className="hp-input-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                            <input
+                                                type="number" name="positionsAvailable" value={formData.positionsAvailable} onChange={handleChange} min="1"
+                                                className="hp-input"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* SECTION: Detailed Descriptions */}
+                        <div>
+                            <h3 className="form-section-title mt-8">Job Content</h3>
+                            <div className="space-y-6">
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] uppercase tracking-wide">
+                                            Job Description <span className="text-red-400">*</span>
+                                        </label>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[var(--hp-muted)]">M↓ Markdown</span>
+                                    </div>
+                                    <textarea
+                                        name="description" value={formData.description} onChange={handleChange} rows={6}
+                                        placeholder="Describe the role... Use # for headings, * for bullets, **bold** for emphasis."
+                                        className="hp-textarea"
+                                    />
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="block text-[13px] font-bold text-[var(--hp-text)] uppercase tracking-wide">
+                                            Requirements
+                                        </label>
+                                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[var(--hp-muted)]">M↓ Markdown</span>
+                                    </div>
+                                    <textarea
+                                        name="requirements" value={formData.requirements} onChange={handleChange} rows={5}
+                                        placeholder="List specific skills or qualifications... (Markdown supported)"
+                                        className="hp-textarea"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="pt-6 border-t mt-8" style={{ borderColor: 'var(--hp-border)' }}>
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="hp-btn-primary w-full py-4 text-base"
+                            >
+                                {loading ? (
+                                    <span className="flex items-center gap-2">
+                                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        Posting Role...
+                                    </span>
+                                ) : 'Publish Job Listing'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </motion.div>
         </div>
     );
 }

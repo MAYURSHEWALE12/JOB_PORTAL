@@ -111,6 +111,7 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://192.168.0.100:5173",
                 "http://192.168.0.100:5174",
+                "http://172.20.10.3:5173",
                 "http://172.20.10.3:5174"
         ));
         configuration.setAllowedMethods(Arrays.asList(

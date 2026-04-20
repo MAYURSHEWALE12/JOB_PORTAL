@@ -69,7 +69,11 @@ public class MessageController {
 
         Long senderId = securityUtil.getCurrentUserId(request);
         String content = body.get("content");
-        if (content == null || content.trim().isEmpty()) {
+        String fileUrl = body.get("fileUrl");
+        String messageType = body.getOrDefault("messageType", "TEXT");
+        String fileName = body.get("fileName");
+        
+        if ((content == null || content.trim().isEmpty()) && (fileUrl == null || fileUrl.trim().isEmpty())) {
             throw new CustomException("Message content cannot be empty", HttpStatus.BAD_REQUEST);
         }
 
@@ -87,14 +91,10 @@ public class MessageController {
             throw new CustomException("You are not allowed to message this user. Connection (e.g., job application) or Admin role required.", HttpStatus.FORBIDDEN);
         }
 
-        String messageType = body.getOrDefault("messageType", "TEXT");
-        String fileUrl = body.get("fileUrl");
-        String fileName = body.get("fileName");
-
         Message message = Message.builder()
                 .sender(sender)
                 .receiver(receiver)
-                .content(content.trim())
+                .content(content != null ? content.trim() : "")
                 .messageType(messageType)
                 .fileUrl(fileUrl)
                 .fileName(fileName)
@@ -103,7 +103,12 @@ public class MessageController {
         Message saved = messageRepository.save(message);
         log.info("Message sent from {} to {}", senderId, receiverId);
 
-        String snippet = content.length() > 40 ? content.substring(0, 40) + "..." : content;
+        // Real-time WebSocket Broadcast
+        messagingTemplate.convertAndSend("/topic/chat/" + receiverId, saved);
+        messagingTemplate.convertAndSend("/topic/chat/" + senderId, saved);
+
+        String snippet = (content == null || content.isEmpty()) ? "[File]" : 
+                         (content.length() > 40 ? content.substring(0, 40) + "..." : content);
         notificationService.sendNotification(
                 receiver.getId(),
                 "New message from " + sender.getFirstName() + " \uD83D\uDCAC",
@@ -131,6 +136,12 @@ public class MessageController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", partnerId));
 
         messageRepository.markAsRead(partner, user);
+        
+        // Broadcast "READ" event via WebSocket
+        messagingTemplate.convertAndSend("/topic/chat.read/" + partnerId, (Object) Map.of(
+                "readerId", userId,
+                "readAt", java.time.LocalDateTime.now().toString()
+        ));
 
         return ResponseEntity.ok(messageRepository.findConversation(user, partner));
     }
@@ -192,16 +203,28 @@ public class MessageController {
      */
     @GetMapping("/users")
     public ResponseEntity<List<UserDTO>> getUsersToMessage(HttpServletRequest request) {
-        Long userId = securityUtil.getCurrentUserId(request);
-        User currentUser = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
+        try {
+            Long userId = securityUtil.getCurrentUserId(request);
+            User currentUser = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        List<UserDTO> allowedUsers = userRepository.findAll().stream()
-                .filter(u -> !u.getId().equals(userId))
-                .filter(u -> isMessagingAllowed(currentUser, u))
-                .map(UserDTO::fromEntity)
-                .collect(java.util.stream.Collectors.toList());
-        return ResponseEntity.ok(allowedUsers);
+            List<User> connectableUsers;
+            if (currentUser.getRole() == UserRole.ADMIN) {
+                // Admins can message any user in the system
+                connectableUsers = userRepository.findAllExcept(userId);
+            } else {
+                // Others can only message specific allowed users
+                connectableUsers = userRepository.findConnectableUsers(userId);
+            }
+
+            List<UserDTO> allowedUsers = connectableUsers.stream()
+                    .map(UserDTO::fromEntity)
+                    .collect(java.util.stream.Collectors.toList());
+            return ResponseEntity.ok(allowedUsers);
+        } catch (Exception e) {
+            log.error("Error in getUsersToMessage: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 
     /**
@@ -453,24 +476,22 @@ public class MessageController {
      * Helper to check if messaging is allowed between two users
      */
     private boolean isMessagingAllowed(User sender, User receiver) {
-        log.debug("Checking messaging permission: sender={}, receiver={}", sender.getEmail(), receiver.getEmail());
-        
-        // Admin can message anyone, anyone can message admin
-        if (sender.getRole() == UserRole.ADMIN || receiver.getRole() == UserRole.ADMIN) {
-             log.debug("Permission GRANTED: One of the users is ADMIN");
-             return true;
-        }
+        try {
+            // Admin can message anyone, anyone can message admin
+            if (sender.getRole() == UserRole.ADMIN || receiver.getRole() == UserRole.ADMIN) {
+                 return true;
+            }
 
-        // Allow if they already have an existing conversation
-        List<User> partners = messageRepository.findConversationPartners(sender);
-        if (partners.contains(receiver)) {
-             log.debug("Permission GRANTED: Existing conversation found");
-             return true;
-        }
+            // Allow if they already have an existing conversation
+            if (messageRepository.existsMessageBetweenUsers(sender, receiver)) {
+                 return true;
+            }
 
-        // Allow if there is a job application relationship
-        boolean hasRelation = applicationRepository.existsRelationship(sender, receiver);
-        log.debug("Relationship check: {}", hasRelation);
-        return hasRelation;
+            // Allow if there is a job application relationship (JobSeeker <-> Employer)
+            return applicationRepository.existsRelationship(sender, receiver);
+        } catch (Exception e) {
+            log.error("Error checking messaging permission", e);
+            return false;
+        }
     }
 }

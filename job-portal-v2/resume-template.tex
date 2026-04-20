@@ -1,0 +1,253 @@
+%-------------------------
+% HireHub Job Portal Resume Template
+% Author: Your Name
+%------------------------
+
+\documentclass[letterpaper,11pt]{article}
+
+\usepackage{latexsym}
+\usepackage[empty]{fullpage}
+\usepackage{titlesec}
+\usepackage{marvosym}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{fancyhdr}
+\usepackage[english]{babel}
+\usepackage{tabularx}
+\usepackage{fontawesome5}
+\usepackage{multicol}
+\usepackage[default]{sourcesanspro}
+\usepackage{iftex}
+
+\RequirePackage{iftex}
+
+\ifPDFTeX
+    \usepackage[utf8]{inputenc}
+    \usepackage[T1]{fontenc}
+    \usepackage{sourcesanspro}
+\else
+    \usepackage{fontspec}
+    \newfontfamily\sourcesanspro{SourcesSansPro}
+\fi
+
+\AtBeginEnvironment{tabularx}{\raggedright}
+
+\pdfgentounicode=1
+
+\input{glyphtounicode}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot{}
+\fancyfoot[R]{\thepage}
+\fancyfoot[L]{\color{black}Last Updated: \today}
+\def\endfoot{0pt}
+\def\endlastfoot{0pt}
+\ biofegtrhtrhtr%
+
+
+\pagestyle{empty}
+%\pagestyle{fancy}
+%\fancyhf{}
+%\fancyfoot{}
+%\fancyfoot[R]{\thepage}
+%\fancyfoot[L]{\color{black}Last Updated: \today}
+
+%
+%\addtolength{\oddsidemargin}{-0.6in}
+%\addtolength{\evensidemargin}{-0.5in}
+%\addtolength{\textwidth}{1.19in}
+%\addtolength{\topmargin}{-.7in}
+%\addtolength{\textheight}{1.4in}
+
+\usepackage[margin=0.75in]{geometry}
+
+\urlstyle{same}
+\raggedbottom
+\raggedright
+%\setlength{\tabcolsep}{0in}
+
+\titleformat{\section}{
+  \color{black}\scshape\raggedright\large\bfseries
+}{}{0em}{}[\color{black}\titlerule \vspace{-4pt}]
+
+\titleformat{\subsection}{
+  \color{black}\scshape\raggedright\normalsize\bfseries
+}{}{0em}{}[\color{black}\vspace{-4pt}]
+
+\newenvironment{resumeSection}[1]{%
+  \subsection*{#1}%
+}{%
+
+\newenvironment{resumeSubsection}[2]{%
+  \begin{tabular*}{1.001\textwidth}[t]{l@{\extracolsep{\fill}}r}%
+      #1 & \textbf{\small #2}\\%
+  \end{tabular*}%
+  \vspace{-6pt}%
+}{%
+
+\newcommand{\resumeItem}[1]{%
+  \itemsmall{#1 \vspace{-3pt}}}%
+}
+
+\newcommand{\resumeSubheading}[4]{%
+  \begin{itemize}[leftmargin=0.15in, label={}]
+    \item
+    \begin{tabular*}{1.0\textwidth}[t]{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#2} \\
+      \textit{#3} & #4 \\
+    \end{tabular*}%
+  \end{itemize}%
+  \vspace{-4pt}%
+}
+
+#defineNewFont%
+
+\newcommand{\resumeProjectHeading}[2]{%
+    \begin{itemize}[leftmargin=0.15in, label={}]
+    \item
+    \begin{tabular*}{1.001\textwidth}{l@{\extracolsep{\fill}}r}
+      \textbf{#1} & \textbf{#2} \\
+    \end{tabular*}%
+  \end{itemize}%
+  \vspace{-4pt}%
+}
+
+\newcommand{\resumeSubItem}[1]{%
+  \item\small{#1 \vspace{-4pt}}%
+}
+
+\usepackage{fontawesome5}
+
+\definecolor{primary}{RGB}{45, 212, 191}
+\definecolor{secondary}{RGB}{167, 139, 250}
+\definecolor{text}{RGB}{26, 26, 26}
+\definecolor{dark}{RGB}{15, 15, 15}
+\definecolor{darkgray}{RGB}{70, 70, 70}
+\definecolor{lightgray}{RGB}{120, 120, 120}
+
+\color{text}
+
+\setlist[itemize]{topsep=0pt, itemsep=0pt, partopsep=0pt, parsep=0pt}
+
+\let\OLDdescriptiondescription
+\begin{description}
+  \let\OLDdescription\item
+  \def\item[#1]{\OLDdescription\item[#1]}
+\end{description}
+
+\AtBeginDocument{
+  \hypersetup{
+    colorlinks=true,
+    linkcolor=primary,
+    filecolor=primary,
+    urlcolor=primary,
+  }
+}
+
+\begin{document}
+
+%----------HEADING----------
+\begin{center}
+    {\Huge \scshape Your Name} \\[6pt]
+    \textbf{\Large \scshape Job Title / Role} \\[6pt]
+    \small
+    \faPhone\ +91-XXXXXXXXXX ~
+    \href{mailto:your.email@example.com}{\faEnvelope\ your.email@example.com} ~
+    \href{your.linkedin.com}{\faLinkedin\ your.linkedin.com} ~
+    \href{your.portfolio.com}{\fa Globe\ your.portfolio.com}
+\end{center}
+
+\smallskip
+\color{darkgray}
+\begin{center}
+Last Updated: \today \quad $|$\quad \href{yourwebsite.com}{\color{darkgray}{yourwebsite.com}}
+\end{center}
+\color{text}
+
+%-----------SUMMARY-----------
+\section{Summary}
+\begin{itemize}[\topsep=0pt, itemsep=0pt]
+  \resumeItem{Results-driven professional with X years of experience in [your field/industry].}
+  \resumeItem{Skilled in [key skills] with proven track record of [achievement/improvement].}
+  \resumeItem{Committed to delivering high-quality work and driving measurable results in fast-paced environments.}
+\end{itemize}
+
+%-----------SKILLS-----------
+\section{Skills}
+\begin{multicols}{3}
+\begin{itemize}[\topsep=0pt, itemsep=0pt]
+  \item \textbf{[Category 1]:} [Skill 1], [Skill 2], [Skill 3]
+  \item \textbf{[Category 2]:} [Skill 4], [Skill 5], [Skill 6]
+  \item \textbf{[Category 3]:} [Skill 7], [Skill 8], [Skill 9]
+\end{itemize}
+\end{multicols}
+
+%-----------EXPERIENCE-----------
+\section{Experience}
+\resumeSubheading
+  {Job Title}{Date Range}
+  {Company Name}{Location}
+  \resumeItemListStart
+    \resumeItem{\textbf{Achievement/Responsibility 1:} Describe your key contribution and its impact.}
+    \resumeItem{\textbf{Achievement/Responsibility 2:} Describe your key contribution and its impact.}
+    \resumeItem{\textbf{Achievement/Responsibility 3:} Describe your key contribution and its impact.}
+  \resumeItemListEnd
+
+\resumeSubheading
+  {Job Title}{Date Range}
+  {Company Name}{Location}
+  \resumeItemListStart
+    \resumeItem{\textbf{Achievement/Responsibility 1:} Describe your key contribution and its impact.}
+    \resumeItem{\textbf{Achievement/Responsibility 2:} Describe your key contribution and its impact.}
+  \resumeItemListEnd
+
+%-----------PROJECTS-----------
+\section{Projects}
+\resumeProjectHeading
+  {\textbf{Project Name}}{\emph{Tech Stack}}
+  \resumeItemListStart
+    \resumeItem{\textbf{Description:} Describe the project and your role.}
+    \resumeItem{\textbf{Key Achievement:} Quantify the impact (e.g., improved efficiency by 40\%, saved X hours, etc.)}
+    \resumeItem{\textbf{Technologies Used:} [Tech 1], [Tech 2], [Tech 3]
+  \resumeItemListEnd
+
+\resumeProjectHeading
+  {\textbf{Project Name}}{\emph{Tech Stack}}
+  \resumeItemListStart
+    \resumeItem{\textbf{Description:} Describe the project and your role.}
+    \resumeItem{\textbf{Key Achievement:} Quantify the impact.}
+    \resumeItem{\textbf{Technologies Used:} [Tech 1], [Tech 2]
+  \resumeItemListEnd
+
+%-----------EDUCATION-----------
+\section{Education}
+\resumeSubheading
+  {Degree Name}{Completion Year}
+  {Institution Name}{CGPA / Percentage}
+  
+%-----------CERTIFICATIONS-----------
+\section{Certifications \& Awards}
+\begin{itemize}[\topsep=0pt, itemsep=0pt]
+  \resumeItem{\textbf{Certification Name,} Organization, Year: Description or details.}
+  \resumeItem{\textbf{Award Name,} Organization, Year: Description or details.}
+  \resumeItem{\textbf{Hackathon/Debugging Rank,} Platform, Year: Rank achieved.}
+\end{itemize}
+
+%-----------ADDITIONAL SECTION (Optional)-----------
+\section{Additional}
+\begin{itemize}[\topsep=0pt, itemsep=0pt]
+  \resumeItem{\textbf{Languages:} English (Fluent), Hindi (Native), [Other] (Basic)}
+  \resumeItem{\textbf{Interests:} [Interest 1], [Interest 2], [Interest 3]}
+  \resumeItem{\textbf{Available for:} Full-time / Part-time / Contract / Freelance}
+\end{itemize}
+
+\vfill
+\begin{center}
+\color{lightgray}
+\small \textit{This resume was generated using HireHub Job Portal Resume Builder}
+\end{center}
+
+\end{document}

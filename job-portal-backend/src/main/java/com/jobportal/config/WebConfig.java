@@ -22,13 +22,34 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addResourceHandler("/uploads/resumes/**")
                 .addResourceLocations("file:" + resumeDir + "/");
         
+        registry.addResourceHandler("/api/uploads/resumes/**")
+                .addResourceLocations("file:" + resumeDir + "/");
+        
         registry.addResourceHandler("/uploads/companies/**")
                 .addResourceLocations("file:" + companyDir + "/");
 
         registry.addResourceHandler("/uploads/avatars/**")
                 .addResourceLocations("file:" + avatarDir + "/");
+        
+        registry.addResourceHandler("/api/uploads/avatars/**")
+                .addResourceLocations("file:" + avatarDir + "/");
 
         registry.addResourceHandler("/messages/files/**")
                 .addResourceLocations("file:uploads/messages/");
+        
+        registry.addResourceHandler("/api/messages/files/**")
+                .addResourceLocations("file:uploads/messages/");
+        
+        registry.addResourceHandler("/companies/image/**")
+                .addResourceLocations("file:" + companyDir + "/");
+        
+        registry.addResourceHandler("/api/companies/image/**")
+                .addResourceLocations("file:" + companyDir + "/");
+        
+        registry.addResourceHandler("/uploads/avatars/**")
+                .addResourceLocations("file:" + avatarDir + "/");
+        
+        registry.addResourceHandler("/api/uploads/avatars/**")
+                .addResourceLocations("file:" + avatarDir + "/");
     }
 }

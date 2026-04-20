@@ -4,7 +4,6 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080
 
 const apiClient = axios.create({
     baseURL: API_BASE_URL,
-    headers: { 'Content-Type': 'application/json' },
 });
 
 apiClient.interceptors.request.use(
@@ -42,6 +41,8 @@ export const jobAPI = {
     getAll: () => apiClient.get('/jobs'),
     getById: (id) => apiClient.get(`/jobs/${id}`),
     search: (params) => apiClient.get('/jobs/search', { params }),
+    advancedSearch: (data) => apiClient.post('/jobs/advanced-search', data),
+    getByEmployer: (employerId) => apiClient.get(`/jobs/employer/${employerId}`),
     create: (data, employerId) => apiClient.post(`/jobs?employerId=${employerId}`, data),
     update: (id, data, employerId) => apiClient.put(`/jobs/${id}?employerId=${employerId}`, data),
     delete: (id, employerId) => apiClient.delete(`/jobs/${id}?employerId=${employerId}`),
@@ -65,6 +66,18 @@ export const applicationAPI = {
         apiClient.put(`/applications/${applicationId}/withdraw?jobSeekerId=${jobSeekerId}`),
     updateStatus: (applicationId, employerId, status) =>
         apiClient.put(`/applications/${applicationId}/status?employerId=${employerId}&status=${status}`),
+    getEmployerApplications: (page = 0, size = 100) =>
+        apiClient.get(`/applications/employer?page=${page}&size=${size}`),
+    
+    // Offer Letter Endpoints
+    sendOffer: (applicationId, params) => 
+        apiClient.post(`/applications/${applicationId}/send-offer`, null, { params }),
+    acceptOffer: (applicationId) => 
+        apiClient.put(`/applications/${applicationId}/accept`),
+    rejectOffer: (applicationId) => 
+        apiClient.put(`/applications/${applicationId}/reject-offer`),
+    getOfferLetter: (applicationId) => 
+        apiClient.get(`/applications/${applicationId}/offer-letter`),
 };
 
 export const savedJobAPI = {
@@ -75,10 +88,17 @@ export const savedJobAPI = {
 };
 
 export const resumeAPI = {
-    upload: (userId, file, name) => {
+    upload: (file, name) => {
         const formData = new FormData();
         formData.append('file', file);
-        return apiClient.post(`/resume/upload?userId=${userId}&name=${encodeURIComponent(name)}`, formData);
+        formData.append('name', name || 'My Resume');
+        return apiClient.post('/resume/upload', formData);
+    },
+    uploadWithUserId: (userId, file, name) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('name', name || 'My Resume');
+        return apiClient.post(`/resume/upload`, formData);
     },
     check: (userId) => apiClient.get(`/resume/check?userId=${userId}`),
     list: (userId) => apiClient.get(`/resume/list?userId=${userId}`),
@@ -87,9 +107,21 @@ export const resumeAPI = {
     rename: (resumeId, name) => apiClient.put(`/resume/rename/${resumeId}?name=${encodeURIComponent(name)}`),
 };
 
+export const resumeAnalysisAPI = {
+    analyze: (resumeId) => apiClient.post(`/resume-analysis/${resumeId}`),
+    analyzeMatch: (resumeId, jobId) => apiClient.post(`/resume-analysis/${resumeId}/match/${jobId}`),
+    getMatchAnalysis: (resumeId, jobId) => apiClient.get(`/resume-analysis/${resumeId}/match/${jobId}`),
+    getHistory: (userId) => apiClient.get(`/resume-analysis/user/${userId}`),
+};
+
 export const messageAPI = {
-    send: (senderId, receiverId, content) =>
-        apiClient.post(`/messages/send?senderId=${senderId}&receiverId=${receiverId}`, { content }),
+    send: (senderId, receiverId, content, fileUrl = null, fileName = null) =>
+        apiClient.post(`/messages/send?senderId=${senderId}&receiverId=${receiverId}`, { 
+            content, 
+            fileUrl, 
+            fileName,
+            messageType: fileUrl ? 'FILE' : 'TEXT' 
+        }),
     getConversation: (userId, partnerId) =>
         apiClient.get(`/messages/conversation?userId=${userId}&partnerId=${partnerId}`),
     getInbox: (userId) =>
@@ -98,12 +130,88 @@ export const messageAPI = {
         apiClient.get(`/messages/unread-count?userId=${userId}`),
     getUsers: (userId) =>
         apiClient.get(`/messages/users?userId=${userId}`),
+    uploadFile: (file, receiverId) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('receiverId', receiverId);
+        return apiClient.post('/messages/upload', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+    editMessage: (id, content) =>
+        apiClient.put(`/messages/${id}`, { content }),
+    deleteMessage: (id) =>
+        apiClient.delete(`/messages/${id}`),
+};
+
+export const adminAPI = {
+    getStats: () => apiClient.get('/admin/stats'),
+    getUsers: () => apiClient.get('/admin/users'),
+    deleteUser: (id) => apiClient.delete(`/admin/users/${id}`),
+    updateRole: (id, role) => apiClient.put(`/admin/users/${id}/role?role=${role}`),
+    getJobs: () => apiClient.get('/admin/jobs'),
+    getApplications: () => apiClient.get('/admin/applications'),
 };
 
 export const userAPI = {
     getById: (id) => apiClient.get(`/users/${id}`),
     update: (id, data) => apiClient.put(`/users/${id}`, data),
     changePassword: (id, data) => apiClient.post(`/auth/change-password/${id}`, data),
+    uploadAvatar: (id, file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return apiClient.post(`/users/${id}/avatar`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+    },
+};
+
+export const notificationAPI = {
+    getAll: (userId) => apiClient.get(`/notifications/user/${userId}`),
+    markAsRead: (id) => apiClient.put(`/notifications/${id}/read`),
+    markAllAsRead: (userId) => apiClient.put(`/notifications/read-all?userId=${userId}`),
+};
+
+export const quizAPI = {
+    create: (data) => apiClient.post(`/quizzes/job/${data.jobId}`, data),
+    getByJob: (jobId) => apiClient.get(`/quizzes/job/${jobId}/view`),
+    getFull: (jobId) => apiClient.get(`/quizzes/job/${jobId}`),
+    getById: (quizId) => apiClient.get(`/quizzes/${quizId}`),
+    submit: (submission) => apiClient.post(`/quizzes/submit`, submission),
+    getResults: (applicationId) => apiClient.get(`/quizzes/result/${applicationId}`),
+};
+
+export const interviewAPI = {
+    schedule: (applicationId, data) => apiClient.post(`/interviews/schedule?applicationId=${applicationId}`, data),
+    getByCandidate: () => apiClient.get('/interviews/candidate'),
+    getByInterviewer: () => apiClient.get('/interviews/interviewer'),
+    getByApplication: (applicationId) => apiClient.get(`/interviews/application/${applicationId}`),
+    getById: (id) => apiClient.get(`/interviews/${id}`),
+    confirm: (id) => apiClient.put(`/interviews/${id}/confirm`),
+    cancel: (id) => apiClient.put(`/interviews/${id}/cancel`),
+    complete: (id, feedback, rating) => apiClient.put(`/interviews/${id}/complete`, { feedback, rating }),
+    reschedule: (id, scheduledAt) => apiClient.put(`/interviews/${id}/reschedule`, { scheduledAt }),
+};
+
+export const companyAPI = {
+    getMy: () => apiClient.get('/companies/user'),
+    getByUser: (userId) => apiClient.get(`/companies/user/${userId}`),
+    getAll: () => apiClient.get('/companies'),
+    update: (data) => apiClient.put('/companies/user', data),
+    uploadLogo: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return apiClient.post('/companies/user/upload-logo', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
+    uploadBanner: (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        return apiClient.post('/companies/user/upload-banner', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' },
+        });
+    },
 };
 
 export default apiClient;
