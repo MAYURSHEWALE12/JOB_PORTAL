@@ -5,6 +5,7 @@ import { jobAPI, applicationAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import Loader from '../Loader';
 import ApplicationCard from './ApplicationCard';
+import HiringKanban from './HiringKanban';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -52,6 +53,7 @@ export default function ViewApplications() {
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [isBulkUpdating, setIsBulkUpdating] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [viewMode, setViewMode] = useState('list'); // 'list' or 'board'
 
     useEffect(() => {
         fetchMyJobs();
@@ -338,44 +340,58 @@ export default function ViewApplications() {
             `}</style>
 
             {/* Top Bar: Back + Job Info */}
-            <motion.div
-                initial={{ opacity: 0, y: -10 }}
+            {/* Top Bar: Back + Job Info */}
+            <motion.div 
+                initial={{ opacity: 0, y: -20 }} 
                 animate={{ opacity: 1, y: 0 }}
-                className="hp-card p-5 mb-6"
+                className="hp-card p-6 mb-8 border-l-4 border-l-[var(--hp-accent)] shadow-sm"
             >
-                <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                    <button
-                        onClick={() => { setSelectedJob(null); setApplications([]); setSelectedApp(null); }}
-                        className="w-10 h-10 rounded-xl flex items-center justify-center transition-all flex-shrink-0"
-                        style={{ background: 'var(--hp-surface-alt)', border: '1px solid var(--hp-border)', color: 'var(--hp-muted)' }}
-                        onMouseEnter={e => e.currentTarget.style.color = 'var(--hp-text)'}
-                        onMouseLeave={e => e.currentTarget.style.color = 'var(--hp-muted)'}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-                    </button>
-                    <div className="flex-1 min-w-0 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div>
-                            <h3 className="font-bold text-[var(--hp-text)] text-xl truncate tracking-tight">
-                                {selectedJob.title}
-                            </h3>
-                            <p className="text-[var(--hp-muted)] text-sm flex items-center gap-1.5 mt-1">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                </svg>
-                                {selectedJob.location} <span className="opacity-50 mx-1">•</span> <strong className="text-[var(--hp-accent)]">{applications.length}</strong> applicants
-                            </p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="space-y-4 max-w-2xl">
+                        <div className="flex items-center gap-3">
+                            <span className="text-3xl filter drop-shadow-sm">💼</span>
+                            <div>
+                                <h2 className="text-2xl md:text-3xl font-extrabold text-[var(--hp-text)] tracking-tight leading-none mb-1">
+                                    {selectedJob.title}
+                                </h2>
+                                <p className="text-sm font-medium text-[var(--hp-muted)] uppercase tracking-[0.2em] opacity-70">
+                                    {selectedJob.location} • {selectedJob.type}
+                                </p>
+                            </div>
                         </div>
+                        
+                        <div className="flex flex-wrap items-center gap-3">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--hp-surface-alt)] border border-[var(--hp-border)]">
+                                <span className="w-2 h-2 rounded-full animate-pulse bg-emerald-500" />
+                                <span className="text-xs font-bold text-[var(--hp-text-sub)]">
+                                    {applications.length} TOTAL APPLICATIONS
+                                </span>
+                            </div>
+                            <button 
+                                onClick={() => setShowJobDetail(!showJobDetail)}
+                                className="text-xs font-bold text-[var(--hp-accent)] hover:underline flex items-center gap-1 transition-all"
+                            >
+                                {showJobDetail ? 'CLOSE DETAILS —' : 'VIEW JOB DETAILS +'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3 pt-4 md:pt-0 border-t md:border-t-0 border-[var(--hp-border)]">
                         <button
-                            onClick={() => setShowJobDetail(!showJobDetail)}
-                            className="text-xs font-bold tracking-wide uppercase px-4 py-2.5 rounded-xl transition-colors border"
-                            style={{
-                                color: 'var(--hp-accent)',
-                                background: 'rgba(var(--hp-accent-rgb), 0.1)',
-                                borderColor: 'rgba(var(--hp-accent-rgb), 0.2)'
-                            }}
+                            onClick={() => fetchApplications(selectedJob)}
+                            className="p-3 rounded-xl hover:bg-[var(--hp-surface-alt)] border border-transparent hover:border-[var(--hp-border)] transition-all group"
+                            title="Refresh Data"
                         >
-                            {showJobDetail ? 'Close Details ▲' : 'View Job Details ▼'}
+                            <svg className={`w-5 h-5 text-[var(--hp-muted)] group-hover:text-[var(--hp-accent)] ${loadingApps ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        </button>
+                        <div className="h-8 w-[1px] bg-[var(--hp-border)] mx-1 desktop-only"></div>
+                        <button
+                            onClick={() => setSelectedJob(null)}
+                            className="px-5 py-2.5 rounded-xl text-xs font-bold transition-all border border-[var(--hp-border)] hover:bg-[var(--hp-surface-alt)] hover:border-[var(--hp-accent)] text-[var(--hp-muted)] hover:text-[var(--hp-accent)] group"
+                        >
+                            ✕ Switch Job
                         </button>
                     </div>
                 </div>
@@ -391,13 +407,13 @@ export default function ViewApplications() {
                             <div className="mt-6 pt-6 border-t grid grid-cols-1 md:grid-cols-2 gap-8" style={{ borderColor: 'var(--hp-border)' }}>
                                 <div>
                                     <h4 className="font-bold text-xs text-[var(--hp-muted)] mb-3 uppercase tracking-widest">Description</h4>
-                                    <div className="prose prose-sm max-w-none" style={{ color: 'var(--hp-text-sub)' }}>
+                                    <div className="prose prose-sm max-w-none text-sm leading-relaxed" style={{ color: 'var(--hp-text-sub)' }}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedJob.description}</ReactMarkdown>
                                     </div>
                                 </div>
                                 <div>
                                     <h4 className="font-bold text-xs text-[var(--hp-muted)] mb-3 uppercase tracking-widest">Requirements</h4>
-                                    <div className="prose prose-sm max-w-none" style={{ color: 'var(--hp-text-sub)' }}>
+                                    <div className="prose prose-sm max-w-none text-sm leading-relaxed" style={{ color: 'var(--hp-text-sub)' }}>
                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>{selectedJob.requirements}</ReactMarkdown>
                                     </div>
                                 </div>
@@ -414,17 +430,32 @@ export default function ViewApplications() {
                     {error}
                 </motion.div>
             )}
-
-            {/* ── MAIN TWO-COLUMN: Left Nav + Right Content ── */}
-            <div className="flex flex-col lg:flex-row gap-6">
-
+            <div className="flex flex-col lg:flex-row gap-6">
                 {/* ── LEFT: Pipeline Stage Navigation ── */}
-                <div className="w-full lg:w-64 flex-shrink-0">
-                    <div className="hp-card p-4 sticky top-24">
-                        <h3 className="text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-widest mb-4 px-2">
-                            Pipeline Stages
-                        </h3>
-                        <nav className="space-y-1.5">
+                <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 h-fit">
+                    <div className="hp-card p-4">
+                        <div className="flex items-center justify-between mb-4 px-2">
+                            <h3 className="text-[10px] font-extrabold text-[var(--hp-muted)] uppercase tracking-[0.2em]">
+                                Pipeline Stages
+                            </h3>
+                            <div className="flex bg-[var(--hp-surface-alt)] p-1 rounded-lg border border-[var(--hp-border)]">
+                                <button
+                                    onClick={() => setViewMode('list')}
+                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'list' ? 'bg-[var(--hp-card)] shadow-sm' : 'opacity-40 hover:opacity-100'}`}
+                                    title="List View"
+                                >
+                                    📋
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('board')}
+                                    className={`p-1.5 rounded-md transition-all ${viewMode === 'board' ? 'bg-[var(--hp-card)] shadow-sm' : 'opacity-40 hover:opacity-100'}`}
+                                    title="Board View"
+                                >
+                                    📊
+                                </button>
+                            </div>
+                        </div>
+                        <nav className="flex lg:flex-col overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 gap-2 hide-scrollbar scroll-smooth">
                             {PIPELINE_STAGES.map(stage => {
                                 const count = stageCounts[stage.key] || 0;
                                 const isActive = activeStage === stage.key;
@@ -433,7 +464,7 @@ export default function ViewApplications() {
                                     <button
                                         key={stage.key}
                                         onClick={() => setActiveStage(stage.key)}
-                                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all border`}
+                                        className={`flex-shrink-0 lg:flex-shrink flex items-center justify-between px-4 py-3 lg:px-3 lg:py-2.5 rounded-xl text-left transition-all border`}
                                         style={isActive ? {
                                             backgroundColor: stage.bg,
                                             borderColor: `rgba(var(--hp-accent-rgb), 0.2)`,
@@ -446,23 +477,12 @@ export default function ViewApplications() {
                                         onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <span className="text-lg opacity-90">{stage.icon}</span>
-                                            <span className="text-[.9rem] font-bold" style={{ color: isActive ? stage.accent : 'var(--hp-text-sub)' }}>
+                                            <span className="text-xl lg:text-lg opacity-90">{stage.icon}</span>
+                                            <span className="text-sm font-bold truncate" style={{ color: isActive ? stage.accent : 'var(--hp-text-sub)' }}>
                                                 {stage.label}
                                             </span>
                                         </div>
-                                        <span
-                                            className="text-[10px] font-bold min-w-[24px] h-[24px] rounded-full flex items-center justify-center border"
-                                            style={isActive ? {
-                                                backgroundColor: stage.accent,
-                                                color: '#fff',
-                                                borderColor: 'transparent'
-                                            } : {
-                                                backgroundColor: 'var(--hp-surface-alt)',
-                                                color: 'var(--hp-muted)',
-                                                borderColor: 'var(--hp-border)'
-                                            }}
-                                        >
+                                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${isActive ? 'bg-white/20' : 'bg-[var(--hp-surface-alt)]'} desktop-only`}>
                                             {count}
                                         </span>
                                     </button>
@@ -501,7 +521,7 @@ export default function ViewApplications() {
                     </div>
                 </div>
 
-                {/* ── RIGHT: Application Cards ── */}
+                {/* ── RIGHT: Applications List/Board ── */}
                 <div className="flex-1 min-w-0">
                     {loadingApps && (
                         <div className="hp-card p-12 text-center flex flex-col items-center">
@@ -527,89 +547,113 @@ export default function ViewApplications() {
                     )}
 
                     {!loadingApps && applications.length > 0 && (
-                        <>
-                            {/* Active Stage Header */}
-                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 px-1 gap-4">
-                                <div className="flex items-center gap-3">
-                                    <h3 className="text-xl font-bold text-[var(--hp-text)] tracking-tight flex items-center gap-2">
-                                        <span className="text-2xl">{PIPELINE_STAGES.find(s => s.key === activeStage)?.icon}</span>
-                                        {PIPELINE_STAGES.find(s => s.key === activeStage)?.label}
-                                    </h3>
-                                    <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full border" style={{ background: 'var(--hp-surface-alt)', color: 'var(--hp-muted)', borderColor: 'var(--hp-border)' }}>
-                                        {filteredApps.length} Candidate{filteredApps.length !== 1 ? 's' : ''}
-                                    </span>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                                    {/* Search Input */}
-                                    <div className="relative group">
-                                        <input 
-                                            type="text"
-                                            placeholder="Search candidates..."
-                                            value={searchQuery}
-                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                            className="w-full sm:w-64 pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-[var(--hp-accent)]/20"
-                                            style={{ 
-                                                background: 'var(--hp-surface-alt)', 
-                                                borderColor: 'var(--hp-border)',
-                                                color: 'var(--hp-text)'
-                                            }}
-                                        />
-                                        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--hp-muted)] group-focus-within:text-[var(--hp-accent)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                        </svg>
-                                    </div>
-
-                                    {filteredApps.length > 0 && (
-                                        <button
-                                            onClick={handleSmartSelect}
-                                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border group"
-                                            style={{ 
-                                                color: 'var(--hp-accent)',
-                                                background: 'rgba(var(--hp-accent-rgb), 0.08)',
-                                                borderColor: 'rgba(var(--hp-accent-rgb), 0.2)'
-                                            }}
-                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.15)'}
-                                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.08)'}
-                                        >
-                                            <span className="group-hover:scale-125 transition-transform">✨</span>
-                                            Select Page
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {filteredApps.length === 0 ? (
-                                <div className="hp-card p-12 text-center border-dashed">
-                                    <div className="text-5xl mb-4 opacity-40 grayscale">
-                                        {PIPELINE_STAGES.find(s => s.key === activeStage)?.icon}
-                                    </div>
-                                    <p className="text-[var(--hp-muted)] font-bold">
-                                        No candidates in this stage yet.
-                                    </p>
-                                </div>
+                        <AnimatePresence mode="wait">
+                            {viewMode === 'board' ? (
+                                <motion.div
+                                    key="board"
+                                    initial={{ opacity: 0, scale: 0.98 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    transition={{ duration: 0.3 }}
+                                >
+                                    <HiringKanban 
+                                        applications={applications}
+                                        onStatusUpdate={handleUpdateStatus}
+                                        onSelectApp={setSelectedApp}
+                                    />
+                                </motion.div>
                             ) : (
-                                <div className="space-y-4">
-                                    <AnimatePresence mode="popLayout">
-                                        {filteredApps.map((app) => (
-                                            <ApplicationCard
-                                                key={app.id}
-                                                app={app}
-                                                selectedJob={selectedJob}
-                                                selectedApp={selectedApp}
-                                                setSelectedApp={setSelectedApp}
-                                                selectedIds={selectedIds}
-                                                toggleSelect={toggleSelect}
-                                                handleUpdateStatus={handleUpdateStatus}
-                                                updatingId={updatingId}
-                                                statusStyles={statusStyles}
-                                                statusIcons={statusIcons}
-                                            />
-                                        ))}
-                                    </AnimatePresence>
-                                </div>
+                                <motion.div
+                                    key="list"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="space-y-6"
+                                >
+                                    {/* Active Stage Header & Search (Only for List View) */}
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 px-1 gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <h3 className="text-xl font-bold text-[var(--hp-text)] tracking-tight flex items-center gap-2">
+                                                <span className="text-2xl">{PIPELINE_STAGES.find(s => s.key === activeStage)?.icon}</span>
+                                                {PIPELINE_STAGES.find(s => s.key === activeStage)?.label}
+                                            </h3>
+                                            <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full border" style={{ background: 'var(--hp-surface-alt)', color: 'var(--hp-muted)', borderColor: 'var(--hp-border)' }}>
+                                                {filteredApps.length} Candidate{filteredApps.length !== 1 ? 's' : ''}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                            {/* Search Input */}
+                                            <div className="relative group">
+                                                <input 
+                                                    type="text"
+                                                    placeholder="Search candidates..."
+                                                    value={searchQuery}
+                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                    className="w-full sm:w-64 pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-[var(--hp-accent)]/20"
+                                                    style={{ 
+                                                        background: 'var(--hp-surface-alt)', 
+                                                        borderColor: 'var(--hp-border)',
+                                                        color: 'var(--hp-text)'
+                                                    }}
+                                                />
+                                                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--hp-muted)] group-focus-within:text-[var(--hp-accent)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+
+                                            {filteredApps.length > 0 && (
+                                                <button
+                                                    onClick={handleSmartSelect}
+                                                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border group"
+                                                    style={{ 
+                                                        color: 'var(--hp-accent)',
+                                                        background: 'rgba(var(--hp-accent-rgb), 0.08)',
+                                                        borderColor: 'rgba(var(--hp-accent-rgb), 0.2)'
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.15)'}
+                                                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.08)'}
+                                                >
+                                                    <span className="group-hover:scale-125 transition-transform">✨</span>
+                                                    Select Page
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {filteredApps.length === 0 ? (
+                                        <div className="hp-card p-12 text-center border-dashed">
+                                            <div className="text-5xl mb-4 opacity-40 grayscale">
+                                                {PIPELINE_STAGES.find(s => s.key === activeStage)?.icon}
+                                            </div>
+                                            <p className="text-[var(--hp-muted)] font-bold">
+                                                No candidates in this stage yet.
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-4">
+                                            <AnimatePresence mode="popLayout">
+                                                {filteredApps.map((app) => (
+                                                    <ApplicationCard
+                                                        key={app.id}
+                                                        app={app}
+                                                        selectedJob={selectedJob}
+                                                        selectedApp={selectedApp}
+                                                        setSelectedApp={setSelectedApp}
+                                                        selectedIds={selectedIds}
+                                                        toggleSelect={toggleSelect}
+                                                        handleUpdateStatus={handleUpdateStatus}
+                                                        updatingId={updatingId}
+                                                        statusStyles={statusStyles}
+                                                        statusIcons={statusIcons}
+                                                    />
+                                                ))}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
+                                </motion.div>
                             )}
-                        </>
+                        </AnimatePresence>
                     )}
                 </div>
             </div>
@@ -621,7 +665,7 @@ export default function ViewApplications() {
                         initial={{ y: 100, opacity: 0, scale: 0.95 }}
                         animate={{ y: 0, opacity: 1, scale: 1 }}
                         exit={{ y: 100, opacity: 0, scale: 0.95 }}
-                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] border px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 min-w-[400px]"
+                        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] border px-4 py-3 sm:px-6 sm:py-4 rounded-2xl shadow-2xl flex flex-col sm:flex-row items-center gap-4 sm:gap-6 w-[92%] sm:w-auto sm:min-w-[400px]"
                         style={{
                             background: 'rgba(var(--hp-nav-bg), 0.85)',
                             backdropFilter: 'blur(20px)',

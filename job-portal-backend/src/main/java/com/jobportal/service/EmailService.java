@@ -74,35 +74,73 @@ public class EmailService {
     }
 
     private String buildWelcomeEmailHtml(String firstName, String role) {
-        String roleBadge = "JOBSEEKER".equalsIgnoreCase(role) ? "🔍 Job Seeker" : "💼 Employer";
+        String roleIcon = "JOBSEEKER".equalsIgnoreCase(role) ? "🔍" : "💼";
+        String roleLabel = "JOBSEEKER".equalsIgnoreCase(role) ? "Job Seeker" : "Employer";
+        
         return """
             <!DOCTYPE html>
             <html>
-            <head><style>
-                body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
-                .container { max-width: 550px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden; }
-                .header { background: linear-gradient(135deg, #0ea5e9 0%%, #0284c7 100%%); color: white; padding: 32px 24px; font-size: 24px; font-weight: 700; text-align: center; }
-                .body { padding: 32px 28px; }
-                .body p { color: #475569; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 16px; }
-                .badge { display: inline-block; padding: 8px 16px; background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; border-radius: 20px; font-weight: 600; font-size: 13px; margin: 8px 0 24px; }
-                .btn { display: inline-block; margin-top: 16px; padding: 14px 28px; background: linear-gradient(135deg, #0ea5e9 0%%, #0284c7 100%%); color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2); }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-            </style></head>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+                    body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f0f4f8; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+                    .wrapper { background-color: #f0f4f8; padding: 40px 10px; }
+                    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+                    .header { background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 48px 40px; text-align: center; }
+                    .logo-icon { font-size: 40px; margin-bottom: 24px; display: block; }
+                    .header h1 { color: #f8fafc; font-size: 28px; margin: 0; font-weight: 800; letter-spacing: -0.02em; }
+                    .content { padding: 48px 40px; }
+                    .greeting { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 16px; }
+                    .text { font-size: 16px; color: #475569; line-height: 1.7; margin-bottom: 32px; }
+                    .role-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 16px; }
+                    .role-icon { font-size: 24px; padding: 12px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+                    .role-info h3 { margin: 0; font-size: 14px; text-transform: uppercase; color: #64748b; letter-spacing: 0.1em; }
+                    .role-info p { margin: 4px 0 0; font-size: 18px; font-weight: 700; color: #0f172a; }
+                    .btn { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 18px 36px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; transition: transform 0.2s; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
+                    .footer { padding: 32px 40px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; }
+                    .footer p { color: #94a3b8; font-size: 13px; margin: 0; }
+                    .social-links { margin-top: 16px; }
+                    .social-links a { color: #64748b; text-decoration: none; margin: 0 8px; font-weight: 600; }
+                </style>
+            </head>
             <body>
-                <div class="container">
-                    <div class="header">🎉 Welcome to Job Portal!</div>
-                    <div class="body">
-                        <p style="font-size: 18px; font-weight: 600; color: #0f172a;">Hi %s,</p>
-                        <p>Your account has been created successfully. You're all set to get started on your professional journey!</p>
-                        <div class="badge">%s</div>
-                        <p>Head to your dashboard to explore all the features we've built for you.</p>
-                        <center><a class="btn" href="%s/dashboard">Go to Dashboard →</a></center>
+                <div class="wrapper">
+                    <div class="container">
+                        <div class="header">
+                            <span class="logo-icon">🚀</span>
+                            <h1>Welcome to Vertex Job Portal</h1>
+                        </div>
+                        <div class="content">
+                            <p class="greeting">Hi %s,</p>
+                            <p class="text">Your journey to professional excellence starts here. We're thrilled to have you join our elite community of talent and visionary employers.</p>
+                            
+                            <div class="role-card">
+                                <span class="role-icon">%s</span>
+                                <div class="role-info">
+                                    <h3>Account Type</h3>
+                                    <p>%s</p>
+                                </div>
+                            </div>
+                            
+                            <p class="text">Head over to your dashboard to complete your profile and start exploring opportunities tailored for you.</p>
+                            
+                            <center>
+                                <a href="%s/dashboard" class="btn">Explore My Dashboard →</a>
+                            </center>
+                        </div>
+                        <div class="footer">
+                            <p>© 2026 Vertex Job Portal. All rights reserved.</p>
+                            <div class="social-links">
+                                <a href="#">Support</a> | <a href="#">Twitter</a> | <a href="#">LinkedIn</a>
+                            </div>
+                        </div>
                     </div>
-                    <div class="footer">Job Portal • Need help? Check out our support section</div>
                 </div>
             </body>
             </html>
-            """.formatted(firstName, roleBadge, frontendUrl);
+            """.formatted(firstName, roleIcon, roleLabel, frontendUrl);
     }
 
     public boolean sendJobAlertEmail(String toEmail, String userName, Job job) {
@@ -248,27 +286,64 @@ public class EmailService {
         return """
             <!DOCTYPE html>
             <html>
-            <head><style>
-                body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
-                .container { max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden; }
-                .header { background: linear-gradient(135deg, #10b981 0%%, #34d399 100%%); color: white; padding: 32px 24px; font-size: 24px; font-weight: 700; text-align: center; letter-spacing: -0.5px; }
-                .body { padding: 32px 28px; }
-                .body p { color: #475569; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 16px; }
-                .offer-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin: 24px 0; font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 14px; white-space: pre-wrap; line-height: 1.8; color: #1e293b; box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02); }
-                .btn { display: inline-block; margin-top: 16px; padding: 14px 28px; background: linear-gradient(135deg, #059669 0%%, #10b981 100%%); color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-            </style></head>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+                    body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f7fee7; margin: 0; padding: 40px 10px; }
+                    .container { max-width: 650px; margin: 0 auto; background: #ffffff; border-radius: 32px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.12); border: 1px solid #d9f99d; }
+                    .header { background: #166534; padding: 64px 40px; text-align: center; position: relative; }
+                    .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 8px; background: #4ade80; }
+                    .confetti { font-size: 48px; margin-bottom: 24px; display: block; }
+                    .header h1 { color: #ffffff; font-size: 32px; margin: 0; font-weight: 800; letter-spacing: -0.03em; }
+                    .content { padding: 56px 48px; }
+                    .doc-tag { display: inline-block; background: #f0fdf4; color: #166534; padding: 6px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.15em; margin-bottom: 24px; border: 1px solid #bbf7d0; }
+                    .greeting { font-size: 22px; font-weight: 700; color: #064e3b; margin-bottom: 12px; }
+                    .announcement { font-size: 16px; color: #374151; line-height: 1.6; margin-bottom: 40px; }
+                    .role-highlight { background: #f8fafc; border: 2px solid #e2e8f0; border-radius: 20px; padding: 32px; margin-bottom: 40px; }
+                    .role-item { margin-bottom: 20px; }
+                    .role-item:last-child { margin-bottom: 0; }
+                    .role-label { font-size: 12px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; display: block; margin-bottom: 4px; }
+                    .role-value { font-size: 18px; color: #0f172a; font-weight: 700; }
+                    .offer-details { background: #ffffff; border: 1px dashed #cbd5e1; border-radius: 12px; padding: 24px; font-size: 14px; color: #475569; line-height: 1.8; margin-bottom: 40px; }
+                    .btn { display: inline-block; background: #166534; color: #ffffff !important; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 15px 30px rgba(22, 101, 52, 0.2); }
+                    .footer { padding: 40px; text-align: center; font-size: 13px; color: #64748b; background: #f8fafc; border-top: 1px solid #f1f5f9; }
+                </style>
+            </head>
             <body>
                 <div class="container">
-                    <div class="header">🎉 Congratulations!</div>
-                    <div class="body">
-                        <p style="font-size: 18px; font-weight: 600; color: #0f172a;">Dear %s,</p>
-                        <p>We are pleased to officially share your offer letter for the position of <strong>%s</strong> at <strong>%s</strong>.</p>
-                        <div class="offer-box">%s</div>
-                        <p>Please log in to your dashboard to review and securely respond to this offer.</p>
-                        <center><a class="btn" href="%s/dashboard">Review in Dashboard →</a></center>
+                    <div class="header">
+                        <span class="confetti">✨</span>
+                        <h1>You've Got an Official Offer!</h1>
                     </div>
-                    <div class="footer">Job Portal • Need help? Check out our support section</div>
+                    <div class="content">
+                        <span class="doc-tag">Confidential Offer</span>
+                        <p class="greeting">Dear %s,</p>
+                        <p class="announcement">Congratulations! We are delighted to officially extend an offer for you to join organized excellence. Your unique skills and potential have truly stood out.</p>
+                        
+                        <div class="role-highlight">
+                            <div class="role-item">
+                                <span class="role-label">Position</span>
+                                <span class="role-value">%s</span>
+                            </div>
+                            <div style="height: 1px; background: #e2e8f0; margin: 16px 0;"></div>
+                            <div class="role-item">
+                                <span class="role-label">Organization</span>
+                                <span class="role-value">%s</span>
+                            </div>
+                        </div>
+                        
+                        <div class="offer-details">
+                            %s
+                        </div>
+                        
+                        <center>
+                            <a href="%s/dashboard" class="btn">View & Accept Offer →</a>
+                        </center>
+                    </div>
+                    <div class="footer">
+                        <p>This is a secure communication from Vertex Job Portal. If you have questions regarding your offer, please contact the employer through the messaging dashboard.</p>
+                    </div>
                 </div>
             </body>
             </html>

@@ -158,65 +158,65 @@ export default function ApplicationCard({
                 <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--hp-accent)] shadow-[0_0_10px_var(--hp-accent)]"></div>
             )}
 
-            <div className="flex justify-between items-start ml-4">
-                <div className="flex items-center gap-4">
-                    <div className="relative">
-                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold transition-transform group-hover:scale-105" 
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4 ml-4">
+                <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
+                    <div className="relative flex-shrink-0">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold transition-transform group-hover:scale-105" 
                              style={{ background: 'var(--hp-surface-alt)', border: '1px solid var(--hp-border)', color: 'var(--hp-accent)' }}>
                             {app.jobSeeker?.firstName?.[0]}{app.jobSeeker?.lastName?.[0]}
                         </div>
                         {selectedIds.has(app.id) && (
                             <motion.div 
                                 initial={{ scale: 0 }} animate={{ scale: 1 }}
-                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] shadow-lg"
+                                className="absolute -top-1.5 -right-1.5 w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] shadow-lg border-2 border-[var(--hp-card)]"
                                 style={{ background: 'var(--hp-accent)' }}
                             >
                                 ✓
                             </motion.div>
                         )}
                     </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-sm font-bold text-[var(--hp-text)] group-hover:text-[var(--hp-accent)] transition-colors">
+                    <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                            <h3 className="text-sm sm:text-base font-bold text-[var(--hp-text)] group-hover:text-[var(--hp-accent)] transition-colors truncate">
                                 {app.jobSeeker?.firstName} {app.jobSeeker?.lastName}
                             </h3>
                             {app.quizResult ? (
-                                <span className={`text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border flex items-center gap-1 ${
+                                <span className={`text-[8px] sm:text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-md border flex items-center gap-1 ${
                                     app.quizResult.passed ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'
                                 }`}>
-                                    {app.quizResult.passed ? '✅ Passed Task' : '❌ Failed Task'}
+                                    {app.quizResult.passed ? '✅ Passed' : '❌ Failed'}
                                 </span>
                             ) : (
                                 app.status === 'PENDING' && (
-                                    <span className="text-[9px] font-black uppercase tracking-tighter px-2 py-0.5 rounded-md border bg-amber-500/10 text-amber-500 border-amber-500/20 flex items-center gap-1">
-                                        ⏳ Skill Test Pending
+                                    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-tighter px-1.5 py-0.5 rounded-md border bg-amber-500/10 text-amber-500 border-amber-500/20">
+                                        ⏳ Test Pending
                                     </span>
                                 )
                             )}
                         </div>
-                        <p className="text-[var(--hp-muted)] text-sm">{app.jobSeeker?.email}</p>
-                        <p className="text-[var(--hp-muted)] text-[10px] mt-1.5 flex items-center gap-1.5 uppercase font-black tracking-widest">
+                        <p className="text-[var(--hp-muted)] text-xs sm:text-sm truncate">{app.jobSeeker?.email}</p>
+                        <p className="text-[var(--hp-muted)] text-[9px] sm:text-[10px] mt-1 flex items-center gap-1.5 uppercase font-black tracking-widest">
                             <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--hp-accent)' }}></span>
-                            Applied {formatDate(app.appliedAt)}
+                            {formatDate(app.appliedAt)}
                         </p>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-6">
+                <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto sm:border-l sm:pl-6 border-[var(--hp-border)]">
                     {/* Premium AI Score Indicator */}
                     {matchData ? (
                         <div 
                             onClick={(e) => { e.stopPropagation(); setShowInsights(true); }}
-                            className="transition-transform hover:scale-110"
+                            className="transition-transform hover:scale-110 flex-shrink-0"
                         >
-                            <CircularMatchScore score={matchData.matchScore} size={54} />
+                            <CircularMatchScore score={matchData.matchScore} size={window.innerWidth < 640 ? 44 : 54} />
                         </div>
                     ) : (
                         resumeId && (
                             <button
                                 onClick={handleVerifyMatch}
                                 disabled={isAnalyzing}
-                                className="px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all"
+                                className="px-3 py-1.5 rounded-xl border text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all"
                                 style={{ 
                                     background: 'rgba(var(--hp-accent-rgb), 0.05)', 
                                     borderColor: 'rgba(var(--hp-accent-rgb), 0.2)',
@@ -225,86 +225,89 @@ export default function ApplicationCard({
                                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.12)'}
                                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.05)'}
                             >
-                                {isAnalyzing ? "Analyzing..." : "Verify AI"}
+                                {isAnalyzing ? "..." : "Verify AI"}
                             </button>
                         )
                     )}
 
-                    <div className="flex flex-col items-end gap-2">
-                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${statusStyles[app.status]}`}>
-                            <span className="text-sm">{statusIcons[app.status]}</span> {app.status}
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
+                        <span className={`text-[9px] sm:text-[10px] font-black uppercase tracking-widest px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-xl border flex items-center gap-1.5 ${statusStyles[app.status]}`}>
+                            <span className="hidden sm:inline text-sm">{statusIcons[app.status]}</span> {app.status}
                         </span>
                     </div>
                 </div>
             </div>
 
             {app.status !== 'WITHDRAWN' && app.status !== 'ACCEPTED' && (
-                <div className="flex gap-2 mt-4 flex-wrap ml-4">
-                    {getNextStatuses(app.status).map(status => (
-                        <button
-                            key={status}
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleUpdateStatus(app.id, status);
-                            }}
-                            disabled={updatingId === app.id}
-                            className={`
-                                px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border
-                                ${status === 'REJECTED' 
-                                    ? 'bg-rose-500/5 text-rose-500 border-rose-500/20 hover:bg-rose-500/10' 
-                                    : 'bg-[var(--hp-accent)]/5 text-[var(--hp-accent)] border-[var(--hp-accent)]/20 hover:bg-[var(--hp-accent)]/10'}
-                            `}
-                        >
-                            {status}
-                        </button>
-                    ))}
+                <div className="flex flex-wrap items-center gap-2 mt-5 ml-4">
+                    <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        {getNextStatuses(app.status).map(status => (
+                            <button
+                                key={status}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleUpdateStatus(app.id, status);
+                                }}
+                                disabled={updatingId === app.id}
+                                className={`
+                                    flex-1 sm:flex-none px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all border
+                                    ${status === 'REJECTED' 
+                                        ? 'bg-rose-500/5 text-rose-500 border-rose-500/20 hover:bg-rose-500/10' 
+                                        : 'bg-[var(--hp-accent)]/5 text-[var(--hp-accent)] border-[var(--hp-accent)]/20 hover:bg-[var(--hp-accent)]/10'}
+                                `}
+                            >
+                                {status}
+                            </button>
+                        ))}
+                    </div>
 
-                    {/* Show Schedule Interview Button if candidate is shortlisted or reviewed */}
-                    {(app.status === 'SHORTLISTED' || app.status === 'REVIEWED') && (
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowInterviewModal(true);
-                            }}
-                            className="px-3 py-1.5 bg-[#1565C0] text-white rounded-full text-xs font-bold shadow-md hover:bg-[#0D47A1] transition-all ml-auto"
-                        >
-                            <span className="mr-1">📅</span> Schedule Interview
-                        </button>
-                    )}
-
-                    {/* Show Official Offer Button only if candidate is in INTERVIEWING stage and has a COMPLETED interview */}
-                    {(app.status === 'INTERVIEWING' && app.hasCompletedInterview) && (
-                        <div className="flex gap-2 ml-auto">
+                    <div className="flex items-center gap-2 w-full sm:w-auto sm:ml-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--hp-border)] border-dashed">
+                        {/* Show Schedule Interview Button if candidate is shortlisted or reviewed */}
+                        {(app.status === 'SHORTLISTED' || app.status === 'REVIEWED') && (
                             <button
                                 onClick={(e) => {
                                     e.stopPropagation();
-                                    setShowOfferModal(true);
+                                    setShowInterviewModal(true);
                                 }}
-                                className="px-3 py-1.5 bg-[#4A7C59] text-white rounded-full text-xs font-bold shadow-md hover:bg-[#3d664a] transition-all"
+                                className="w-full sm:w-auto px-4 py-2 bg-[#1565C0] text-white rounded-xl text-[10px] sm:text-xs font-bold shadow-sm hover:bg-[#0D47A1] transition-all flex items-center justify-center gap-2"
                             >
-                                <span className="mr-1">✉️</span> Send Official Offer
+                                <span>📅</span> Schedule Interview
                             </button>
-                            <button
-                                onClick={handleDirectHire}
-                                className="px-3 py-1.5 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-full text-xs font-bold shadow-md hover:opacity-90 transition-all flex items-center gap-1.5"
-                                title="Fast-track hire (Auto-generate & Accept offer)"
-                            >
-                                ⚡ Direct Hire
-                            </button>
-                        </div>
-                    )}
-                    
-                    {app.status === 'INTERVIEWING' && (
-                        <span className="px-3 py-1.5 bg-[#E3F2FD] text-[#1565C0] rounded-full text-xs font-bold border border-[#90CAF9] ml-auto">
-                            📅 Interview Scheduled
-                        </span>
-                    )}
+                        )}
 
-                    {app.status === 'OFFERED' && (
-                        <span className="px-3 py-1.5 bg-[#FFF3E0] text-[#C2651A] rounded-full text-xs font-bold border border-[#E8A66A] ml-auto">
-                            ⏳ Offer Pending Accept
-                        </span>
-                    )}
+                        {/* Show Official Offer Button only if candidate is in INTERVIEWING stage and has a COMPLETED interview */}
+                        {(app.status === 'INTERVIEWING' && app.hasCompletedInterview) && (
+                            <div className="flex gap-2 w-full sm:w-auto">
+                                <button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setShowOfferModal(true);
+                                    }}
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-[#4A7C59] text-white rounded-xl text-[10px] sm:text-xs font-bold shadow-sm hover:bg-[#3d664a] transition-all flex items-center justify-center gap-2"
+                                >
+                                    <span>✉️</span> Offer
+                                </button>
+                                <button
+                                    onClick={handleDirectHire}
+                                    className="flex-1 sm:flex-none px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-600 text-white rounded-xl text-[10px] sm:text-xs font-bold shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <span>⚡</span> Direct Hire
+                                </button>
+                            </div>
+                        )}
+                        
+                        {app.status === 'INTERVIEWING' && !app.hasCompletedInterview && (
+                            <div className="w-full sm:w-auto px-4 py-2 bg-[var(--hp-accent2)]/10 text-[var(--hp-accent2)] rounded-xl text-[10px] sm:text-xs font-bold border border-[var(--hp-accent2)]/20 flex items-center justify-center gap-2">
+                                <span>📅</span> Interview Scheduled
+                            </div>
+                        )}
+
+                        {app.status === 'OFFERED' && (
+                            <div className="w-full sm:w-auto px-4 py-2 bg-amber-500/10 text-amber-500 rounded-xl text-[10px] sm:text-xs font-bold border border-amber-500/20 flex items-center justify-center gap-2">
+                                <span>⏳</span> Offer Pending
+                            </div>
+                        )}
+                    </div>
                 </div>
             )}
 

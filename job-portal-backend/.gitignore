@@ -35,3 +35,6 @@ build/
 ### Secrets ###
 src/main/resources/application-dev.properties
 .env
+*.log
+hs_err_pid*
+uploads/
