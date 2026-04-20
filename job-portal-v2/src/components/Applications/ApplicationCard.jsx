@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resumeAnalysisAPI, applicationAPI } from '../../services/api';
 import ScheduleInterviewModal from '../Interviews/ScheduleInterviewModal';
+import CircularMatchScore from './CircularMatchScore';
 
 export default function ApplicationCard({
     app,
@@ -112,63 +113,80 @@ export default function ApplicationCard({
             animate={{ opacity: 1, y: 0 }}
             onClick={() => setSelectedApp(app)}
             className={`
-                card p-5 cursor-pointer relative
-                ${selectedApp?.id === app.id ? 'border-[var(--color-primary)]' : ''}
-                ${selectedIds.has(app.id) ? 'bg-[var(--color-hover-surface)]' : ''}
+                hp-card p-5 cursor-pointer relative group overflow-hidden
+                ${selectedApp?.id === app.id ? 'border-[var(--hp-accent)]' : ''}
+                ${selectedIds.has(app.id) ? 'bg-[var(--hp-surface-alt)]' : ''}
             `}
         >
-            <div 
-                onClick={(e) => toggleSelect(e, app.id)}
-                className={`absolute left-[-12px] top-1/2 -translate-y-1/2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all z-10
-                    ${selectedIds.has(app.id) 
-                        ? 'bg-[var(--color-primary)] border-[var(--color-primary)] text-zinc-900' 
-                        : 'bg-[var(--color-card)] border-[var(--color-border)]'}`}
-            >
-                {selectedIds.has(app.id) && '✓'}
-            </div>
+            {/* Selection indicator line */}
+            {selectedIds.has(app.id) && (
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--hp-accent)] shadow-[0_0_10px_var(--hp-accent)]"></div>
+            )}
 
             <div className="flex justify-between items-start ml-4">
                 <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-serif font-semibold bg-[var(--color-primary)]/20 text-[var(--color-primary)]">
-                        {app.jobSeeker?.firstName?.[0]}{app.jobSeeker?.lastName?.[0]}
+                    <div className="relative">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold transition-transform group-hover:scale-105" 
+                             style={{ background: 'var(--hp-surface-alt)', border: '1px solid var(--hp-border)', color: 'var(--hp-accent)' }}>
+                            {app.jobSeeker?.firstName?.[0]}{app.jobSeeker?.lastName?.[0]}
+                        </div>
+                        {selectedIds.has(app.id) && (
+                            <motion.div 
+                                initial={{ scale: 0 }} animate={{ scale: 1 }}
+                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center text-white text-[10px] shadow-lg"
+                                style={{ background: 'var(--hp-accent)' }}
+                            >
+                                ✓
+                            </motion.div>
+                        )}
                     </div>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h4 className="font-serif font-semibold text-[var(--color-text)]">
+                            <h4 className="font-bold text-[var(--hp-text)] text-lg tracking-tight">
                                 {app.jobSeeker?.firstName} {app.jobSeeker?.lastName}
                             </h4>
-                            {/* AI Match Badge */}
-                            {matchData && (
-                                <span 
-                                    onClick={(e) => { e.stopPropagation(); setShowInsights(true); }}
-                                    className={`px-2 py-0.5 rounded cursor-pointer border text-xs font-bold ${getScoreColor(matchData.matchScore)} hover:scale-105 transition-transform`}
-                                >
-                                    {matchData.matchScore}% Match
-                                </span>
-                            )}
                         </div>
-                        <p className="text-[var(--color-text-muted)] text-sm">{app.jobSeeker?.email}</p>
-                        <p className="text-[var(--color-text-muted)] text-xs mt-1 flex items-center gap-1">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                        <p className="text-[var(--hp-muted)] text-sm">{app.jobSeeker?.email}</p>
+                        <p className="text-[var(--hp-muted)] text-[10px] mt-1.5 flex items-center gap-1.5 uppercase font-black tracking-widest">
+                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--hp-accent)' }}></span>
                             Applied {formatDate(app.appliedAt)}
                         </p>
                     </div>
                 </div>
-                <div className="flex flex-col items-end gap-2">
-                    <span className={`text-xs font-medium px-3 py-1.5 rounded-full border ${statusStyles[app.status]}`}>
-                        {statusIcons[app.status]} {app.status}
-                    </span>
-                    {!matchData && resumeId && (
-                        <button
-                            onClick={handleVerifyMatch}
-                            disabled={isAnalyzing}
-                            className="text-xs px-2 py-1 bg-[var(--color-input)] text-[var(--color-text-mid)] rounded border border-[var(--color-border)] hover:bg-[var(--color-hover-surface)] transition-colors"
+
+                <div className="flex items-center gap-6">
+                    {/* Premium AI Score Indicator */}
+                    {matchData ? (
+                        <div 
+                            onClick={(e) => { e.stopPropagation(); setShowInsights(true); }}
+                            className="transition-transform hover:scale-110"
                         >
-                            {isAnalyzing ? "Analyzing..." : "Verify AI Match"}
-                        </button>
+                            <CircularMatchScore score={matchData.matchScore} size={54} />
+                        </div>
+                    ) : (
+                        resumeId && (
+                            <button
+                                onClick={handleVerifyMatch}
+                                disabled={isAnalyzing}
+                                className="px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all"
+                                style={{ 
+                                    background: 'rgba(var(--hp-accent-rgb), 0.05)', 
+                                    borderColor: 'rgba(var(--hp-accent-rgb), 0.2)',
+                                    color: 'var(--hp-accent)' 
+                                }}
+                                onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.12)'}
+                                onMouseLeave={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.05)'}
+                            >
+                                {isAnalyzing ? "Analyzing..." : "Verify AI"}
+                            </button>
+                        )
                     )}
+
+                    <div className="flex flex-col items-end gap-2">
+                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-xl border flex items-center gap-1.5 ${statusStyles[app.status]}`}>
+                            <span className="text-sm">{statusIcons[app.status]}</span> {app.status}
+                        </span>
+                    </div>
                 </div>
             </div>
 

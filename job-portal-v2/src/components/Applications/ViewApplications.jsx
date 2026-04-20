@@ -50,6 +50,7 @@ export default function ViewApplications() {
 
     const [selectedIds, setSelectedIds] = useState(new Set());
     const [isBulkUpdating, setIsBulkUpdating] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         fetchMyJobs();
@@ -140,6 +141,27 @@ export default function ViewApplications() {
         });
     };
 
+    const handleSmartSelect = () => {
+        // Smart select: find candidates in the current view with > 80% match
+        // Note: we need to access the match data which is usually fetched in individual cards
+        // For simplicity and performance, we'll iterate through our filtered list
+        // and select those that have previously been analyzed with high scores.
+        // If we don't have the scores cached at this level, we'll just select the visible ones.
+        const topIds = filteredApps
+            .filter(app => {
+                // Ideally we'd have the matchScore here, but currently it's fetched per card.
+                // We'll select all visible for now, or we can improve this if we lift match state.
+                return true; 
+            })
+            .map(app => app.id);
+        
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            topIds.forEach(id => next.add(id));
+            return next;
+        });
+    };
+
     // Count per stage
     const stageCounts = PIPELINE_STAGES.reduce((acc, stage) => {
         acc[stage.key] = stage.key === 'ALL'
@@ -156,10 +178,14 @@ export default function ViewApplications() {
         color: i % 3 === 0 ? 'var(--hp-accent)' : i % 3 === 1 ? 'var(--hp-accent2)' : 'var(--hp-muted)',
     }));
 
-    // Filtered applications based on active stage
-    const filteredApps = activeStage === 'ALL'
-        ? applications
-        : applications.filter(a => a.status === activeStage);
+    // Filtered applications based on active stage AND search query
+    const filteredApps = applications.filter(a => {
+        const matchesStage = activeStage === 'ALL' || a.status === activeStage;
+        const name = `${a.jobSeeker?.firstName} ${a.jobSeeker?.lastName}`.toLowerCase();
+        const email = (a.jobSeeker?.email || '').toLowerCase();
+        const matchesSearch = name.includes(searchQuery.toLowerCase()) || email.includes(searchQuery.toLowerCase());
+        return matchesStage && matchesSearch;
+    });
 
     // ── JOB SELECTION SCREEN ──
     if (!selectedJob) {
@@ -499,7 +525,7 @@ export default function ViewApplications() {
                     {!loadingApps && applications.length > 0 && (
                         <>
                             {/* Active Stage Header */}
-                            <div className="flex items-center justify-between mb-5 px-1">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 px-1 gap-4">
                                 <div className="flex items-center gap-3">
                                     <h3 className="text-xl font-bold text-[var(--hp-text)] tracking-tight flex items-center gap-2">
                                         <span className="text-2xl">{PIPELINE_STAGES.find(s => s.key === activeStage)?.icon}</span>
@@ -508,6 +534,44 @@ export default function ViewApplications() {
                                     <span className="text-xs font-bold tracking-wider uppercase px-3 py-1 rounded-full border" style={{ background: 'var(--hp-surface-alt)', color: 'var(--hp-muted)', borderColor: 'var(--hp-border)' }}>
                                         {filteredApps.length} Candidate{filteredApps.length !== 1 ? 's' : ''}
                                     </span>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                                    {/* Search Input */}
+                                    <div className="relative group">
+                                        <input 
+                                            type="text"
+                                            placeholder="Search candidates..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full sm:w-64 pl-10 pr-4 py-2.5 rounded-xl border text-sm transition-all focus:ring-2 focus:ring-[var(--hp-accent)]/20"
+                                            style={{ 
+                                                background: 'var(--hp-surface-alt)', 
+                                                borderColor: 'var(--hp-border)',
+                                                color: 'var(--hp-text)'
+                                            }}
+                                        />
+                                        <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--hp-muted)] group-focus-within:text-[var(--hp-accent)] transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                        </svg>
+                                    </div>
+
+                                    {filteredApps.length > 0 && (
+                                        <button
+                                            onClick={handleSmartSelect}
+                                            className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all border group"
+                                            style={{ 
+                                                color: 'var(--hp-accent)',
+                                                background: 'rgba(var(--hp-accent-rgb), 0.08)',
+                                                borderColor: 'rgba(var(--hp-accent-rgb), 0.2)'
+                                            }}
+                                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.15)'}
+                                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(var(--hp-accent-rgb), 0.08)'}
+                                        >
+                                            <span className="group-hover:scale-125 transition-transform">✨</span>
+                                            Select Page
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
