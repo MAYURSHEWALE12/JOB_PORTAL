@@ -148,24 +148,25 @@ export default function ViewApplications() {
     };
 
     const handleSmartSelect = () => {
-        // Smart select: find candidates in the current view with > 80% match
-        // Note: we need to access the match data which is usually fetched in individual cards
-        // For simplicity and performance, we'll iterate through our filtered list
-        // and select those that have previously been analyzed with high scores.
-        // If we don't have the scores cached at this level, we'll just select the visible ones.
+        // Find candidates in current filtered view with score >= 80%
         const topIds = filteredApps
             .filter(app => {
-                // Ideally we'd have the matchScore here, but currently it's fetched per card.
-                // We'll select all visible for now, or we can improve this if we lift match state.
-                return true; 
+                const score = app.matchScore || app.matchAnalysis?.score || 0;
+                return score >= 80;
             })
             .map(app => app.id);
         
+        if (topIds.length === 0) {
+            toast('No high-match candidates found in current view.', { icon: '🔍' });
+            return;
+        }
+
         setSelectedIds(prev => {
             const next = new Set(prev);
             topIds.forEach(id => next.add(id));
             return next;
         });
+        toast.success(`Selected ${topIds.length} top candidates!`, { icon: '🎯' });
     };
 
     // Count per stage

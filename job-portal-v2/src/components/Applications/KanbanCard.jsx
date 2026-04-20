@@ -1,6 +1,32 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { resumeAnalysisAPI } from '../../services/api';
+import VertexIntelligenceModal from './VertexIntelligenceModal';
+import CircularMatchScore from './CircularMatchScore';
 
 export default function KanbanCard({ application, onSelect, onDragEnd }) {
+    const [showIntelligence, setShowIntelligence] = useState(false);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+    const [localAnalysis, setLocalAnalysis] = useState(application.matchAnalysis);
+
+    const resumeId = application.selectedResume?.id || application.resumeId;
+    const jobId = application.job?.id;
+
+    const handleVerifyMatch = async (e) => {
+        e.stopPropagation();
+        if (!resumeId || !jobId) return;
+        setIsAnalyzing(true);
+        try {
+            const res = await resumeAnalysisAPI.analyzeMatch(resumeId, jobId);
+            setLocalAnalysis(res.data);
+            setShowIntelligence(true);
+        } catch (err) {
+            console.error("Analysis Failed", err);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
     const statusIcons = {
         PENDING: '⏳', REVIEWED: '👀', SHORTLISTED: '⭐', INTERVIEWING: '📅', OFFERED: '📜',
         ACCEPTED: '🎉', REJECTED: '❌',
@@ -36,23 +62,43 @@ export default function KanbanCard({ application, onSelect, onDragEnd }) {
                         </p>
                     </div>
                 </div>
+            </div>
+            <div className="flex items-center justify-between gap-4 py-1">
+                {localAnalysis || application.matchScore ? (
+                    <div 
+                        className="transition-transform hover:scale-110 cursor-help"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setShowIntelligence(true);
+                        }}
+                    >
+                        <CircularMatchScore 
+                            score={localAnalysis?.score || application.matchScore} 
+                            size={42} 
+                            strokeWidth={4} 
+                        />
+                    </div>
+                ) : (
+                    resumeId && (
+                        <button
+                            onClick={handleVerifyMatch}
+                            disabled={isAnalyzing}
+                            className="px-3 py-1 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-all"
+                            style={{ 
+                                background: 'rgba(var(--hp-accent-rgb), 0.05)', 
+                                borderColor: 'rgba(var(--hp-accent-rgb), 0.2)',
+                                color: 'var(--hp-accent)' 
+                            }}
+                        >
+                            {isAnalyzing ? "..." : "Verify AI"}
+                        </button>
+                    )
+                )}
+                
                 <div className="text-base sm:text-lg opacity-60 group-hover:opacity-100 transition-opacity">
                     {statusIcons[application.status]}
                 </div>
             </div>
-
-            {application.matchScore && (
-                <div className="flex items-center gap-2 pt-1">
-                    <div className="flex-1 h-1 bg-[var(--hp-border)] rounded-full overflow-hidden">
-                        <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${application.matchScore}%` }}
-                            className="h-full bg-[var(--hp-accent)]" 
-                        />
-                    </div>
-                    <span className="text-[9px] font-black text-[var(--hp-accent)]">{application.matchScore}% Match</span>
-                </div>
-            )}
 
             <div className="flex items-center justify-between pt-2 border-t border-[var(--hp-border)] border-dashed">
                 <div className="flex -space-x-1.5">
@@ -66,6 +112,14 @@ export default function KanbanCard({ application, onSelect, onDragEnd }) {
                     {new Date(application.appliedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                 </div>
             </div>
+            <AnimatePresence>
+                {showIntelligence && (
+                    <VertexIntelligenceModal
+                        analysis={localAnalysis || application.matchAnalysis}
+                        onClose={() => setShowIntelligence(false)}
+                    />
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }

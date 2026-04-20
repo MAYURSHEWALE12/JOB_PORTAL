@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { resumeAnalysisAPI, applicationAPI } from '../../services/api';
 import ScheduleInterviewModal from '../Interviews/ScheduleInterviewModal';
 import CircularMatchScore from './CircularMatchScore';
+import VertexIntelligenceModal from './VertexIntelligenceModal';
 
 export default function ApplicationCard({
     app,
@@ -534,100 +535,12 @@ export default function ApplicationCard({
                 )}
             </AnimatePresence>
 
-            {/* AI Insights High-Contrast Overlay Popup */}
             <AnimatePresence>
-                {showInsights && matchData && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            setShowInsights(false);
-                        }}
-                    >
-                        <motion.div
-                            initial={{ y: 20, scale: 0.95 }}
-                            animate={{ y: 0, scale: 1 }}
-                            exit={{ y: 20, scale: 0.95 }}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-[#111] text-white border-4 border-stone-800 shadow-[8px_8px_0_#C2651A] max-w-2xl w-full max-h-[85vh] overflow-y-auto rounded-none p-6"
-                        >
-                            <div className="flex justify-between items-center mb-6 border-b-2 border-stone-800 pb-4">
-                                <h3 className="text-2xl font-serif font-bold text-orange-400 uppercase tracking-wider">
-                                    AI Match Insights
-                                </h3>
-                                <button
-                                    onClick={() => setShowInsights(false)}
-                                    className="text-white hover:text-orange-500 font-bold p-2 bg-stone-800 hover:bg-stone-700 transition"
-                                >
-                                    ✕
-                                </button>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                <div className="col-span-1 border-2 border-stone-800 p-4 text-center flex flex-col justify-center items-center">
-                                    <span className="text-sm uppercase text-stone-400 mb-2">Overall Match</span>
-                                    <span className={`text-6xl font-black ${getScoreColor(matchData.matchScore).split(' ')[0]}`}>
-                                        {matchData.matchScore}%
-                                    </span>
-                                </div>
-                                <div className="col-span-2 space-y-4">
-                                    <div>
-                                        <h4 className="text-orange-500 font-bold text-sm uppercase tracking-wider mb-2">Key Highlights</h4>
-                                        {matchData.strengths && matchData.strengths.length > 0 ? (
-                                            <ul className="list-disc list-inside text-stone-300 text-sm space-y-1">
-                                                {matchData.strengths.map((s, i) => <li key={i}>{s}</li>)}
-                                            </ul>
-                                        ) : (
-                                            <p className="text-stone-500 text-sm italic">No specific strengths highlighted.</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <h4 className="text-orange-500 font-bold text-sm uppercase tracking-wider mb-2 flex items-center justify-between">
-                                    <span>Missing Skills / Tailoring Tips</span>
-                                    {isAnalyzing ? (
-                                        <Loader text="Re-analyzing" />
-                                    ) : (
-                                        <button 
-                                            onClick={handleVerifyMatch}
-                                            className="text-xs px-3 py-1 bg-stone-800 hover:bg-stone-700 border border-stone-600 transition"
-                                        >
-                                            ↻ Re-Analyze
-                                        </button>
-                                    )}
-                                </h4>
-                                <div className="border-2 border-stone-800 p-4 bg-stone-900">
-                                    {matchData.missingSkills && matchData.missingSkills.length > 0 ? (
-                                        <div className="flex flex-wrap gap-2">
-                                            {matchData.missingSkills.map((skill, i) => (
-                                                <span key={i} className="px-2 py-1 bg-rose-900 border border-current text-rose-300 text-xs font-bold uppercase">
-                                                    {skill}
-                                                </span>
-                                            ))}
-                                        </div>
-                                    ) : (
-                                        <p className="text-stone-400 text-sm">Perfect skill match! No major gaps detected.</p>
-                                    )}
-
-                                    {matchData.tailoringTips && matchData.tailoringTips.length > 0 && (
-                                        <ul className="mt-4 list-none text-stone-300 text-sm space-y-2">
-                                            {matchData.tailoringTips.map((tip, i) => (
-                                                <li key={i} className="flex gap-2">
-                                                    <span className="text-orange-500">→</span> 
-                                                    {tip}
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
+                {showInsights && (
+                    <VertexIntelligenceModal
+                        analysis={matchData || app.matchAnalysis}
+                        onClose={() => setShowInsights(false)}
+                    />
                 )}
             </AnimatePresence>
         </motion.div>
