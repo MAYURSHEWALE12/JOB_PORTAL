@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { messageAPI } from '../../services/api';
+import { messageAPI, API_BASE_URL } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useWebsocketStore } from '../../store/websocketStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 const getFullFileUrl = (url) => {
     if (!url) return null;

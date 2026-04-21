@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { authAPI } from '../../services/api';
+import { authAPI, API_BASE_URL } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useThemeStore } from '../../store/themeStore';
 import Logo from '../Logo';
@@ -210,7 +210,7 @@ export default function LoginPage() {
                     </div>
 
                     <a
-                        href="http://localhost:8080/api/oauth2/authorization/google"
+                        href={`${API_BASE_URL}/oauth2/authorization/google`}
                         className="hp-btn-ghost w-full flex items-center justify-center gap-3 no-underline"
                     >
                         <svg className="w-5 h-5" viewBox="0 0 24 24">

@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
-import { userAPI, authAPI, resumeAPI } from '../../services/api';
+import { userAPI, authAPI, resumeAPI, API_BASE_URL } from '../../services/api';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 export default function ProfilePage() {
     const { user, setUser, token } = useAuthStore();

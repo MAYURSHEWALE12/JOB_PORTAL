@@ -1,11 +1,11 @@
 import { useState, useRef, forwardRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
-import { resumeAPI } from '../../services/api';
+import { resumeAPI, resumeAnalysisAPI, API_BASE_URL } from '../../services/api';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas-pro';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 export default function ResumeGenerator({ onResumeSaved, guestMode = false }) {
     let auth = null;

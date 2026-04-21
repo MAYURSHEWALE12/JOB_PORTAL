@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { companyAPI, jobAPI } from '../../services/api';
+import { companyAPI, jobAPI, API_BASE_URL } from '../../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Loader from '../Loader';
@@ -9,7 +9,7 @@ import Logo from '../Logo';
 import Footer from '../Footer';
 import { useThemeStore } from '../../store/themeStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 function ThemeToggle() {
     const { theme, toggleTheme } = useThemeStore();

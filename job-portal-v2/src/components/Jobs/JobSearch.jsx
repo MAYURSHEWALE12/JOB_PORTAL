@@ -3,12 +3,12 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI } from '../../services/api';
+import { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard } from '../Skeleton';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 /* ─── Constants ──────────────────────────────────────────────────── */
 const JOB_TYPE_STYLE = {

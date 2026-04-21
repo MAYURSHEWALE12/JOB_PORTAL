@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { jobAPI } from '../../services/api';
+import { jobAPI, API_BASE_URL } from '../../services/api';
 import AnimatedNumber from './AnimatedNumber';
 import Logo from '../Logo';
 import { useThemeStore } from '../../store/themeStore';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 /* ─── Animation Variants ─────────────────────────────────────────── */
 const fadeUp = {

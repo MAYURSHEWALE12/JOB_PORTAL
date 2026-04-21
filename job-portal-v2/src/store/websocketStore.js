@@ -3,7 +3,18 @@ import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { useAuthStore } from './authStore';
 
-const SOCKET_URL = import.meta.env.VITE_WS_URL || 'http://localhost:8080/api/ws';
+import { API_BASE_URL } from '../services/api';
+
+const getSocketUrl = () => {
+    if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
+    // Derive from API_BASE_URL if it's a full URL
+    if (API_BASE_URL.startsWith('http')) {
+        return API_BASE_URL.replace(/^http/, 'ws') + '/ws';
+    }
+    return 'http://localhost:8080/api/ws';
+};
+
+const SOCKET_URL = getSocketUrl();
 
 export const useWebsocketStore = create((set, get) => ({
     client: null,

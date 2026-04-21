@@ -1,12 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { applicationAPI, quizAPI, resumeAnalysisAPI } from '../../services/api';
+import { applicationAPI, quizAPI, resumeAnalysisAPI, API_BASE_URL } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { SkeletonList, Skeleton } from '../Skeleton';
 import QuizTakePage from '../Quiz/QuizTakePage';
 import ApplicationFilter from './ApplicationFilter';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
+
 
 const statusConfig = {
     PENDING:     { icon: '⏳', label: 'Pending',     color: 'var(--color-warning)',   bg: 'rgba(251,146,60,0.1)' },
