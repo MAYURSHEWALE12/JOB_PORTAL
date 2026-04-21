@@ -13,6 +13,7 @@ import ResumeBuilderPage from './components/Resume/ResumeBuilderPage';
 import QuizTakePage from './components/Quiz/QuizTakePage';
 import QuizCreatePage from './components/Quiz/QuizCreatePage';
 import CompanyProfilePage from './components/Company/CompanyProfilePage';
+import JobsPage from './components/Jobs/JobsPage';
 
 const pageVariants = {
     initial: { opacity: 0, scale: 0.99 },
@@ -39,7 +40,7 @@ const AnimatedPage = ({ children }) => (
 
 function ProtectedRoute({ children }) {
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
-    return isLoggedIn ? children : <Navigate to="/login" replace />;
+    return isLoggedIn ? children : <Navigate to="/" replace />;
 }
 
 function AppRoutes() {
@@ -51,6 +52,7 @@ function AppRoutes() {
                 <Route path="/" element={<AnimatedPage><HomePage /></AnimatedPage>} />
                 <Route path="/login" element={<AnimatedPage><LoginPage /></AnimatedPage>} />
                 <Route path="/register" element={<AnimatedPage><RegisterPage /></AnimatedPage>} />
+                <Route path="/jobs" element={<AnimatedPage><JobsPage /></AnimatedPage>} />
                 <Route path="/resume-builder" element={<AnimatedPage><ResumeBuilderPage /></AnimatedPage>} />
                 <Route path="/company/:userId" element={<AnimatedPage><CompanyProfilePage /></AnimatedPage>} />
                 <Route path="/quiz/take/:jobId/:applicationId" element={

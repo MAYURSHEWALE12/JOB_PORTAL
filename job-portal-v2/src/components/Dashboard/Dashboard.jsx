@@ -79,7 +79,7 @@ export default function Dashboard() {
         } catch (err) { console.error('Failed to fetch unread count:', err); }
     };
 
-    const handleLogout = () => { logout(); navigate('/'); };
+    const handleLogout = () => { navigate('/', { replace: true }); logout(); };
 
     const handleTabChange = (key) => {
         if (key === 'resume') { navigate('/resume-builder'); return; }
