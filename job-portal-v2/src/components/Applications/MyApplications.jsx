@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { applicationAPI, quizAPI, resumeAnalysisAPI, API_BASE_URL } from '../../services/api';
+import { applicationAPI, quizAPI, resumeAnalysisAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { SkeletonList, Skeleton } from '../Skeleton';
 import QuizTakePage from '../Quiz/QuizTakePage';
@@ -173,14 +173,7 @@ export default function MyApplications() {
 
     const renderLogo = (appOrJob, sizeClass = "w-14 h-14") => {
         const job = appOrJob.job || appOrJob;
-        let logoUrl = job.companyLogo || job.employer?.companyProfile?.logoUrl || job.employer?.profileImageUrl;
-        if (logoUrl && !logoUrl.startsWith('http')) {
-            if (logoUrl.startsWith('logo_') || logoUrl.startsWith('banner_')) {
-                logoUrl = `${API_BASE_URL.replace('/api', '')}/api/companies/image/${logoUrl}`;
-            } else if (logoUrl.startsWith('avatar_')) {
-                logoUrl = `${API_BASE_URL.replace('/api', '')}${logoUrl}`;
-            }
-        }
+        let logoUrl = resolvePublicUrl(job.companyLogo || job.employer?.companyProfile?.logoUrl || job.employer?.profileImageUrl);
 
         return (
             <div className={`${sizeClass} rounded-2xl bg-[var(--color-page)] border border-[var(--color-border)] flex items-center justify-center text-xl font-black text-[var(--color-primary)] shadow-inner overflow-hidden`}>

@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL } from '../../services/api';
+import { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard } from '../Skeleton';
@@ -26,13 +26,8 @@ const JOB_TYPE_DOT = {
 
 /* ─── Helpers ────────────────────────────────────────────────────── */
 function resolveLogoUrl(job) {
-    let url = job.companyLogo || job.employer?.companyProfile?.logoUrl || job.employer?.profileImageUrl;
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('logo_') || url.startsWith('banner_'))
-        return `${API_BASE_URL.replace('/api', '')}/api/companies/image/${url}`;
-    if (url.startsWith('avatar_')) return `${API_BASE_URL.replace('/api', '')}${url}`;
-    return url;
+    const rawUrl = job.companyLogo || job.employer?.companyProfile?.logoUrl || job.employer?.profileImageUrl;
+    return resolvePublicUrl(rawUrl);
 }
 
 function formatSalary(min, max) {

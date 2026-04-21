@@ -1,15 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { messageAPI, API_BASE_URL } from '../../services/api';
+import { messageAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useWebsocketStore } from '../../store/websocketStore';
 
 
 
 const getFullFileUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    return `${API_BASE_URL.replace('/api', '')}${url}`;
+    return resolvePublicUrl(url);
 };
 
 const isImageFile = (url, name) => {
@@ -266,9 +264,7 @@ export default function Messaging() {
     };
 
     const getAvatarUrl = (profileImageUrl) => {
-        if (!profileImageUrl) return null;
-        if (profileImageUrl.startsWith('http')) return profileImageUrl;
-        return `${API_BASE_URL.replace('/api', '')}${profileImageUrl}`;
+        return resolvePublicUrl(profileImageUrl);
     };
 
     const renderAvatar = (firstName, lastName, profileImageUrl, sizeClass = 'w-11 h-11 text-base') => {

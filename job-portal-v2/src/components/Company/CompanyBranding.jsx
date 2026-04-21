@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { companyAPI, API_BASE_URL } from '../../services/api';
+import { companyAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -279,7 +279,7 @@ export default function CompanyBranding() {
                                     >
                                         {profile?.bannerUrl && (
                                             <img
-                                                src={`${API_BASE_URL}/companies/image/${profile.bannerUrl}`}
+                                                src={resolvePublicUrl(profile.bannerUrl)}
                                                 alt="Company Banner"
                                                 className="w-full h-full object-cover"
                                             />
@@ -302,7 +302,7 @@ export default function CompanyBranding() {
                                             >
                                                 {profile?.logoUrl ? (
                                                     <img
-                                                        src={`${API_BASE_URL}/companies/image/${profile.logoUrl}`}
+                                                        src={resolvePublicUrl(profile.logoUrl)}
                                                         alt="Company Logo"
                                                         className="w-full h-full object-cover bg-white"
                                                     />

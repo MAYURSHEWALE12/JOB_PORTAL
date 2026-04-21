@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { jobAPI, quizAPI } from '../../services/api';
+import { jobAPI, quizAPI, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { SkeletonJobCard } from '../Skeleton';
 

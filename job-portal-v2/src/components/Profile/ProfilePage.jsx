@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
-import { userAPI, authAPI, resumeAPI, API_BASE_URL } from '../../services/api';
+import { userAPI, authAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 
 
 
@@ -126,11 +126,7 @@ export default function ProfilePage() {
     };
 
     const getAvatarUrl = () => {
-        if (user?.profileImageUrl) {
-            if (user.profileImageUrl.startsWith('http')) return user.profileImageUrl;
-            return `${API_BASE_URL.replace('/api', '')}${user.profileImageUrl}`;
-        }
-        return null;
+        return resolvePublicUrl(user?.profileImageUrl);
     };
 
     const handleProfileChange = (e) => {

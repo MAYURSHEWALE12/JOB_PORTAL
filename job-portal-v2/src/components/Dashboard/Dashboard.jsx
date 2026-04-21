@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { useWebsocketStore } from '../../store/websocketStore';
 import { useThemeStore } from '../../store/themeStore';
-import { messageAPI, API_BASE_URL } from '../../services/api';
+import { messageAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 
 // Sub-components
 import DashboardStyles from './DashboardStyles';
@@ -32,9 +32,7 @@ import ErrorBoundary from '../ErrorBoundary';
 
 
 const getAvatarUrl = (profileImageUrl) => {
-    if (!profileImageUrl) return null;
-    if (profileImageUrl.startsWith('http')) return profileImageUrl;
-    return `${API_BASE_URL.replace('/api', '')}${profileImageUrl}`;
+    return resolvePublicUrl(profileImageUrl);
 };
 
 export default function Dashboard() {

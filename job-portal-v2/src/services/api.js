@@ -6,6 +6,39 @@ const apiClient = axios.create({
     baseURL: API_BASE_URL,
 });
 
+/**
+ * Robustly resolve image and file URLs from various sources:
+ * 1. Full URLs (Cloudinary, Google, etc. returned by backend)
+ * 2. Base64 data URLs
+ * 3. Legacy prefixed IDs (logo_, banner_, avatar_)
+ * 4. Raw Cloudinary public IDs (legacy/special data)
+ * 5. Relative backend paths (/uploads/...)
+ */
+export const resolvePublicUrl = (path) => {
+    if (!path) return null;
+    
+    // 1. If it's already a full URL or base64, return as-is
+    if (typeof path === 'string' && (path.startsWith('http') || path.startsWith('data:'))) {
+        return path;
+    }
+
+    // 2. Handle legacy IDs with specific prefixes that route through special backend endpoints
+    if (path.startsWith('logo_') || path.startsWith('banner_')) {
+        return `${API_BASE_URL}/companies/image/${path}`;
+    }
+
+    // 3. Handle raw Cloudinary IDs (no slashes, typical for legacy or manual data)
+    // Cloud Name: daa2mvguh (from environment)
+    if (!path.includes('/') && !path.includes('\\')) {
+        return `https://res.cloudinary.com/daa2mvguh/image/upload/v1/${path}`;
+    }
+
+    // 4. Default to relative backend path
+    const cleanBase = API_BASE_URL.replace('/api', '');
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${cleanBase}${cleanPath}`;
+};
+
 apiClient.interceptors.request.use(
     (config) => {
         const token = localStorage.getItem('authToken');

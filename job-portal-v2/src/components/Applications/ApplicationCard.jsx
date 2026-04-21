@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { resumeAnalysisAPI, applicationAPI } from '../../services/api';
+import { resumeAnalysisAPI, applicationAPI, resolvePublicUrl } from '../../services/api';
 import ScheduleInterviewModal from '../Interviews/ScheduleInterviewModal';
 import CircularMatchScore from './CircularMatchScore';
 import VertexIntelligenceModal from './VertexIntelligenceModal';
@@ -162,9 +162,13 @@ export default function ApplicationCard({
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4 ml-4">
                 <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto">
                     <div className="relative flex-shrink-0">
-                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold transition-transform group-hover:scale-105" 
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center text-lg sm:text-xl font-bold transition-transform group-hover:scale-105 overflow-hidden" 
                              style={{ background: 'var(--hp-surface-alt)', border: '1px solid var(--hp-border)', color: 'var(--hp-accent)' }}>
-                            {app.jobSeeker?.firstName?.[0]}{app.jobSeeker?.lastName?.[0]}
+                            {app.jobSeeker?.profileImageUrl ? (
+                                <img src={resolvePublicUrl(app.jobSeeker.profileImageUrl)} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                `${app.jobSeeker?.firstName?.[0] || ''}${app.jobSeeker?.lastName?.[0] || ''}`
+                            )}
                         </div>
                         {selectedIds.has(app.id) && (
                             <motion.div 

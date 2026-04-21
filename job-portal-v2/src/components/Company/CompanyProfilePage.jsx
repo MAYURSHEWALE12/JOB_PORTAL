@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { companyAPI, jobAPI, API_BASE_URL } from '../../services/api';
+import { companyAPI, jobAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Loader from '../Loader';
@@ -121,12 +121,7 @@ export default function CompanyProfilePage() {
     }
 
     const resolveUrl = (path) => {
-        if (!path) return null;
-        if (path.startsWith('http')) return path;
-        if (path.startsWith('logo_') || path.startsWith('banner_')) {
-            return `${API_BASE_URL}/companies/image/${path}`;
-        }
-        return `${API_BASE_URL.replace('/api', '')}${path}`;
+        return resolvePublicUrl(path);
     };
 
     const companyLogo = resolveUrl(profile.logoUrl);
