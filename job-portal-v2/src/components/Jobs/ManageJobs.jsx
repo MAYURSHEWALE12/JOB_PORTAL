@@ -29,7 +29,7 @@ export default function ManageJobs() {
         title: '',
         passingScore: 70,
         timeLimit: 30,
-        questions: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }],
+        questions: [{ question: '', options: ['', ''], correctAnswer: 0 }],
     });
     const [savingQuiz, setSavingQuiz] = useState(false);
 
@@ -174,27 +174,23 @@ export default function ManageJobs() {
                     questions: res.data.questions?.length > 0
                         ? res.data.questions.map(q => ({
                             question: q.text || '',
-                            options: q.options?.length >= 4
-                                ? q.options.map(o => o.text)
-                                : ['', '', '', ''],
-                            correctAnswer: q.options?.findIndex(o => o.isCorrect) >= 0
-                                ? q.options.findIndex(o => o.isCorrect)
-                                : 0
+                            options: q.options?.map(o => o.text) || ['', ''],
+                            correctAnswer: Math.max(0, q.options?.findIndex(o => o.isCorrect))
                         }))
-                        : [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+                        : [{ question: '', options: ['', ''], correctAnswer: 0 }]
                 });
             } else {
                 setExistingQuiz(null);
                 setQuizForm({
                     title: '', passingScore: 70, timeLimit: 30,
-                    questions: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }],
+                    questions: [{ question: '', options: ['', ''], correctAnswer: 0 }],
                 });
             }
         } catch (err) {
             console.error('Failed to load quiz:', err);
             setQuizForm({
                 title: '', passingScore: 70, timeLimit: 30,
-                questions: [{ question: '', options: ['', '', '', ''], correctAnswer: 0 }],
+                questions: [{ question: '', options: ['', ''], correctAnswer: 0 }],
             });
         } finally {
             setQuizLoading(false);
@@ -204,7 +200,7 @@ export default function ManageJobs() {
     const handleAddQuestion = () => {
         setQuizForm(prev => ({
             ...prev,
-            questions: [...prev.questions, { question: '', options: ['', '', '', ''], correctAnswer: 0 }]
+            questions: [...prev.questions, { question: '', options: ['', ''], correctAnswer: 0 }]
         }));
     };
 
@@ -230,6 +226,31 @@ export default function ManageJobs() {
                     ? { ...q, options: q.options.map((opt, j) => j === optionIndex ? value : opt) }
                     : q
             )
+        }));
+    };
+
+    const handleAddOption = (questionIndex) => {
+        setQuizForm(prev => ({
+            ...prev,
+            questions: prev.questions.map((q, i) =>
+                i === questionIndex && q.options.length < 6
+                    ? { ...q, options: [...q.options, ''] }
+                    : q
+            )
+        }));
+    };
+
+    const handleRemoveOption = (questionIndex, optionIndex) => {
+        setQuizForm(prev => ({
+            ...prev,
+            questions: prev.questions.map((q, i) => {
+                if (i !== questionIndex || q.options.length <= 2) return q;
+                const newOptions = q.options.filter((_, idx) => idx !== optionIndex);
+                let newCorrect = q.correctAnswer;
+                if (q.correctAnswer === optionIndex) newCorrect = 0;
+                else if (q.correctAnswer > optionIndex) newCorrect--;
+                return { ...q, options: newOptions, correctAnswer: newCorrect };
+            })
         }));
     };
 
@@ -547,7 +568,7 @@ export default function ManageJobs() {
                         >
                             <motion.div
                                 initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 20 }}
-                                className="hp-card w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col relative border-none shadow-[0_32px_64px_rgba(0,0,0,0.4)]"
+                                className="hp-card w-full max-w-3xl max-h-[90vh] flex flex-col relative border-none shadow-[0_32px_64px_rgba(0,0,0,0.4)] overflow-hidden"
                                 onClick={(e) => e.stopPropagation()}
                             >
                                 {/* Modal Header */}
@@ -574,7 +595,7 @@ export default function ManageJobs() {
                                         <p className="text-[var(--hp-muted)] font-bold text-xs uppercase tracking-widest">Compiling Quiz Schema...</p>
                                     </div>
                                 ) : (
-                                    <div className="p-6 pb-24 space-y-8 flex-1 bg-[var(--hp-card)]">
+                                    <div className="p-6 pb-24 space-y-8 flex-1 bg-[var(--hp-card)] overflow-y-auto">
                                         <AnimatePresence mode="wait">
                                             {quizError && (
                                                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
@@ -645,8 +666,8 @@ export default function ManageJobs() {
 
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                                                 {q.options.map((opt, oIndex) => (
-                                                                    <div key={oIndex} className={`flex items-center gap-3 p-1 rounded-xl border transition-all ${q.correctAnswer === oIndex ? 'border-[var(--hp-accent2)] bg-[var(--hp-accent2)]/5 shadow-sm' : 'border-transparent bg-[var(--hp-card)]'}`}>
-                                                                        <div className="relative pl-3">
+                                                                    <div key={oIndex} className={`flex items-center gap-2 p-1 rounded-xl border transition-all ${q.correctAnswer === oIndex ? 'border-[var(--hp-accent2)] bg-[var(--hp-accent2)]/5 shadow-sm' : 'border-transparent bg-[var(--hp-card)]'}`}>
+                                                                        <div className="relative pl-2">
                                                                             <input
                                                                                 type="radio" name={`correct-${qIndex}`} checked={q.correctAnswer === oIndex}
                                                                                 onChange={() => handleQuestionChange(qIndex, 'correctAnswer', oIndex)}
@@ -656,9 +677,21 @@ export default function ManageJobs() {
                                                                                 {q.correctAnswer === oIndex && <div className="w-2 h-2 rounded-full bg-white" />}
                                                                             </div>
                                                                         </div>
-                                                                        <input type="text" value={opt} onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)} placeholder={`Option ${oIndex + 1}`} className="hp-input bg-transparent border-none text-xs py-2 shadow-none focus:ring-0" />
+                                                                        <input type="text" value={opt} onChange={(e) => handleOptionChange(qIndex, oIndex, e.target.value)} placeholder={`Option ${oIndex + 1}`} className="hp-input bg-transparent border-none text-xs py-2 shadow-none focus:ring-0 flex-1" />
+                                                                        
+                                                                        {q.options.length > 2 && (
+                                                                            <button type="button" onClick={() => handleRemoveOption(qIndex, oIndex)} className="p-1.5 mr-1 rounded-lg text-[var(--hp-muted)] hover:text-rose-500 hover:bg-rose-500/10 transition-colors">
+                                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                                            </button>
+                                                                        )}
                                                                     </div>
                                                                 ))}
+                                                                
+                                                                {q.options.length < 6 && (
+                                                                    <button type="button" onClick={() => handleAddOption(qIndex)} className="flex items-center justify-center gap-2 p-3 rounded-xl border border-dashed border-[var(--hp-border)] text-[10px] font-bold uppercase tracking-widest text-[var(--hp-muted)] hover:border-[var(--hp-accent2)] hover:text-[var(--hp-accent2)] transition-all">
+                                                                        + Option
+                                                                    </button>
+                                                                )}
                                                             </div>
                                                         </motion.div>
                                                     ))}
@@ -668,8 +701,8 @@ export default function ManageJobs() {
                                     </div>
                                 )}
 
-                                {/* Sticky Modal Footer */}
-                                <div className="absolute bottom-0 left-0 right-0 p-6 border-t flex flex-col sm:flex-row gap-3 z-[30] shadow-[0_-8px_32px_rgba(0,0,0,0.2)]" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>
+                                 {/* Sticky Modal Footer */}
+                                <div className="p-6 border-t flex flex-col sm:flex-row gap-3 z-[30] shadow-[0_-8px_32px_rgba(0,0,0,0.1)] relative" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>
                                     <button type="button" onClick={closeQuizModal} className="hp-btn-ghost flex-1 py-4 text-sm font-bold uppercase tracking-widest">
                                         Cancel
                                     </button>
