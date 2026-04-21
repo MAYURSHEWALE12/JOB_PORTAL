@@ -174,7 +174,16 @@ export default function HomePage() {
                 const res = await jobAPI.getAll();
                 let d = res.data;
                 if (!Array.isArray(d)) d = d?.jobs || d?.content || [];
-                setJobs([...d].reverse());
+                
+                // Sort by latest first before setting state
+                const sorted = [...d].sort((a, b) => {
+                    const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+                    const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+                    if (dateB === dateA) return (b.id || 0) - (a.id || 0);
+                    return dateB - dateA;
+                });
+                
+                setJobs(sorted);
             } catch (e) { console.error(e); }
             finally { setLoading(false); }
         })();

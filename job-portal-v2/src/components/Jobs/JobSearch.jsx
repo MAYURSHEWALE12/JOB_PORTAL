@@ -349,9 +349,8 @@ export default function JobSearch() {
         try {
             const res = await jobAPI.getAll();
             const data = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
-            const reversed = [...data].reverse();
-            setJobs(reversed);
-            setResultCount(reversed.length);
+            setJobs(data);
+            setResultCount(data.length);
             if (data.length === 0) setError('No jobs available yet.');
         } catch {
             setError('Failed to load jobs. Make sure the backend is running.');
@@ -516,7 +515,14 @@ export default function JobSearch() {
     const sortedJobs = [...jobs].sort((a, b) => {
         if (sortBy === 'salary_high') return (b.salaryMax || b.salaryMin || 0) - (a.salaryMax || a.salaryMin || 0);
         if (sortBy === 'salary_low') return (a.salaryMin || 0) - (b.salaryMin || 0);
-        return 0; // newest: already reversed from fetch
+        
+        // newest: Sort by createdAt (latest first)
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        
+        // If dates are equal or missing, fall back to ID (latest first)
+        if (dateB === dateA) return (b.id || 0) - (a.id || 0);
+        return dateB - dateA;
     });
 
     const isEmployer = user?.role === 'EMPLOYER' || user?.role === 'ADMIN';
