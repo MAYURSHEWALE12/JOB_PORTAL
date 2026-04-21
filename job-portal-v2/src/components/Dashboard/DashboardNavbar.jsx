@@ -23,7 +23,7 @@ export default function DashboardNavbar({
             <div className="max-w-7xl mx-auto flex justify-between items-center h-full gap-2">
 
                 <div className="flex-shrink-0 flex items-center gap-2">
-                    <Logo size="sm" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
+                    <Logo size="sm" onClick={() => handleTabChange('search')} style={{ cursor: 'pointer' }} />
                 </div>
 
                 <div className="flex items-center gap-3 sm:gap-6 flex-shrink-0">

@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuthStore } from '../../store/authStore';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { companyAPI, jobAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import ReactMarkdown from 'react-markdown';
@@ -27,7 +28,9 @@ function ThemeToggle() {
 export default function CompanyProfilePage() {
     const { userId } = useParams();
     const { theme } = useThemeStore();
+    const { isLoggedIn } = useAuthStore();
     const isDark = theme === 'dark';
+    const navigate = useNavigate();
 
     const [profile, setProfile] = useState(null);
     const [jobs, setJobs] = useState([]);
@@ -219,9 +222,12 @@ export default function CompanyProfilePage() {
 
             {/* Public Navigation Bar */}
             <nav className="sticky top-0 z-50 px-6 py-3 flex justify-between items-center border-b" style={{ background: 'var(--hp-nav-bg)', backdropFilter: 'blur(20px)', borderColor: 'var(--hp-border)' }}>
-                <Link to="/">
+                <div 
+                    onClick={() => navigate(isLoggedIn ? '/dashboard' : '/')} 
+                    className="cursor-pointer"
+                >
                     <Logo size="md" showTagline />
-                </Link>
+                </div>
                 <div className="flex items-center gap-3">
                     <ThemeToggle />
                     <button id="share-btn" onClick={handleCopyLink} className="hp-btn-ghost hidden sm:flex text-sm px-4 py-2 gap-2">

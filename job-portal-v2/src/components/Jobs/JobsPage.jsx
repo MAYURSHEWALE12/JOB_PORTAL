@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import JobSearch from './JobSearch';
 import Logo from '../Logo';
 import { useThemeStore } from '../../store/themeStore';
+import { useAuthStore } from '../../store/authStore';
 
 /* ─── Social Icons ───────────────────────────────────────────────── */
 const SocialIcons = [
@@ -27,7 +28,9 @@ function ThemeToggle() {
 
 export default function JobsPage() {
     const { theme } = useThemeStore();
+    const { isLoggedIn } = useAuthStore();
     const isDark = theme === 'dark';
+    const navigate = useNavigate();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     // GPU-accelerated scroll progress
@@ -135,7 +138,12 @@ export default function JobsPage() {
                 <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4"
                     style={{ background: 'var(--hp-nav-bg)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--hp-border)' }}>
                     <div className="max-w-7xl mx-auto flex justify-between items-center">
-                        <Link to="/"><Logo size="md" showTagline /></Link>
+                        <div 
+                            onClick={() => navigate(isLoggedIn ? '/dashboard' : '/')} 
+                            className="cursor-pointer"
+                        >
+                            <Logo size="md" showTagline />
+                        </div>
 
                         {/* Desktop */}
                         <div className="hidden md:flex items-center gap-4">

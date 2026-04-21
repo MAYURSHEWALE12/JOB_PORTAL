@@ -64,7 +64,7 @@ export default function ResumeBuilderPage() {
             {/* --- Navigation --- */}
             <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4" style={{ background: 'var(--color-card)', backdropFilter: 'blur(15px)', borderBottom: '1px solid var(--color-border)' }}>
                 <div className="max-w-7xl mx-auto flex justify-between items-center">
-                    <div className="cursor-pointer" onClick={() => navigate('/')}>
+                    <div className="cursor-pointer" onClick={() => navigate(isLoggedIn ? '/dashboard' : '/')}>
                         <Logo size="md" showTagline />
                     </div>
 
