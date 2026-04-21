@@ -17,11 +17,11 @@ public class AdminInitializer implements CommandLineRunner {
 
     private final UserRepository userRepository;
 
+    @org.springframework.beans.factory.annotation.Value("${ADMIN_EMAIL:}")
+    private String adminEmail;
+
     @Override
     public void run(String... args) {
-        // Read the admin email from the environment variable
-        String adminEmail = System.getProperty("ADMIN_EMAIL");
-        
         if (adminEmail == null || adminEmail.isEmpty()) {
             log.info("No ADMIN_EMAIL set. Skipping auto-promotion.");
             return;
