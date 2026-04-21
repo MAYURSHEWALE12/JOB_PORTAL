@@ -6,12 +6,10 @@ import { useAuthStore } from './authStore';
 import { API_BASE_URL } from '../services/api';
 
 const getSocketUrl = () => {
-    if (import.meta.env.VITE_WS_URL) return import.meta.env.VITE_WS_URL;
-    // Derive from API_BASE_URL if it's a full URL
-    if (API_BASE_URL.startsWith('http')) {
-        return API_BASE_URL.replace(/^http/, 'ws') + '/ws';
-    }
-    return 'http://localhost:8080/api/ws';
+    let url = import.meta.env.VITE_WS_URL || (API_BASE_URL.startsWith('http') ? (API_BASE_URL + '/ws') : 'http://localhost:8080/api/ws');
+    
+    // SockJS requires http/https schema even for websockets
+    return url.replace(/^ws(s)?:\/\//, 'http$1://');
 };
 
 const SOCKET_URL = getSocketUrl();
