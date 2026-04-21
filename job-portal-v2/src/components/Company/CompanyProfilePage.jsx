@@ -1,21 +1,61 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { companyAPI, jobAPI } from '../../services/api';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Loader from '../Loader';
-import ThemeToggle from '../ThemeToggle';
 import Logo from '../Logo';
+import Footer from '../Footer';
+import { useThemeStore } from '../../store/themeStore';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api';
 
+function ThemeToggle() {
+    const { theme, toggleTheme } = useThemeStore();
+    const isDark = theme === 'dark';
+    return (
+        <button onClick={toggleTheme} aria-label="Toggle theme" className="hp-btn-ghost w-10 h-10 flex items-center justify-center">
+            {isDark
+                ? <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="12" cy="12" r="5" /><path strokeLinecap="round" d="M12 2v2m0 16v2M2 12h2m16 0h2m-3.22-6.78-1.42 1.42M5.64 18.36l-1.42 1.42M18.36 18.36l-1.42-1.42M5.64 5.64 4.22 4.22" /></svg>
+                : <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" /></svg>
+            }
+        </button>
+    );
+}
+
 export default function CompanyProfilePage() {
     const { userId } = useParams();
+    const { theme } = useThemeStore();
+    const isDark = theme === 'dark';
+
     const [profile, setProfile] = useState(null);
     const [jobs, setJobs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Theme class sync - ensure HTML element has correct state
+    useEffect(() => {
+        const root = document.documentElement;
+        if (isDark) { root.classList.add('dark'); root.classList.remove('light'); }
+        else { root.classList.add('light'); root.classList.remove('dark'); }
+    }, [isDark]);
+
+    // Framer Motion scroll progress
+    const { scrollYProgress } = useScroll();
+    const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30 });
+
+    // Background Particles
+    const particles = useMemo(() =>
+        [...Array(30)].map((_, i) => ({
+            id: i,
+            size: Math.random() * 5 + 2,
+            left: Math.random() * 100,
+            duration: Math.random() * 10 + 12,
+            delay: Math.random() * 5,
+            color: i % 2 === 0 ? 'var(--hp-accent)' : 'var(--hp-accent2)',
+        })), []
+    );
 
     useEffect(() => {
         if (userId) {
@@ -80,8 +120,17 @@ export default function CompanyProfilePage() {
         );
     }
 
-    const companyLogo = profile.logoUrl ? `${API_BASE_URL.replace('/api', '')}${profile.logoUrl}` : null;
-    const bannerImage = profile.bannerUrl ? `${API_BASE_URL.replace('/api', '')}${profile.bannerUrl}` : null;
+    const resolveUrl = (path) => {
+        if (!path) return null;
+        if (path.startsWith('http')) return path;
+        if (path.startsWith('logo_') || path.startsWith('banner_')) {
+            return `${API_BASE_URL}/companies/image/${path}`;
+        }
+        return `${API_BASE_URL.replace('/api', '')}${path}`;
+    };
+
+    const companyLogo = resolveUrl(profile.logoUrl);
+    const bannerImage = resolveUrl(profile.bannerUrl);
 
     const handleCopyLink = () => {
         navigator.clipboard.writeText(window.location.href);
@@ -97,6 +146,28 @@ export default function CompanyProfilePage() {
     return (
         <div className="min-h-screen flex flex-col relative z-10" style={{ background: 'var(--hp-bg)', color: 'var(--hp-text)', fontFamily: "'DM Sans', 'Plus Jakarta Sans', system-ui, sans-serif" }}>
             <style>{`
+                :root, html.dark {
+                    --hp-bg: #07090f; --hp-surface: #0d1117; --hp-surface-alt: rgba(255,255,255,.06);
+                    --hp-card: #111520; --hp-border: rgba(255,255,255,.07); --hp-accent: #2dd4bf;
+                    --hp-accent-rgb: 45,212,191; --hp-accent2: #a78bfa; --hp-text: #eef2ff;
+                    --hp-text-sub: #c7d0e8; --hp-muted: #6b7799; --hp-nav-bg: rgba(7,9,15,.85);
+                    --hp-shadow-card: 0 8px 40px rgba(0,0,0,.55);
+                }
+                html.light {
+                    --hp-bg: #f0f4fa; --hp-surface: #ffffff; --hp-surface-alt: rgba(0,0,0,.05);
+                    --hp-card: #ffffff; --hp-border: rgba(0,0,0,.09); --hp-accent: #0d9488;
+                    --hp-accent-rgb: 13,148,136; --hp-accent2: #7c3aed; --hp-text: #0c1220;
+                    --hp-text-sub: #374151; --hp-muted: #64748b; --hp-nav-bg: rgba(240,244,250,.9);
+                    --hp-shadow-card: 0 4px 24px rgba(0,0,0,.08);
+                }
+
+                @keyframes hp-float-up {
+                    from { transform: translateY(100vh) scale(0); opacity: 0; }
+                    20% { opacity: 0.6; }
+                    80% { opacity: 0.3; }
+                    to { transform: translateY(-10vh) scale(1.5); opacity: 0; }
+                }
+
                 .hp-card { background: var(--hp-card); border: 1px solid var(--hp-border); border-radius: 16px; box-shadow: var(--hp-shadow-card, 0 4px 24px rgba(0,0,0,0.08)); transition: all 0.25s ease; }
                 .hp-card-hover:hover { border-color: rgba(var(--hp-accent-rgb), 0.35); transform: translateY(-2px); box-shadow: 0 12px 40px rgba(0,0,0,.15); }
                 
@@ -113,7 +184,43 @@ export default function CompanyProfilePage() {
                 .hp-markdown li { margin-bottom: 0.5em; }
                 .hp-markdown strong { color: var(--hp-text); font-weight: 700; }
                 .hp-markdown a { color: var(--hp-accent); text-decoration: underline; }
+                .hp-particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: -1; }
+                .hp-particle { position: absolute; border-radius: 50%; animation: hp-float-up linear infinite; opacity: 0; }
+                @keyframes hp-float-up {
+                    0%   { transform: translateY(100vh) scale(0); opacity: 0; }
+                    10%  { opacity: 1; }
+                    90%  { opacity: .25; }
+                    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+                }
+                .hp-card-opportunity:hover .hp-btn-apply { transform: translateX(4px); opacity: 1; }
             `}</style>
+
+            {/* Scroll Progress Bar */}
+            <motion.div 
+                className="fixed top-0 left-0 right-0 h-1 origin-left z-[100]" 
+                style={{ scaleX, background: 'linear-gradient(90deg, var(--hp-accent), var(--hp-accent2))' }} 
+            />
+
+            {/* Background Effects */}
+            <div className="hp-particles">
+                {particles.map(p => (
+                    <div
+                        key={p.id}
+                        className="hp-particle"
+                        style={{
+                            width: `${p.size}px`, height: `${p.size}px`,
+                            left: `${p.left}%`, backgroundColor: p.color,
+                            animation: `hp-float-up ${p.duration}s linear ${p.delay}s infinite`
+                        }}
+                    />
+                ))}
+            </div>
+
+            {/* Glowing Orbs */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
+                <div className="absolute top-[-10%] left-[-5%] w-[40%] h-[40%] rounded-full blur-[120px] opacity-20" style={{ background: 'var(--hp-accent)' }} />
+                <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] rounded-full blur-[100px] opacity-15" style={{ background: 'var(--hp-accent2)' }} />
+            </div>
 
             {/* Public Navigation Bar */}
             <nav className="sticky top-0 z-50 px-6 py-3 flex justify-between items-center border-b" style={{ background: 'var(--hp-nav-bg)', backdropFilter: 'blur(20px)', borderColor: 'var(--hp-border)' }}>
@@ -294,23 +401,29 @@ export default function CompanyProfilePage() {
                                             }}
                                         >
                                             <Link
-                                                to={`/dashboard`}
-                                                className="hp-card hp-card-hover p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 group cursor-pointer block"
+                                                to={`/jobs`}
+                                                className="hp-card hp-card-hover hp-card-opportunity p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 group cursor-pointer block no-underline"
                                             >
-                                                <div>
-                                                    <h4 className="font-bold text-lg text-[var(--hp-text)] group-hover:text-[var(--hp-accent)] transition-colors mb-2">{job.title}</h4>
-                                                    <div className="flex flex-wrap gap-2 text-xs font-bold" style={{ color: 'var(--hp-muted)' }}>
-                                                        <span className="px-2.5 py-1 rounded border" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>📍 {job.location}</span>
-                                                        <span className="px-2.5 py-1 rounded border uppercase" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>🕒 {job.jobType?.replace('_', ' ')}</span>
+                                                <div className="flex-grow">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <h4 className="font-bold text-lg text-[var(--hp-text)] group-hover:text-[var(--hp-accent)] transition-colors">{job.title}</h4>
+                                                        {job.isRemote && (
+                                                            <span className="px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter bg-purple-500/10 text-purple-400 border border-purple-500/20">Remote</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-4 text-xs font-bold" style={{ color: 'var(--hp-muted)' }}>
+                                                        <div className="flex items-center gap-1.5"><span className="text-base opacity-70">📍</span> {job.location}</div>
+                                                        <div className="flex items-center gap-1.5 uppercase"><span className="text-base opacity-70">🕒</span> {job.jobType?.replace('_', ' ')}</div>
                                                         {job.salaryMin && (
-                                                            <span className="px-2.5 py-1 rounded border" style={{ background: 'rgba(52,211,153,0.1)', color: '#34d399', borderColor: 'rgba(52,211,153,0.2)' }}>
-                                                                💰 ₹{Number(job.salaryMin).toLocaleString()} - ₹{Number(job.salaryMax).toLocaleString()}
-                                                            </span>
+                                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-400 border border-emerald-500/10">
+                                                                <span className="text-base opacity-70">💰</span> ₹{Number(job.salaryMin).toLocaleString()} - ₹{Number(job.salaryMax).toLocaleString()}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="hp-btn-ghost text-xs py-2.5 px-6 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all">
-                                                    View & Apply →
+                                                <div className="hp-btn-ghost hp-btn-apply text-[10px] uppercase font-black tracking-widest py-3 px-6 whitespace-nowrap opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all flex items-center gap-2">
+                                                    Apply Now
+                                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                                                 </div>
                                             </Link>
                                         </motion.div>
@@ -321,6 +434,7 @@ export default function CompanyProfilePage() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

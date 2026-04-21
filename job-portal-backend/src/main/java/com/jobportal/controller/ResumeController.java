@@ -10,27 +10,22 @@ import com.jobportal.repository.ResumeAnalysisRepository;
 import com.jobportal.repository.ResumeRepository;
 import com.jobportal.repository.UserRepository;
 import com.jobportal.security.SecurityUtil;
+import com.jobportal.service.CloudinaryService;
 import jakarta.servlet.http.HttpServletRequest;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.*;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -45,12 +40,10 @@ public class ResumeController {
     private final ResumeAnalysisRepository resumeAnalysisRepository;
     private final JobApplicationRepository jobApplicationRepository;
     private final SecurityUtil securityUtil;
-
-    @Value("${app.resume.upload-dir}")
-    private String uploadDir;
+    private final CloudinaryService cloudinaryService;
 
     /**
-     * POST /api/resume/upload?name=My Resume
+     * POST /api/resume/upload
      */
     @PostMapping("/upload")
     public ResponseEntity<?> uploadResume(
@@ -62,62 +55,33 @@ public class ResumeController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
-        if (file.isEmpty()) {
-            throw new CustomException("Please select a file", HttpStatus.BAD_REQUEST);
-        }
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
-            throw new CustomException("Only PDF files are allowed", HttpStatus.BAD_REQUEST);
-        }
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.equals("application/pdf")) {
-            throw new CustomException("Invalid file content type. Only PDF files are allowed", HttpStatus.BAD_REQUEST);
-        }
-        if (file.getSize() > 10 * 1024 * 1024) {
-            throw new CustomException("File size must be less than 10MB", HttpStatus.BAD_REQUEST);
-        }
+        validateFile(file);
 
         if (resumeRepository.countByUser(user) >= 5) {
             throw new CustomException("Maximum 5 resumes allowed. Please delete one first.", HttpStatus.BAD_REQUEST);
         }
 
         try {
-            log.info("Upload dir: {}", uploadDir);
-            Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-            log.info("Upload path resolved to: {}", uploadPath.toAbsolutePath());
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-                log.info("Created upload directory: {}", uploadPath.toAbsolutePath());
-            }
-
-            String fileName = "resume_" + userId + "_" + UUID.randomUUID() + ".pdf";
-            Path filePath = uploadPath.resolve(fileName);
-            log.info("Saving file to: {}", filePath.toAbsolutePath());
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            log.info("File saved successfully");
+            Map result = cloudinaryService.uploadFile(file, "resumes");
+            String fileUrl = (String) result.get("secure_url");
 
             Resume resume = Resume.builder()
                     .user(user)
                     .name(name)
-                    .fileName(fileName)
+                    .fileName(fileUrl)
                     .build();
 
-            log.info("Saving resume record to DB...");
             Resume saved = resumeRepository.save(resume);
-            log.info("Resume saved to DB with id {}", saved.getId());
-
-            ResumeDTO dto = ResumeDTO.from(saved);
-            log.info("Returning DTO: id={}, name={}", dto.id, dto.name);
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ResumeDTO.from(saved));
 
         } catch (Exception e) {
-            log.error("Failed to upload resume - {}: {}", e.getClass().getName(), e.getMessage(), e);
-            throw new CustomException("Failed to upload resume: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Cloudinary upload failed", e);
+            throw new CustomException("Failed to upload resume to cloud: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
     /**
-     * POST /api/resume/upload/with-user?userId=123&name=My Resume
+     * POST /api/resume/upload/with-user
      */
     @PostMapping("/upload/with-user")
     public ResponseEntity<?> uploadResumeWithUserId(
@@ -128,6 +92,31 @@ public class ResumeController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
 
+        validateFile(file);
+
+        if (resumeRepository.countByUser(user) >= 5) {
+            throw new CustomException("Maximum 5 resumes allowed.", HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            Map result = cloudinaryService.uploadFile(file, "resumes");
+            String fileUrl = (String) result.get("secure_url");
+
+            Resume resume = Resume.builder()
+                    .user(user)
+                    .name(name)
+                    .fileName(fileUrl)
+                    .build();
+
+            Resume saved = resumeRepository.save(resume);
+            return ResponseEntity.status(HttpStatus.CREATED).body(ResumeDTO.from(saved));
+
+        } catch (Exception e) {
+            throw new CustomException("Cloud upload failed: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private void validateFile(MultipartFile file) {
         if (file.isEmpty()) {
             throw new CustomException("Please select a file", HttpStatus.BAD_REQUEST);
         }
@@ -135,51 +124,11 @@ public class ResumeController {
         if (originalFilename == null || !originalFilename.toLowerCase().endsWith(".pdf")) {
             throw new CustomException("Only PDF files are allowed", HttpStatus.BAD_REQUEST);
         }
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.equals("application/pdf")) {
-            throw new CustomException("Invalid file content type. Only PDF files are allowed", HttpStatus.BAD_REQUEST);
-        }
         if (file.getSize() > 10 * 1024 * 1024) {
             throw new CustomException("File size must be less than 10MB", HttpStatus.BAD_REQUEST);
         }
-
-        if (resumeRepository.countByUser(user) >= 5) {
-            throw new CustomException("Maximum 5 resumes allowed. Please delete one first.", HttpStatus.BAD_REQUEST);
-        }
-
-        try {
-            String fileName = "resume_" + userId + "_" + UUID.randomUUID() + ".pdf";
-            Path uploadPath = Paths.get(uploadDir).toAbsolutePath();
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-            Path filePath = uploadPath.resolve(fileName);
-            log.info("Saving file to: {}", filePath.toAbsolutePath());
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-            log.info("File saved successfully");
-
-            Resume resume = Resume.builder()
-                    .user(user)
-                    .name(name)
-                    .fileName(fileName)
-                    .build();
-
-            log.info("Saving resume record to DB...");
-            Resume saved = resumeRepository.save(resume);
-            log.info("Resume saved to DB with id {}", saved.getId());
-
-            ResumeDTO dto = ResumeDTO.from(saved);
-            return ResponseEntity.status(HttpStatus.CREATED).body(dto);
-
-        } catch (Exception e) {
-            log.error("Failed to upload resume - {}: {}", e.getClass().getName(), e.getMessage(), e);
-            throw new CustomException("Failed to upload resume: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 
-    /**
-     * GET /api/resume/list
-     */
     @GetMapping("/list")
     public ResponseEntity<List<ResumeDTO>> getResumes(HttpServletRequest request) {
         Long userId = securityUtil.getCurrentUserId(request);
@@ -192,9 +141,6 @@ public class ResumeController {
         return ResponseEntity.ok(dtos);
     }
 
-    /**
-     * GET /api/resume/check
-     */
     @GetMapping("/check")
     public ResponseEntity<Map<String, Object>> checkResumes(HttpServletRequest request) {
         Long userId = securityUtil.getCurrentUserId(request);
@@ -202,17 +148,13 @@ public class ResumeController {
                 .orElseThrow(() -> new ResourceNotFoundException("User", "id", userId));
         List<Resume> resumes = resumeRepository.findByUserOrderByCreatedAtDesc(user);
         boolean hasResume = !resumes.isEmpty();
-        Long resumeId = hasResume ? resumes.get(0).getId() : null;
         return ResponseEntity.ok(Map.of(
                 "hasResume", hasResume,
                 "count", resumes.size(),
-                "resumeId", resumeId != null ? resumeId : 0L
+                "resumeId", hasResume ? resumes.get(0).getId() : 0L
         ));
     }
 
-    /**
-     * GET /api/resume/preview/{resumeId}?token=xxx
-     */
     @GetMapping("/preview/{resumeId}")
     public ResponseEntity<Resource> previewResume(@PathVariable Long resumeId,
                                                    @RequestParam(required = false) String token,
@@ -220,88 +162,25 @@ public class ResumeController {
         Resume resume = resumeRepository.findById(resumeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
 
-        Long currentUserId;
-        if (token != null && !token.isEmpty()) {
-            currentUserId = securityUtil.getUserIdFromToken(token);
-        } else {
-            currentUserId = securityUtil.getCurrentUserId(request);
-        }
+        Long currentUserId = (token != null && !token.isEmpty()) ? securityUtil.getUserIdFromToken(token) : securityUtil.getCurrentUserId(request);
 
         boolean isOwner = resume.getUser().getId().equals(currentUserId);
-        boolean isEmployer = false;
-        if (!isOwner) {
-            isEmployer = jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
-        }
+        boolean isEmployer = isOwner || jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
+        
         if (!isOwner && !isEmployer) {
             throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
         }
 
-        try {
-            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(resume.getFileName()).normalize();
-            if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
-                throw new CustomException("Invalid file path", HttpStatus.BAD_REQUEST);
-            }
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new CustomException("Resume file not found", HttpStatus.NOT_FOUND);
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "inline; filename=\"" + resume.getName().replaceAll(" ", "_") + ".pdf\"")
-                    .body(resource);
-
-        } catch (MalformedURLException e) {
-            throw new CustomException("Failed to preview resume", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(resume.getFileName()))
+                .build();
     }
 
-    /**
-     * GET /api/resume/download/{resumeId}
-     */
     @GetMapping("/download/{resumeId}")
     public ResponseEntity<Resource> downloadResume(@PathVariable Long resumeId, HttpServletRequest request) {
-        Resume resume = resumeRepository.findById(resumeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
-
-        Long currentUserId = securityUtil.getCurrentUserId(request);
-
-        boolean isOwner = resume.getUser().getId().equals(currentUserId);
-        boolean isEmployer = false;
-        if (!isOwner) {
-            isEmployer = jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
-        }
-        if (!isOwner && !isEmployer) {
-            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
-        }
-
-        try {
-            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(resume.getFileName()).normalize();
-            if (!filePath.startsWith(Paths.get(uploadDir).toAbsolutePath().normalize())) {
-                throw new CustomException("Invalid file path", HttpStatus.BAD_REQUEST);
-            }
-            Resource resource = new UrlResource(filePath.toUri());
-
-            if (!resource.exists() || !resource.isReadable()) {
-                throw new CustomException("Resume file not found", HttpStatus.NOT_FOUND);
-            }
-
-            return ResponseEntity.ok()
-                    .contentType(MediaType.APPLICATION_PDF)
-                    .header(HttpHeaders.CONTENT_DISPOSITION,
-                            "attachment; filename=\"" + resume.getName().replaceAll(" ", "_") + ".pdf\"")
-                    .body(resource);
-
-        } catch (MalformedURLException e) {
-            throw new CustomException("Failed to download resume", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        return previewResume(resumeId, null, request);
     }
 
-    /**
-     * DELETE /api/resume/delete/{resumeId}
-     */
     @DeleteMapping("/delete/{resumeId}")
     @Transactional
     public ResponseEntity<?> deleteResume(@PathVariable Long resumeId, HttpServletRequest request) {
@@ -313,23 +192,16 @@ public class ResumeController {
             throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
         }
 
-        try {
-            jobApplicationRepository.clearResumeFromApplication(resume);
-
-            resumeAnalysisRepository.deleteAll(resumeAnalysisRepository.findByResumeOrderByAnalyzedAtDesc(resume));
-
-            Path filePath = Paths.get(uploadDir).toAbsolutePath().resolve(resume.getFileName());
-            Files.deleteIfExists(filePath);
-            resumeRepository.delete(resume);
-            return ResponseEntity.ok(Map.of("message", "Resume deleted successfully"));
-        } catch (IOException e) {
-            throw new CustomException("Failed to delete resume", HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        jobApplicationRepository.clearResumeFromApplication(resume);
+        resumeAnalysisRepository.deleteAll(resumeAnalysisRepository.findByResumeOrderByAnalyzedAtDesc(resume));
+        resumeRepository.delete(resume);
+        
+        // Note: For now we don't delete from Cloudinary to keep it simple, 
+        // as we only store the URL and not the public_id for easy deletion.
+        
+        return ResponseEntity.ok(Map.of("message", "Resume deleted successfully"));
     }
 
-    /**
-     * PUT /api/resume/rename/{resumeId}?name=New Name
-     */
     @PutMapping("/rename/{resumeId}")
     public ResponseEntity<ResumeDTO> renameResume(
             @PathVariable Long resumeId,

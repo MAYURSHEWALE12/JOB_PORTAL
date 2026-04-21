@@ -8,19 +8,12 @@ import com.jobportal.repository.CompanyProfileRepository;
 import com.jobportal.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.UUID;
-
 import java.util.Set;
 
 @Service
@@ -30,11 +23,9 @@ public class CompanyProfileService {
 
     private final CompanyProfileRepository companyProfileRepository;
     private final UserRepository userRepository;
+    private final CloudinaryService cloudinaryService;
 
     private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".png", ".jpg", ".jpeg", ".gif", ".webp");
-
-    @Value("${app.company.upload-dir}")
-    private String uploadDir;
 
     public List<CompanyProfile> getAllCompanies() {
         return companyProfileRepository.findAll();
@@ -87,33 +78,21 @@ public class CompanyProfileService {
             throw new CustomException("Only image files are allowed (PNG, JPG, JPEG, GIF, WEBP)", HttpStatus.BAD_REQUEST);
         }
 
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new CustomException("Invalid file content type. Only image files are allowed", HttpStatus.BAD_REQUEST);
-        }
-
         try {
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
-
-            String fileName = imageType + "_" + userId + "_" + UUID.randomUUID() + extension;
-            Path filePath = uploadPath.resolve(fileName);
-            
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+            java.util.Map result = cloudinaryService.uploadFile(file, "companies/" + imageType + "s");
+            String fileUrl = (String) result.get("secure_url");
 
             if ("logo".equalsIgnoreCase(imageType)) {
-                profile.setLogoUrl("/api/companies/image/" + fileName);
+                profile.setLogoUrl(fileUrl);
             } else if ("banner".equalsIgnoreCase(imageType)) {
-                profile.setBannerUrl("/api/companies/image/" + fileName);
+                profile.setBannerUrl(fileUrl);
             }
 
             return companyProfileRepository.save(profile);
 
         } catch (IOException e) {
-            log.error("Failed to upload company image", e);
-            throw new CustomException("Failed to upload image: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Failed to upload company image to Cloudinary", e);
+            throw new CustomException("Failed to upload image to cloud: " + e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -101,6 +101,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        String frontendUrl = System.getProperty("FRONTEND_URL");
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:5173",
                 "http://127.0.0.1:5173",
@@ -112,7 +113,8 @@ public class SecurityConfig {
                 "http://192.168.0.100:5173",
                 "http://192.168.0.100:5174",
                 "http://172.20.10.3:5173",
-                "http://172.20.10.3:5174"
+                "http://172.20.10.3:5174",
+                frontendUrl != null ? frontendUrl : "https://your-app.vercel.app"
         ));
         configuration.setAllowedMethods(Arrays.asList(
                 "GET", "POST", "PUT", "DELETE", "OPTIONS"

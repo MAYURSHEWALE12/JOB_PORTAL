@@ -50,6 +50,7 @@ public class UserService {
     private final CompanyProfileRepository companyProfileRepository;
     private final JobRepository jobRepository;
     private final InterviewRepository interviewRepository;
+    private final CloudinaryService cloudinaryService;
 
     // ==================== REGISTRATION & AUTHENTICATION ====================
 
@@ -259,7 +260,7 @@ public class UserService {
      * @return Updated User object
      */
     public User updateUserProfileImage(Long id, MultipartFile file, String uploadDir) {
-        log.info("Uploading profile image for user ID: {}", id);
+        log.info("Uploading profile image to Cloudinary for user ID: {}", id);
         User user = getUserById(id);
 
         if (file.isEmpty()) {
@@ -272,27 +273,18 @@ public class UserService {
         }
 
         try {
-            Path path = Paths.get(uploadDir);
-            if (!Files.exists(path)) {
-                Files.createDirectories(path);
-            }
-
-            String fileName = "avatar_" + id + "_" + UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-            Path filePath = path.resolve(fileName);
-            Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-
-            // Set the URL/Path for the frontend to access
-            // We'll use the relative path or a dedicated endpoint URL
-            String imageUrl = "/api/users/avatar/" + fileName;
+            java.util.Map result = cloudinaryService.uploadFile(file, "avatars");
+            String imageUrl = (String) result.get("secure_url");
+            
             user.setProfileImageUrl(imageUrl);
             user.setUpdatedAt(LocalDateTime.now());
 
             User updatedUser = userRepository.save(user);
-            log.info("Profile image updated successfully for user ID: {}", id);
+            log.info("Profile image updated in Cloudinary for user ID: {}", id);
             return updatedUser;
 
         } catch (IOException e) {
-            log.error("Failed to upload profile image for user ID: {}", id, e);
+            log.error("Failed to upload profile image to Cloudinary for user ID: {}", id, e);
             throw new BadRequestException("Could not upload profile image: " + e.getMessage());
         }
     }
