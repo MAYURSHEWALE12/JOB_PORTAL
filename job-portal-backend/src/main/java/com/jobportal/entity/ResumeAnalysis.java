@@ -50,19 +50,16 @@ public class ResumeAnalysis {
 
     private Integer score; // Overall ATS Score (0-100)
 
-    @ElementCollection
-    @CollectionTable(name = "analysis_suggestions", joinColumns = @JoinColumn(name = "analysis_id"))
-    @Column(name = "suggestion", columnDefinition = "LONGTEXT")
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "suggestions", columnDefinition = "LONGTEXT")
     private List<String> suggestions;
 
-    @ElementCollection
-    @CollectionTable(name = "analysis_strengths", joinColumns = @JoinColumn(name = "analysis_id"))
-    @Column(name = "strength", columnDefinition = "LONGTEXT")
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "strengths", columnDefinition = "LONGTEXT")
     private List<String> strengths;
 
-    @ElementCollection
-    @CollectionTable(name = "analysis_interview_questions", joinColumns = @JoinColumn(name = "analysis_id"))
-    @Column(name = "question", columnDefinition = "LONGTEXT")
+    @Convert(converter = StringListConverter.class)
+    @Column(name = "interview_questions", columnDefinition = "LONGTEXT")
     private List<String> interviewQuestions;
 
     @Column(columnDefinition = "LONGTEXT")

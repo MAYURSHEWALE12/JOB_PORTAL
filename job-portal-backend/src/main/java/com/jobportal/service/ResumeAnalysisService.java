@@ -352,9 +352,6 @@ public class ResumeAnalysisService {
         if (analyses.isEmpty()) return Optional.empty();
 
         ResumeAnalysis analysis = analyses.get(0);
-        Hibernate.initialize(analysis.getSuggestions());
-        Hibernate.initialize(analysis.getStrengths());
-        Hibernate.initialize(analysis.getInterviewQuestions());
         return Optional.of(ResumeAnalysisDTO.from(analysis));
     }
 
