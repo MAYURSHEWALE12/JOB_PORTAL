@@ -69,24 +69,26 @@ public class ResumeAnalysisService {
         }
 
         try {
-            // Strategy 1: Use the original Cloudinary URL directly (works for public uploads)
-            if (fileName.startsWith("http")) {
-                log.info("Attempting direct PDF fetch from: {}", fileName);
-                String text = tryFetchPdf(fileName);
-                if (text != null) return text;
-            }
-
-            // Strategy 2: Generate signed URL as fallback
+            // Resolve publicId
             String publicId = resume.getPublicId();
             if (publicId == null || publicId.isEmpty()) {
                 publicId = extractPublicIdFromUrl(fileName);
             }
 
             if (publicId != null && !publicId.isEmpty()) {
-                log.info("Trying signed URL with publicId: {}", publicId);
-                String signedUrl = cloudinaryService.generateSignedUrl(publicId);
-                log.info("Signed URL: {}", signedUrl);
-                String text = tryFetchPdf(signedUrl);
+                // Assets are blocked for delivery — try signed URLs with both resource types
+                String[] signedUrls = cloudinaryService.generateSignedUrls(publicId);
+                for (String signedUrl : signedUrls) {
+                    log.info("Trying signed URL: {}", signedUrl);
+                    String text = tryFetchPdf(signedUrl);
+                    if (text != null) return text;
+                }
+            }
+
+            // Last resort: try original URL directly
+            if (fileName.startsWith("http")) {
+                log.info("Fallback: direct fetch from {}", fileName);
+                String text = tryFetchPdf(fileName);
                 if (text != null) return text;
             }
 

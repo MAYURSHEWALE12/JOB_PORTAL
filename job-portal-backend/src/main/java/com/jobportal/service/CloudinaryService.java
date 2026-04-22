@@ -40,6 +40,10 @@ public class CloudinaryService {
     }
 
     public String generateSignedUrl(String publicId) {
+        return generateSignedUrl(publicId, "image");
+    }
+
+    public String generateSignedUrl(String publicId, String resourceType) {
         if (publicId == null || publicId.isEmpty()) return null;
         
         // Remove .pdf from publicId if it exists to avoid duplication
@@ -47,12 +51,22 @@ public class CloudinaryService {
             publicId = publicId.substring(0, publicId.length() - 4);
         }
         
-        // Append format("pdf") so Cloudinary recognizes it correctly
         return cloudinary.url()
-                .resourceType("image")
+                .resourceType(resourceType)
                 .format("pdf")
                 .signed(true)
                 .generate(publicId);
+    }
+
+    /**
+     * Returns signed URLs for both 'image' and 'raw' resource types.
+     * Cloudinary's resource_type:auto may classify PDFs as either.
+     */
+    public String[] generateSignedUrls(String publicId) {
+        return new String[] {
+            generateSignedUrl(publicId, "image"),
+            generateSignedUrl(publicId, "raw")
+        };
     }
 
     /**
