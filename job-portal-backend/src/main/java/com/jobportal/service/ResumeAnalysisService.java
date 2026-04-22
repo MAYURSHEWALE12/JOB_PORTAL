@@ -75,11 +75,12 @@ public class ResumeAnalysisService {
         try {
             if (publicId != null && !publicId.isEmpty()) {
                 log.info("Fetching resume from Cloudinary with publicId: {}", publicId);
-                Map result = cloudinary.api().resource(publicId, ObjectUtils.asMap("resource_type", "image"));
+                Map result = cloudinary.api().resource(publicId, ObjectUtils.asMap("resource_type", "raw"));
                 String secureUrl = (String) result.get("secure_url");
                 if (secureUrl == null) {
-                    throw new RuntimeException("Could not get secure URL from Cloudinary");
+                    secureUrl = fileName;
                 }
+                log.info("Got secure URL from Cloudinary: {}", secureUrl);
                 inputStream = new URL(secureUrl).openStream();
             } else if (fileName.startsWith("http")) {
                 log.info("Fetching resume from URL: {}", fileName);
