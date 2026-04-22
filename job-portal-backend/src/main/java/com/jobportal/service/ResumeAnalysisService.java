@@ -1,8 +1,6 @@
 package com.jobportal.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.cloudinary.Cloudinary;
-import com.cloudinary.utils.ObjectUtils;
 import com.jobportal.dto.ResumeAnalysisDTO;
 import com.jobportal.entity.Job;
 import com.jobportal.entity.Resume;
@@ -35,7 +33,7 @@ public class ResumeAnalysisService {
     private final ResumeAnalysisRepository analysisRepository;
     private final ResumeRepository         resumeRepository;
     private final JobRepository            jobRepository;
-    private final Cloudinary              cloudinary;
+    private final CloudinaryService       cloudinaryService;
 
     private record MatchComputation(int score, List<String> missingKeywords) {}
 
@@ -78,12 +76,8 @@ public class ResumeAnalysisService {
             }
 
             if (cloudinaryPublicId != null && !cloudinaryPublicId.isEmpty()) {
-                log.info("Generating signed URL from Cloudinary with publicId: {}", cloudinaryPublicId);
-                String signedUrl = cloudinary.url()
-                        .resourceType("raw")
-                        .format("pdf")
-                        .signed(true)
-                        .generate(cloudinaryPublicId);
+                log.info("Generating signed URL via CloudinaryService with publicId: {}", cloudinaryPublicId);
+                String signedUrl = cloudinaryService.generateSignedUrl(cloudinaryPublicId);
                 log.info("Fetching PDF from: {}", signedUrl);
 
                 java.net.URL url = new java.net.URL(signedUrl);
