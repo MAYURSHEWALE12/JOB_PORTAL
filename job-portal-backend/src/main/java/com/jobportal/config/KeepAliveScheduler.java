@@ -22,7 +22,7 @@ public class KeepAliveScheduler {
     @Value("${RENDER_EXTERNAL_URL:}")
     private String renderExternalUrl;
 
-    @Scheduled(fixedRate = 13 * 60 * 1000) // Every 14 minutes
+    @Scheduled(fixedRate = 14 * 60 * 1000) // Every 13 minutes
     public void keepAlive() {
         if (renderExternalUrl == null || renderExternalUrl.isEmpty()) {
             // Not running on Render (e.g., local dev), skip the ping

@@ -1,6 +1,8 @@
 package com.jobportal.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.cloudinary.Cloudinary;
+import com.cloudinary.utils.ObjectUtils;
 import com.jobportal.dto.ResumeAnalysisDTO;
 import com.jobportal.entity.Job;
 import com.jobportal.entity.Resume;
@@ -18,8 +20,8 @@ import org.hibernate.Hibernate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.net.URL;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,14 +29,13 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-    @Transactional
-    public class ResumeAnalysisService {
+@Transactional
+public class ResumeAnalysisService {
 
     private final ResumeAnalysisRepository analysisRepository;
     private final ResumeRepository         resumeRepository;
     private final JobRepository            jobRepository;
-
-    private static final String RESUME_STORAGE_DIR = "uploads/resumes/";
+    private final Cloudinary              cloudinary;
 
     private record MatchComputation(int score, List<String> missingKeywords) {}
 
@@ -63,17 +64,37 @@ import java.util.stream.Collectors;
     }
 
     private String extractText(Resume resume) {
-        File file = new File(RESUME_STORAGE_DIR + resume.getFileName());
-        if (!file.exists()) {
-            throw new RuntimeException("Resume file not found on server.");
+        String fileName = resume.getFileName();
+        String publicId = resume.getPublicId();
+
+        if (fileName == null || fileName.isEmpty()) {
+            throw new RuntimeException("Resume file name not found.");
         }
 
-        try (PDDocument document = PDDocument.load(file)) {
-            PDFTextStripper stripper = new PDFTextStripper();
-            return stripper.getText(document);
-        } catch (IOException e) {
-            log.error("Failed to extract text from PDF: {}", e.getMessage());
-            throw new RuntimeException("Could not read resume PDF content.");
+        InputStream inputStream;
+        try {
+            if (publicId != null && !publicId.isEmpty()) {
+                log.info("Fetching resume from Cloudinary with publicId: {}", publicId);
+                Map result = cloudinary.api().resource(publicId, ObjectUtils.asMap("resource_type", "image"));
+                String secureUrl = (String) result.get("secure_url");
+                if (secureUrl == null) {
+                    throw new RuntimeException("Could not get secure URL from Cloudinary");
+                }
+                inputStream = new URL(secureUrl).openStream();
+            } else if (fileName.startsWith("http")) {
+                log.info("Fetching resume from URL: {}", fileName);
+                inputStream = new URL(fileName).openStream();
+            } else {
+                throw new RuntimeException("Resume file not available. No publicId or valid URL.");
+            }
+
+            try (PDDocument document = PDDocument.load(inputStream)) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                return stripper.getText(document);
+            }
+        } catch (Exception e) {
+            log.error("Failed to extract text from resume: {}", e.getMessage());
+            throw new RuntimeException("Could not read resume PDF content: " + e.getMessage());
         }
     }
 
