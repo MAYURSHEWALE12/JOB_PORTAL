@@ -578,7 +578,7 @@ export default function ApplicationCard({
             <AnimatePresence>
                 {showResumePreview && resumeId && (
                     <ResumePreviewModal
-                        resumeUrl={`${API_BASE_URL}/resume/preview/${resumeId}?token=${localStorage.getItem('token') || ''}`}
+                        resumeUrl={`${API_BASE_URL}/resume/preview/${resumeId}?token=${localStorage.getItem('authToken') || ''}`}
                         resumeName={app.selectedResume?.name || 'Resume'}
                         onClose={() => setShowResumePreview(false)}
                     />
