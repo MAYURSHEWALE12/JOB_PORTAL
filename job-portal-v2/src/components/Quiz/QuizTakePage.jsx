@@ -157,7 +157,7 @@ export default function QuizTakePage({ passedJobId, passedApplicationId, onClose
         const progress = (answeredCount / (quiz.questions?.length || 1)) * 100;
 
         return (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-24">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-32 sm:pb-24">
                 <div className="bg-gradient-to-br from-[#F5EDE3] to-[#FAF6F0] rounded-2xl p-6 mb-8 border border-[#EAD9C4] shadow-sm">
                     <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
                         <div>
@@ -229,20 +229,21 @@ export default function QuizTakePage({ passedJobId, passedApplicationId, onClose
                     ))}
                 </div>
 
-                <div className="fixed bottom-0 left-0 right-0 p-4 pointer-events-none z-10 flex justify-center">
-                    <div className="bg-white/90 backdrop-blur border border-[#EAD9C4] rounded-2xl p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.05)] w-full max-w-4xl flex flex-col md:flex-row justify-between items-center gap-4 pointer-events-auto">
-                        <p className="text-[#8B7355] font-medium hidden md:block">
-                            <span className="text-[#2D1F14]">{answeredCount}</span> of {quiz.questions?.length} answered
+                <div className="fixed bottom-0 left-0 right-0 p-3 sm:p-4 pointer-events-none z-10 flex justify-center">
+                    <div className="bg-white/95 backdrop-blur-md border border-[#EAD9C4] rounded-2xl p-3 sm:p-4 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] w-full max-w-4xl flex justify-between items-center gap-3 pointer-events-auto">
+                        <p className="text-[#8B7355] font-medium text-xs sm:text-base">
+                            <span className="text-[#2D1F14] font-bold">{answeredCount}</span>/{quiz.questions?.length}
+                            <span className="hidden sm:inline"> answered</span>
                         </p>
                         <button
                             onClick={handleSubmit}
                             disabled={submitting || answeredCount === 0}
-                            className={`px-8 py-3.5 rounded-xl font-bold text-white shadow-lg transition-all w-full md:w-auto
+                            className={`px-5 sm:px-8 py-3 sm:py-3.5 rounded-xl font-bold text-white shadow-lg transition-all text-sm sm:text-base
                                 ${submitting || answeredCount === 0 
                                     ? 'bg-[#D4C4B0] cursor-not-allowed opacity-70' 
-                                    : 'bg-[#C2651A] hover:bg-[#8C4A11] hover:scale-[1.02] active:scale-[0.98]'}`}
+                                    : 'bg-[#C2651A] hover:bg-[#8C4A11] active:scale-[0.98]'}`}
                         >
-                            {submitting ? 'Submitting Assessment...' : 'Submit Assessment'}
+                            {submitting ? 'Submitting...' : 'Submit'}
                         </button>
                     </div>
                 </div>
@@ -253,20 +254,23 @@ export default function QuizTakePage({ passedJobId, passedApplicationId, onClose
     if (onClose) {
         return (
             <AnimatePresence>
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm">
+                <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center sm:p-4 bg-black/60 backdrop-blur-sm">
                     <motion.div 
-                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                        className="bg-[#FAFAFA] w-full max-w-4xl max-h-[96vh] rounded-2xl shadow-2xl overflow-y-auto relative"
+                        initial={{ opacity: 0, y: 40 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 40 }}
+                        className="bg-[#FAFAFA] w-full max-w-4xl h-[100dvh] sm:h-auto sm:max-h-[96vh] sm:rounded-2xl shadow-2xl overflow-y-auto relative"
                     >
-                        <button 
-                            onClick={handleClose} 
-                            className="absolute top-4 right-4 z-50 w-10 h-10 bg-white border border-[#EAD9C4] rounded-full flex items-center justify-center text-[#8B7355] hover:text-[#C62828] hover:bg-[#FFEBEE] transition-colors shadow-sm"
-                        >
-                            ✕
-                        </button>
-                        <div className="p-4 sm:p-8 pt-12 sm:pt-14 relative min-h-[400px]">
+                        <div className="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-8 py-3 bg-[#FAFAFA]/95 backdrop-blur-sm border-b border-[#EAD9C4]">
+                            <span className="text-xs font-bold uppercase tracking-widest text-[#8B7355]">Assessment</span>
+                            <button 
+                                onClick={handleClose} 
+                                className="w-9 h-9 bg-white border border-[#EAD9C4] rounded-full flex items-center justify-center text-[#8B7355] hover:text-[#C62828] hover:bg-[#FFEBEE] transition-colors shadow-sm"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="p-4 sm:p-8 relative min-h-[400px]">
                             {renderContent()}
                         </div>
                     </motion.div>
