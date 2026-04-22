@@ -33,7 +33,9 @@ public class CloudinaryService {
         
         Map params = ObjectUtils.asMap(
                 "folder", "job_portal/" + folder,
-                "resource_type", "auto"
+                "resource_type", "auto",
+                "type", "upload",
+                "access_mode", "public"
         );
 
         return cloudinary.uploader().upload(file.getBytes(), params);
