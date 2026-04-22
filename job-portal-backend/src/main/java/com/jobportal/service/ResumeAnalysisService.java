@@ -91,6 +91,12 @@ public class ResumeAnalysisService {
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(10000);
                 conn.setReadTimeout(10000);
+                int responseCode = conn.getResponseCode();
+                log.info("HTTP response code: {}", responseCode);
+
+                if (responseCode != 200) {
+                    throw new RuntimeException("HTTP error: " + responseCode + " - " + conn.getResponseMessage());
+                }
 
                 try (PDDocument document = PDDocument.load(conn.getInputStream())) {
                     PDFTextStripper stripper = new PDFTextStripper();
