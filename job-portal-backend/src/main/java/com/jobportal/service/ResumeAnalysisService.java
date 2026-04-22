@@ -76,7 +76,10 @@ public class ResumeAnalysisService {
             }
 
             if (publicId != null && !publicId.isEmpty()) {
-                // Assets are blocked for delivery — try signed URLs with both resource types
+                // Ensure the asset is publicly accessible (fixes legacy blocked assets)
+                cloudinaryService.ensurePublicAccess(publicId);
+
+                // Try signed URLs with both resource types
                 String[] signedUrls = cloudinaryService.generateSignedUrls(publicId);
                 for (String signedUrl : signedUrls) {
                     log.info("Trying signed URL: {}", signedUrl);
