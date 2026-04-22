@@ -4,6 +4,7 @@ import { resumeAnalysisAPI, applicationAPI, resolvePublicUrl, API_BASE_URL } fro
 import ScheduleInterviewModal from '../Interviews/ScheduleInterviewModal';
 import CircularMatchScore from './CircularMatchScore';
 import VertexIntelligenceModal from './VertexIntelligenceModal';
+import ResumePreviewModal from './ResumePreviewModal';
 
 export default function ApplicationCard({
     app,
@@ -29,13 +30,12 @@ export default function ApplicationCard({
 
     // Interview state
     const [showInterviewModal, setShowInterviewModal] = useState(false);
+    const [showResumePreview, setShowResumePreview] = useState(false);
 
     const handleViewResume = (e) => {
         e.stopPropagation();
         if (!resumeId) return;
-        const token = localStorage.getItem('token');
-        const previewUrl = `${API_BASE_URL}/resume/preview/${resumeId}${token ? `?token=${token}` : ''}`;
-        window.open(previewUrl, '_blank');
+        setShowResumePreview(true);
     };
 
     const handleSendOffer = async (e) => {
@@ -571,6 +571,16 @@ export default function ApplicationCard({
                     <VertexIntelligenceModal
                         analysis={matchData || app.matchAnalysis}
                         onClose={() => setShowInsights(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {showResumePreview && resumeId && (
+                    <ResumePreviewModal
+                        resumeUrl={`${API_BASE_URL}/resume/preview/${resumeId}?token=${localStorage.getItem('token') || ''}`}
+                        resumeName={app.selectedResume?.name || 'Resume'}
+                        onClose={() => setShowResumePreview(false)}
                     />
                 )}
             </AnimatePresence>
