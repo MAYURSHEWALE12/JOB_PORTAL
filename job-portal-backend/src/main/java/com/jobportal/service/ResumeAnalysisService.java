@@ -78,10 +78,21 @@ public class ResumeAnalysisService {
             }
 
             if (cloudinaryPublicId != null && !cloudinaryPublicId.isEmpty()) {
-                log.info("Downloading resume from Cloudinary with publicId: {}", cloudinaryPublicId);
-                byte[] pdfBytes = (byte[]) cloudinary.api().download(cloudinaryPublicId, ObjectUtils.asMap("resource_type", "raw"));
+                log.info("Generating signed URL from Cloudinary with publicId: {}", cloudinaryPublicId);
+                String signedUrl = cloudinary.url()
+                        .resourceType("raw")
+                        .format("pdf")
+                        .signed(true)
+                        .generate(cloudinaryPublicId);
+                log.info("Fetching PDF from: {}", signedUrl);
 
-                try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfBytes))) {
+                java.net.URL url = new java.net.URL(signedUrl);
+                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(10000);
+                conn.setReadTimeout(10000);
+
+                try (PDDocument document = PDDocument.load(conn.getInputStream())) {
                     PDFTextStripper stripper = new PDFTextStripper();
                     return stripper.getText(document);
                 }
