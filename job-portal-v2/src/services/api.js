@@ -161,6 +161,7 @@ export const resumeAPI = {
     },
     check: (userId) => apiClient.get(`/resume/check?userId=${userId}`),
     list: (userId) => apiClient.get(`/resume/list?userId=${userId}`),
+    getUrl: (resumeId) => apiClient.get(`/resume/url/${resumeId}`),
     download: (resumeId) => apiClient.get(`/resume/download/${resumeId}`, { responseType: 'blob' }),
     delete: (resumeId) => apiClient.delete(`/resume/delete/${resumeId}`),
     rename: (resumeId, name) => apiClient.put(`/resume/rename/${resumeId}?name=${encodeURIComponent(name)}`),

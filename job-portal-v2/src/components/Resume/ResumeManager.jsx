@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
+import axios from 'axios';
 import { resumeAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import PDFPreviewModal from './PDFPreviewModal';
@@ -41,7 +42,12 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
     const handleDownload = async (resume) => {
         setDownloading(resume.id);
         try {
-            const res = await resumeAPI.download(resume.id);
+            // Step 1: Get authorized cloud URL
+            const urlRes = await resumeAPI.getUrl(resume.id);
+            const cloudUrl = urlRes.data.url;
+
+            // Step 2: Fetch blob from cloud directly
+            const res = await axios.get(cloudUrl, { responseType: 'blob' });
             const url = window.URL.createObjectURL(
                 new Blob([res.data], { type: 'application/pdf' }));
             const link = document.createElement('a');

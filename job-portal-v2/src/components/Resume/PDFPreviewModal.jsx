@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as pdfjsLib from 'pdfjs-dist';
+import axios from 'axios';
 import { resumeAPI } from '../../services/api';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.mjs`;
@@ -25,7 +26,14 @@ export default function PDFPreviewModal({ resume, onClose }) {
         setError('');
 
         try {
-            const res = await resumeAPI.download(resume.id);
+            // Step 1: Get the authorized cloud URL from our backend
+            const urlRes = await resumeAPI.getUrl(resume.id);
+            const cloudUrl = urlRes.data.url;
+
+            // Step 2: Fetch the file from the cloud directly
+            // We use a fresh axios instance or just axios.get to avoid sending our 
+            // backend's Bearer token to Cloudinary (which causes CORS/Security issues)
+            const res = await axios.get(cloudUrl, { responseType: 'blob' });
             const blob = new Blob([res.data], { type: 'application/pdf' });
             const url = window.URL.createObjectURL(blob);
 
