@@ -74,17 +74,19 @@ public class ResumeAnalysisService {
         InputStream inputStream;
         String urlToFetch;
         try {
-            if (publicId != null && !publicId.isEmpty()) {
-                log.info("Generating signed URL from Cloudinary with publicId: {}", publicId);
+            String cloudinaryPublicId = publicId;
+            if ((cloudinaryPublicId == null || cloudinaryPublicId.isEmpty()) && fileName.startsWith("http")) {
+                cloudinaryPublicId = extractPublicIdFromUrl(fileName);
+            }
+
+            if (cloudinaryPublicId != null && !cloudinaryPublicId.isEmpty()) {
+                log.info("Generating signed URL from Cloudinary with publicId: {}", cloudinaryPublicId);
                 urlToFetch = cloudinary.url()
                         .resourceType("raw")
                         .format("pdf")
                         .signed(true)
-                        .generate(publicId);
+                        .generate(cloudinaryPublicId);
                 log.info("Signed URL generated: {}", urlToFetch);
-            } else if (fileName.startsWith("http")) {
-                log.info("Using stored URL: {}", fileName);
-                urlToFetch = fileName;
             } else {
                 throw new RuntimeException("Resume file not available. No publicId or valid URL.");
             }
@@ -99,6 +101,16 @@ public class ResumeAnalysisService {
             log.error("Failed to extract text from resume: {}", e.getMessage());
             throw new RuntimeException("Could not read resume PDF content: " + e.getMessage());
         }
+    }
+
+    private String extractPublicIdFromUrl(String url) {
+        if (url == null || !url.contains("job_portal/resumes/")) {
+            return null;
+        }
+        int idx = url.indexOf("job_portal/resumes/");
+        String part = url.substring(idx + "job_portal/resumes/".length());
+        String publicId = part.replace(".pdf", "");
+        return publicId.isEmpty() ? null : publicId;
     }
 
     private ResumeAnalysis performAnalysis(Resume resume, Job job, String text) {
