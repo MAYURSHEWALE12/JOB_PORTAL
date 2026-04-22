@@ -73,24 +73,25 @@ public class CloudinaryService {
 
     /**
      * Use Cloudinary's explicit API to force an asset's access mode to public.
-     * This fixes assets that were uploaded before access_mode was set.
+     * Returns the working secure_url from Cloudinary's response.
      */
-    public void ensurePublicAccess(String publicId) {
-        // Try both resource types since we don't know which one Cloudinary used
+    public String ensurePublicAccess(String publicId) {
         for (String resourceType : new String[]{"image", "raw"}) {
             try {
-                cloudinary.uploader().explicit(publicId, ObjectUtils.asMap(
+                Map result = cloudinary.uploader().explicit(publicId, ObjectUtils.asMap(
                         "resource_type", resourceType,
                         "type", "upload",
                         "access_mode", "public"
                 ));
-                log.info("Set access_mode=public for {} (resource_type={})", publicId, resourceType);
-                return; // Success — no need to try the other type
+                String secureUrl = (String) result.get("secure_url");
+                log.info("Set access_mode=public for {} (resource_type={}), url={}", publicId, resourceType, secureUrl);
+                return secureUrl;
             } catch (Exception e) {
                 log.debug("explicit() with resource_type={} failed for {}: {}", resourceType, publicId, e.getMessage());
             }
         }
         log.warn("Could not update access_mode for {}", publicId);
+        return null;
     }
 
     /**

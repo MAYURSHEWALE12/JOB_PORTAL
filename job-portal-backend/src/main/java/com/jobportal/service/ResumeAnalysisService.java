@@ -76,10 +76,15 @@ public class ResumeAnalysisService {
             }
 
             if (publicId != null && !publicId.isEmpty()) {
-                // Ensure the asset is publicly accessible (fixes legacy blocked assets)
-                cloudinaryService.ensurePublicAccess(publicId);
+                // Use Cloudinary's explicit API — returns a working secure_url
+                String cloudinaryUrl = cloudinaryService.ensurePublicAccess(publicId);
+                if (cloudinaryUrl != null) {
+                    log.info("Using Cloudinary API URL: {}", cloudinaryUrl);
+                    String text = tryFetchPdf(cloudinaryUrl);
+                    if (text != null) return text;
+                }
 
-                // Try signed URLs with both resource types
+                // Fallback: try signed URLs with both resource types
                 String[] signedUrls = cloudinaryService.generateSignedUrls(publicId);
                 for (String signedUrl : signedUrls) {
                     log.info("Trying signed URL: {}", signedUrl);
