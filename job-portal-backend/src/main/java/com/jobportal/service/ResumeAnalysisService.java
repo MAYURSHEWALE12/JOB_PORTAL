@@ -71,8 +71,6 @@ public class ResumeAnalysisService {
             throw new RuntimeException("Resume file name not found.");
         }
 
-        InputStream inputStream;
-        String urlToFetch;
         try {
             String cloudinaryPublicId = publicId;
             if ((cloudinaryPublicId == null || cloudinaryPublicId.isEmpty()) && fileName.startsWith("http")) {
@@ -80,22 +78,15 @@ public class ResumeAnalysisService {
             }
 
             if (cloudinaryPublicId != null && !cloudinaryPublicId.isEmpty()) {
-                log.info("Generating signed URL from Cloudinary with publicId: {}", cloudinaryPublicId);
-                urlToFetch = cloudinary.url()
-                        .resourceType("raw")
-                        .format("pdf")
-                        .signed(true)
-                        .generate(cloudinaryPublicId);
-                log.info("Signed URL generated: {}", urlToFetch);
+                log.info("Downloading resume from Cloudinary with publicId: {}", cloudinaryPublicId);
+                byte[] pdfBytes = (byte[]) cloudinary.api().download(cloudinaryPublicId, ObjectUtils.asMap("resource_type", "raw"));
+
+                try (PDDocument document = PDDocument.load(new ByteArrayInputStream(pdfBytes))) {
+                    PDFTextStripper stripper = new PDFTextStripper();
+                    return stripper.getText(document);
+                }
             } else {
                 throw new RuntimeException("Resume file not available. No publicId or valid URL.");
-            }
-
-            inputStream = new URL(urlToFetch).openStream();
-
-            try (PDDocument document = PDDocument.load(inputStream)) {
-                PDFTextStripper stripper = new PDFTextStripper();
-                return stripper.getText(document);
             }
         } catch (Exception e) {
             log.error("Failed to extract text from resume: {}", e.getMessage());
