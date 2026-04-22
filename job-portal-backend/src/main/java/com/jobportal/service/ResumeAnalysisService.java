@@ -72,22 +72,24 @@ public class ResumeAnalysisService {
         }
 
         InputStream inputStream;
+        String urlToFetch;
         try {
             if (publicId != null && !publicId.isEmpty()) {
-                log.info("Fetching resume from Cloudinary with publicId: {}", publicId);
-                Map result = cloudinary.api().resource(publicId, ObjectUtils.asMap("resource_type", "raw"));
-                String secureUrl = (String) result.get("secure_url");
-                if (secureUrl == null) {
-                    secureUrl = fileName;
-                }
-                log.info("Got secure URL from Cloudinary: {}", secureUrl);
-                inputStream = new URL(secureUrl).openStream();
+                log.info("Generating signed URL from Cloudinary with publicId: {}", publicId);
+                urlToFetch = cloudinary.url()
+                        .resourceType("raw")
+                        .format("pdf")
+                        .signed(true)
+                        .generate(publicId);
+                log.info("Signed URL generated: {}", urlToFetch);
             } else if (fileName.startsWith("http")) {
-                log.info("Fetching resume from URL: {}", fileName);
-                inputStream = new URL(fileName).openStream();
+                log.info("Using stored URL: {}", fileName);
+                urlToFetch = fileName;
             } else {
                 throw new RuntimeException("Resume file not available. No publicId or valid URL.");
             }
+
+            inputStream = new URL(urlToFetch).openStream();
 
             try (PDDocument document = PDDocument.load(inputStream)) {
                 PDFTextStripper stripper = new PDFTextStripper();
