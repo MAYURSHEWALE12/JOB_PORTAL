@@ -176,6 +176,24 @@ public class ResumeController {
                 .build();
     }
 
+    @GetMapping("/url/{resumeId}")
+    public ResponseEntity<Map<String, String>> getResumeUrl(@PathVariable Long resumeId, HttpServletRequest request) {
+        Resume resume = resumeRepository.findById(resumeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Resume", "id", resumeId));
+
+        Long currentUserId = securityUtil.getCurrentUserId(request);
+
+        boolean isOwner = resume.getUser().getId().equals(currentUserId);
+        // Check if user is the candidate OR an employer who has received this resume via application
+        boolean isEmployer = isOwner || jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
+        
+        if (!isOwner && !isEmployer) {
+            throw new CustomException("Access denied: You do not have permission to view this blueprint.", HttpStatus.FORBIDDEN);
+        }
+
+        return ResponseEntity.ok(Map.of("url", resume.getFileName()));
+    }
+
     @GetMapping("/download/{resumeId}")
     public ResponseEntity<Resource> downloadResume(@PathVariable Long resumeId, HttpServletRequest request) {
         return previewResume(resumeId, null, request);
