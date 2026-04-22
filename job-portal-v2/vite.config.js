@@ -17,12 +17,12 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-motion': ['framer-motion'],
-          'vendor-charts': ['recharts'],
-          'vendor-pdf': ['pdfjs-dist'],
-          'vendor-utils': ['axios', 'zustand', 'react-hot-toast'],
+        manualChunks(id) {
+          if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/') || id.includes('node_modules/react-router')) return 'vendor-react';
+          if (id.includes('node_modules/framer-motion')) return 'vendor-motion';
+          if (id.includes('node_modules/recharts') || id.includes('node_modules/d3')) return 'vendor-charts';
+          if (id.includes('node_modules/pdfjs-dist')) return 'vendor-pdf';
+          if (id.includes('node_modules/axios') || id.includes('node_modules/zustand')) return 'vendor-utils';
         },
       },
     },
