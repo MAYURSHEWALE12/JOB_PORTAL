@@ -63,45 +63,65 @@ public class ResumeAnalysisService {
 
     private String extractText(Resume resume) {
         String fileName = resume.getFileName();
-        String publicId = resume.getPublicId();
 
         if (fileName == null || fileName.isEmpty()) {
             throw new RuntimeException("Resume file name not found.");
         }
 
         try {
-            String cloudinaryPublicId = publicId;
-            if ((cloudinaryPublicId == null || cloudinaryPublicId.isEmpty()) && fileName.startsWith("http")) {
-                cloudinaryPublicId = extractPublicIdFromUrl(fileName);
+            // Strategy 1: Use the original Cloudinary URL directly (works for public uploads)
+            if (fileName.startsWith("http")) {
+                log.info("Attempting direct PDF fetch from: {}", fileName);
+                String text = tryFetchPdf(fileName);
+                if (text != null) return text;
             }
 
-            if (cloudinaryPublicId != null && !cloudinaryPublicId.isEmpty()) {
-                log.info("Generating signed URL via CloudinaryService with publicId: {}", cloudinaryPublicId);
-                String signedUrl = cloudinaryService.generateSignedUrl(cloudinaryPublicId);
-                log.info("Fetching PDF from: {}", signedUrl);
-
-                java.net.URL url = new java.net.URL(signedUrl);
-                java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(10000);
-                conn.setReadTimeout(10000);
-                int responseCode = conn.getResponseCode();
-                log.info("HTTP response code: {}", responseCode);
-
-                if (responseCode != 200) {
-                    throw new RuntimeException("HTTP error: " + responseCode + " - " + conn.getResponseMessage());
-                }
-
-                try (PDDocument document = PDDocument.load(conn.getInputStream())) {
-                    PDFTextStripper stripper = new PDFTextStripper();
-                    return stripper.getText(document);
-                }
-            } else {
-                throw new RuntimeException("Resume file not available. No publicId or valid URL.");
+            // Strategy 2: Generate signed URL as fallback
+            String publicId = resume.getPublicId();
+            if (publicId == null || publicId.isEmpty()) {
+                publicId = extractPublicIdFromUrl(fileName);
             }
+
+            if (publicId != null && !publicId.isEmpty()) {
+                log.info("Trying signed URL with publicId: {}", publicId);
+                String signedUrl = cloudinaryService.generateSignedUrl(publicId);
+                log.info("Signed URL: {}", signedUrl);
+                String text = tryFetchPdf(signedUrl);
+                if (text != null) return text;
+            }
+
+            throw new RuntimeException("All PDF fetch strategies failed for resume: " + resume.getId());
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
             log.error("Failed to extract text from resume: {}", e.getMessage());
             throw new RuntimeException("Could not read resume PDF content: " + e.getMessage());
+        }
+    }
+
+    private String tryFetchPdf(String pdfUrl) {
+        try {
+            java.net.URL url = new java.net.URL(pdfUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            conn.setInstanceFollowRedirects(true);
+            int responseCode = conn.getResponseCode();
+            log.info("HTTP {} from: {}", responseCode, pdfUrl);
+
+            if (responseCode != 200) {
+                log.warn("Non-200 response ({}) from {}", responseCode, pdfUrl);
+                return null;
+            }
+
+            try (PDDocument document = PDDocument.load(conn.getInputStream())) {
+                PDFTextStripper stripper = new PDFTextStripper();
+                return stripper.getText(document);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to fetch PDF from {}: {}", pdfUrl, e.getMessage());
+            return null;
         }
     }
 
