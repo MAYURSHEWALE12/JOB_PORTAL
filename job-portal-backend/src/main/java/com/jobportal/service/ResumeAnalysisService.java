@@ -109,10 +109,15 @@ public class ResumeAnalysisService {
         if (url == null || !url.contains("job_portal/resumes/")) {
             return null;
         }
-        int idx = url.indexOf("job_portal/resumes/");
-        String part = url.substring(idx + "job_portal/resumes/".length());
-        String publicId = part.replace(".pdf", "");
-        return publicId.isEmpty() ? null : publicId;
+        // Keep the full folder path — Cloudinary needs "job_portal/resumes/xyz", not just "xyz"
+        int idx = url.indexOf("job_portal/");
+        String part = url.substring(idx);
+        // Remove file extension if present
+        int dotIdx = part.lastIndexOf('.');
+        if (dotIdx > 0) {
+            part = part.substring(0, dotIdx);
+        }
+        return part.isEmpty() ? null : part;
     }
 
     private ResumeAnalysis performAnalysis(Resume resume, Job job, String text) {
