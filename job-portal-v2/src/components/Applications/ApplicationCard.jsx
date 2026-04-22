@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { resumeAnalysisAPI, applicationAPI, resolvePublicUrl } from '../../services/api';
+import { resumeAnalysisAPI, applicationAPI, resolvePublicUrl, API_BASE_URL } from '../../services/api';
 import ScheduleInterviewModal from '../Interviews/ScheduleInterviewModal';
 import CircularMatchScore from './CircularMatchScore';
 import VertexIntelligenceModal from './VertexIntelligenceModal';
@@ -29,6 +29,14 @@ export default function ApplicationCard({
 
     // Interview state
     const [showInterviewModal, setShowInterviewModal] = useState(false);
+
+    const handleViewResume = (e) => {
+        e.stopPropagation();
+        if (!resumeId) return;
+        const token = localStorage.getItem('token');
+        const previewUrl = `${API_BASE_URL}/resume/preview/${resumeId}${token ? `?token=${token}` : ''}`;
+        window.open(previewUrl, '_blank');
+    };
 
     const handleSendOffer = async (e) => {
         e.preventDefault();
@@ -200,10 +208,29 @@ export default function ApplicationCard({
                             )}
                         </div>
                         <p className="text-[var(--hp-muted)] text-xs sm:text-sm truncate">{app.jobSeeker?.email}</p>
-                        <p className="text-[var(--hp-muted)] text-[9px] sm:text-[10px] mt-1 flex items-center gap-1.5 uppercase font-black tracking-widest">
-                            <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--hp-accent)' }}></span>
-                            {formatDate(app.appliedAt)}
-                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                            <p className="text-[var(--hp-muted)] text-[9px] sm:text-[10px] flex items-center gap-1.5 uppercase font-black tracking-widest">
+                                <span className="w-1.5 h-1.5 rounded-full" style={{ background: 'var(--hp-accent)' }}></span>
+                                {formatDate(app.appliedAt)}
+                            </p>
+                            {resumeId && (
+                                <button
+                                    onClick={handleViewResume}
+                                    className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-lg border transition-all flex items-center gap-1 hover:scale-105"
+                                    style={{
+                                        color: 'var(--hp-accent2)',
+                                        background: 'rgba(var(--hp-accent2-rgb), 0.08)',
+                                        borderColor: 'rgba(var(--hp-accent2-rgb), 0.2)'
+                                    }}
+                                    title={`View ${app.selectedResume?.name || 'Resume'}`}
+                                >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                    </svg>
+                                    {app.selectedResume?.name || 'Resume'}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
 
