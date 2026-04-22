@@ -39,17 +39,18 @@ public class CloudinaryService {
         return cloudinary.uploader().upload(file.getBytes(), params);
     }
 
-    /**
-     * Generate a signed URL for a private asset
-     * @param publicId Public ID of the asset
-     * @return Signed URL string
-     */
     public String generateSignedUrl(String publicId) {
         if (publicId == null || publicId.isEmpty()) return null;
         
-        // Using image resource type as PDFs are typically handled as images/PDF by auto-detect
+        // Remove .pdf from publicId if it exists to avoid duplication
+        if (publicId.toLowerCase().endsWith(".pdf")) {
+            publicId = publicId.substring(0, publicId.length() - 4);
+        }
+        
+        // Append format("pdf") so Cloudinary recognizes it correctly
         return cloudinary.url()
                 .resourceType("image")
+                .format("pdf")
                 .signed(true)
                 .generate(publicId);
     }
