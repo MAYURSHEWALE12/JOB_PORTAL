@@ -33,7 +33,10 @@ public class Resume {
     private String name;           // e.g. "Software Engineer Resume"
 
     @Column(nullable = false)
-    private String fileName;       // stored file name on disk
+    private String fileName;       // stored file name (full URL) on cloud
+
+    @Column(name = "public_id")
+    private String publicId;       // unique cloudinary ID
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;

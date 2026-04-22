@@ -33,10 +33,25 @@ public class CloudinaryService {
         
         Map params = ObjectUtils.asMap(
                 "folder", "job_portal/" + folder,
-                "resource_type", "auto" // Auto-detect for images vs PDFs
+                "resource_type", "auto"
         );
 
         return cloudinary.uploader().upload(file.getBytes(), params);
+    }
+
+    /**
+     * Generate a signed URL for a private asset
+     * @param publicId Public ID of the asset
+     * @return Signed URL string
+     */
+    public String generateSignedUrl(String publicId) {
+        if (publicId == null || publicId.isEmpty()) return null;
+        
+        // Using image resource type as PDFs are typically handled as images/PDF by auto-detect
+        return cloudinary.url()
+                .resourceType("image")
+                .signed(true)
+                .generate(publicId);
     }
 
     /**

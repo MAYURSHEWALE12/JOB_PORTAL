@@ -64,11 +64,13 @@ public class ResumeController {
         try {
             Map result = cloudinaryService.uploadFile(file, "resumes");
             String fileUrl = (String) result.get("secure_url");
+            String publicId = (String) result.get("public_id");
 
             Resume resume = Resume.builder()
                     .user(user)
                     .name(name)
                     .fileName(fileUrl)
+                    .publicId(publicId)
                     .build();
 
             Resume saved = resumeRepository.save(resume);
@@ -101,11 +103,13 @@ public class ResumeController {
         try {
             Map result = cloudinaryService.uploadFile(file, "resumes");
             String fileUrl = (String) result.get("secure_url");
+            String publicId = (String) result.get("public_id");
 
             Resume resume = Resume.builder()
                     .user(user)
                     .name(name)
                     .fileName(fileUrl)
+                    .publicId(publicId)
                     .build();
 
             Resume saved = resumeRepository.save(resume);
@@ -184,14 +188,34 @@ public class ResumeController {
         Long currentUserId = securityUtil.getCurrentUserId(request);
 
         boolean isOwner = resume.getUser().getId().equals(currentUserId);
-        // Check if user is the candidate OR an employer who has received this resume via application
         boolean isEmployer = isOwner || jobApplicationRepository.existsByResumeAndJobEmployer(resume, currentUserId);
         
         if (!isOwner && !isEmployer) {
-            throw new CustomException("Access denied: You do not have permission to view this blueprint.", HttpStatus.FORBIDDEN);
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
         }
 
-        return ResponseEntity.ok(Map.of("url", resume.getFileName()));
+        String publicId = resume.getPublicId();
+        
+        // Fallback: If publicId is missing (legacy), try to extract from fileName URL
+        if ((publicId == null || publicId.isEmpty()) && resume.getFileName().contains("upload/")) {
+            try {
+                String url = resume.getFileName();
+                int uploadIdx = url.indexOf("upload/");
+                String afterUpload = url.substring(uploadIdx + 7);
+                int slashIdx = afterUpload.indexOf("/");
+                String afterVersion = afterUpload.substring(slashIdx + 1);
+                int dotIdx = afterVersion.lastIndexOf(".");
+                publicId = dotIdx != -1 ? afterVersion.substring(0, dotIdx) : afterVersion;
+            } catch (Exception e) {
+                log.warn("Could not extract publicId from URL: {}", resume.getFileName());
+            }
+        }
+
+        String displayUrl = (publicId != null) 
+                ? cloudinaryService.generateSignedUrl(publicId) 
+                : resume.getFileName();
+
+        return ResponseEntity.ok(Map.of("url", displayUrl));
     }
 
     @GetMapping("/download/{resumeId}")
