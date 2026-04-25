@@ -441,7 +441,8 @@ export default function MyApplications() {
                                             Your profile aligns with <span className="text-[var(--color-primary)] font-bold">{matchAnalysis.data.score}%</span> of the employer requirements for this role.
                                         </p>
                                     </div>
-                                        {/* Assessment Section */}
+                                )}
+                                {/* Assessment Section */}
                                 {(quizInfo.available || quizInfo.result) && (
                                     <div className="bg-[var(--color-primary)]/[0.03] border border-[var(--color-border-subtle)] p-6 rounded-[28px] relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
