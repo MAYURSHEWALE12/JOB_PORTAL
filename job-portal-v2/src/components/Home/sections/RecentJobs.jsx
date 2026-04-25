@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { fadeUp, staggerContainer } from './variants';
 import { Skeleton } from '../../Skeleton';
+import { resolvePublicUrl } from '../../../services/api';
 
 export default function RecentJobs({ loading, recentJobs, onJobSelect }) {
     if (loading) {
@@ -34,8 +35,12 @@ export default function RecentJobs({ loading, recentJobs, onJobSelect }) {
                                 className="hp-card p-6 flex flex-col group cursor-pointer"
                             >
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="w-12 h-12 rounded-xl bg-[var(--hp-surface-alt)] flex items-center justify-center font-bold text-lg text-[var(--hp-accent)]">
-                                        {job.companyName ? job.companyName.charAt(0) : 'J'}
+                                    <div className="w-12 h-12 rounded-xl bg-[var(--hp-surface-alt)] flex items-center justify-center font-bold text-lg text-[var(--hp-accent)] overflow-hidden">
+                                        {job.companyLogo ? (
+                                            <img src={resolvePublicUrl(job.companyLogo)} alt={job.companyName} className="w-full h-full object-cover" />
+                                        ) : (
+                                            job.companyName ? job.companyName.charAt(0) : 'J'
+                                        )}
                                     </div>
                                     <span className="tag-pill bg-[var(--hp-accent)]/10 text-[var(--hp-accent)] border border-[var(--hp-accent)]/20">
                                         {job.jobType || 'Full-time'}

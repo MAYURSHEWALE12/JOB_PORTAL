@@ -4,7 +4,7 @@ import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 
 // Icons & Stores
 import { useThemeStore } from '../../store/themeStore';
-import { jobAPI } from '../../services/api';
+import { jobAPI, resolvePublicUrl } from '../../services/api';
 
 // Section Components
 import Navbar from './sections/Navbar';
@@ -310,8 +310,12 @@ export default function HomePage() {
                             <div className="p-8 overflow-y-auto hide-scrollbar">
                                 <div className="flex justify-between items-start mb-8">
                                     <div className="flex gap-4">
-                                        <div className="w-16 h-16 rounded-2xl bg-[var(--hp-surface-alt)] flex items-center justify-center font-bold text-2xl text-[var(--hp-accent)]">
-                                            {selectedJob.companyName?.charAt(0)}
+                                        <div className="w-16 h-16 rounded-2xl bg-[var(--hp-surface-alt)] flex items-center justify-center font-bold text-2xl text-[var(--hp-accent)] overflow-hidden">
+                                            {selectedJob.companyLogo ? (
+                                                <img src={resolvePublicUrl(selectedJob.companyLogo)} alt={selectedJob.companyName} className="w-full h-full object-cover" />
+                                            ) : (
+                                                selectedJob.companyName?.charAt(0)
+                                            )}
                                         </div>
                                         <div>
                                             <h3 className="text-2xl font-black text-[var(--hp-text)]">{selectedJob.title}</h3>
