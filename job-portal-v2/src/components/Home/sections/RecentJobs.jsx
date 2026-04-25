@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { fadeUp, staggerContainer } from './variants';
-import Skeleton from '../../Skeleton';
+import { Skeleton } from '../../Skeleton';
 
 export default function RecentJobs({ loading, recentJobs, onJobSelect }) {
     if (loading) {
