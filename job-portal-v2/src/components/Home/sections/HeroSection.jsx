@@ -54,7 +54,7 @@ export default function HeroSection({
                         </motion.form>
 
                         <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
-                            <Link to="/resume-builder" className="hp-btn-primary px-10 py-4 text-base">Get Started Free</Link>
+                            <Link to="/register" className="hp-btn-primary px-10 py-4 text-base">Get Started Free</Link>
                             <a href="#jobs" className="hp-btn-ghost px-10 py-4 text-base">View Jobs ↓</a>
                         </motion.div>
                     </motion.div>
