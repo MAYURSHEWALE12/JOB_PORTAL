@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { jobAPI } from '../../services/api';
 
 export default function PostJob() {
+    const navigate = useNavigate();
     const { user } = useAuthStore();
 
     const [formData, setFormData] = useState({
@@ -58,8 +60,10 @@ export default function PostJob() {
                 positionsAvailable: formData.positionsAvailable ? Number(formData.positionsAvailable) : 1,
             };
 
-            await jobAPI.create(payload, user.id);
-            setSuccess('Job posted successfully! Candidates can now apply.');
+            const res = await jobAPI.create(payload, user.id);
+            const jobId = res.data?.id;
+
+            setSuccess('Job posted successfully! Redirecting to add an assessment...');
             setFormData({
                 title: '',
                 description: '',
@@ -72,6 +76,12 @@ export default function PostJob() {
                 positionsAvailable: 1,
             });
             window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (jobId) {
+                setTimeout(() => {
+                    navigate(`/quiz/create/${jobId}`);
+                }, 1500);
+            }
         } catch (err) {
             setError(err.response?.data?.error || 'Failed to post job. Please try again.');
             window.scrollTo({ top: 0, behavior: 'smooth' });
