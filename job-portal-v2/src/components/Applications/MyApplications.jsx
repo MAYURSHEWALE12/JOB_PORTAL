@@ -504,7 +504,6 @@ export default function MyApplications() {
                                     </div>
                                 )}
 
-                                )}
 
                                 {/* Context Boxes */}
                                 <div className="grid grid-cols-2 gap-4">
