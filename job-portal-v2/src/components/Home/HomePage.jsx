@@ -140,7 +140,16 @@ export default function HomePage() {
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, { stiffness: 200, damping: 30 });
 
-    // Stable particles — computed once
+    // Responsive particle count
+    const [particleCount, setParticleCount] = useState(window.innerWidth < 768 ? 20 : 60);
+
+    useEffect(() => {
+        const handleResize = () => setParticleCount(window.innerWidth < 768 ? 20 : 60);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    // Stable particles — computed once (max 60)
     const particles = useMemo(() =>
         [...Array(60)].map((_, i) => ({
             id: i,
@@ -227,10 +236,13 @@ export default function HomePage() {
                     background: var(--hp-card);
                     border: 1px solid var(--hp-border);
                     border-radius: 16px;
-                    transition: all .25s ease;
+                    transition: transform .2s ease, border-color .2s ease;
                     box-shadow: var(--hp-shadow-card);
                 }
                 .hp-card:hover { border-color: rgba(var(--hp-accent-rgb), .3); transform: translateY(-3px); }
+                @media (max-width: 768px) {
+                    .hp-card:hover { transform: none; }
+                }
 
                 /* Buttons */
                 .hp-btn-primary {
@@ -272,7 +284,13 @@ export default function HomePage() {
 
                 /* Particles */
                 .hp-particles { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
-                .hp-particle { position: absolute; border-radius: 50%; animation: hp-float-up linear infinite; opacity: 0; }
+                .hp-particle { 
+                    position: absolute; 
+                    border-radius: 50%; 
+                    animation: hp-float-up linear infinite; 
+                    opacity: 0;
+                    will-change: transform;
+                }
                 @keyframes hp-float-up {
                     0%{transform:translateY(100vh)scale(0);opacity:0}
                     10%{opacity:1}
@@ -306,14 +324,25 @@ export default function HomePage() {
                 .glow-cta { animation: glow-pulse 3s ease-in-out infinite; }
 
                 /* Mobile menu */
-                .mobile-menu { backdrop-filter: blur(20px); }
+                .mobile-menu { 
+                    backdrop-filter: none; 
+                    background: var(--hp-surface) !important;
+                    border-top: 1px solid var(--hp-border);
+                }
+
+                @media (max-width: 768px) {
+                    :root { --hp-shadow-card: 0 4px 12px rgba(0,0,0,0.1); }
+                    .orb { display: none; }
+                    .float1, .float2 { animation: none !important; }
+                    nav { backdrop-filter: none !important; background: var(--hp-bg) !important; }
+                }
             `}</style>
 
             <div style={{ background: 'var(--hp-bg)', color: 'var(--hp-text)', minHeight: '100vh', fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}>
 
                 {/* ── Floating Particles ── */}
                 <div className="hp-particles">
-                    {particles.map(p => (
+                    {particles.slice(0, particleCount).map(p => (
                         <div key={p.id} className="hp-particle" style={{
                             width: `${p.width}px`, height: `${p.height}px`,
                             left: `${p.left}%`, backgroundColor: p.color,

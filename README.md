@@ -1,6 +1,6 @@
-# 🚀 NextHire: Premium Job Portal
+# 🚀 HireHub: Premium Job Portal
 
-NextHire is a state-of-the-art, full-stack job portal application designed to bridge the gap between talented job seekers and industry-leading employers. Built with a modern tech stack centered around **Spring Boot 4**, **React 19**, and **Tailwind CSS 4**, it offers a high-performance, immersive experience with a focus on aesthetics and intelligent features.
+HireHub is a state-of-the-art, full-stack job portal application designed to bridge the gap between talented job seekers and industry-leading employers. Built with a modern tech stack centered around **Spring Boot 4**, **React 19**, and **Tailwind CSS 4**, it offers a high-performance, immersive experience with a focus on aesthetics and intelligent features.
 
 ---
 
