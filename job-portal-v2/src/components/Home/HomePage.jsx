@@ -6,6 +6,15 @@ import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 import { useThemeStore } from '../../store/themeStore';
 import { jobAPI, resolvePublicUrl } from '../../services/api';
 import { formatSalary, timeAgo } from '../../utils/formatters';
+import CompanyAvatar from '../CompanyAvatar';
+
+const JOB_TYPE_STYLE = {
+    FULL_TIME: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30',
+    PART_TIME: 'bg-sky-500/15 text-sky-400 ring-1 ring-sky-500/30',
+    CONTRACT:  'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',
+    REMOTE:    'bg-violet-500/15 text-violet-400 ring-1 ring-violet-500/30',
+    FREELANCE: 'bg-pink-500/15 text-pink-400 ring-1 ring-pink-500/30',
+};
 
 // Section Components
 import Navbar from './sections/Navbar';
@@ -308,38 +317,51 @@ export default function HomePage() {
                     <div className="fixed inset-0 z-[100] flex items-center justify-center px-6">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedJob(null)} className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
                         <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }} className="hp-card w-full max-w-2xl overflow-hidden relative z-10 max-h-[90vh] flex flex-col">
-                            <div className="p-8 overflow-y-auto hide-scrollbar">
-                                <div className="flex justify-between items-start mb-8">
-                                    <div className="flex gap-4">
-                                        <div className="w-16 h-16 rounded-2xl bg-[var(--hp-surface-alt)] flex items-center justify-center font-bold text-2xl text-[var(--hp-accent)] overflow-hidden">
-                                            {selectedJob.companyLogo ? (
-                                                <img src={resolvePublicUrl(selectedJob.companyLogo)} alt={selectedJob.companyName} className="w-full h-full object-cover" />
-                                            ) : (
-                                                selectedJob.companyName?.charAt(0)
-                                            )}
-                                        </div>
-                                        <div>
-                                            <h3 className="text-2xl font-black text-[var(--hp-text)]">{selectedJob.title}</h3>
-                                            <p className="text-[var(--hp-muted)]">{selectedJob.companyName} · {selectedJob.location}</p>
-                                        </div>
-                                    </div>
-                                    <button onClick={() => setSelectedJob(null)} className="hp-btn-ghost w-10 h-10 rounded-full">✕</button>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 mb-8">
-                                    <div className="p-4 rounded-xl bg-[var(--hp-surface-alt)]">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-1">Salary</div>
-                                        <div className="font-bold text-[var(--hp-text)]">
-                                            {formatSalary(selectedJob.salaryMin, selectedJob.salaryMax) || 'Salary undisclosed'}
-                                        </div>
-                                    </div>
-                                    <div className="p-4 rounded-xl bg-[var(--hp-surface-alt)]">
-                                        <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-1">Experience</div>
-                                        <div className="font-bold text-[var(--hp-text)]">{selectedJob.experienceRequired || 'Not specified'}</div>
+                            {/* Modal Header */}
+                            <div className="p-6 flex items-center justify-between gap-4" style={{ background: 'var(--hp-card)', borderBottom: '1px solid var(--hp-border)' }}>
+                                <div className="flex items-center gap-4 min-w-0">
+                                    <CompanyAvatar job={selectedJob} size="lg" />
+                                    <div className="min-w-0">
+                                        <h2 className="font-bold text-xl leading-snug truncate" style={{ color: 'var(--hp-text)' }}>
+                                            {selectedJob.title}
+                                        </h2>
+                                        <p className="text-sm font-semibold mt-0.5 truncate" style={{ color: 'var(--hp-accent)' }}>
+                                            {selectedJob.companyName || 'Verified Employer'}
+                                        </p>
+                                        {selectedJob.createdAt && (
+                                            <p className="text-[11px] mt-0.5" style={{ color: 'var(--hp-muted)' }}>
+                                                Posted {timeAgo(selectedJob.createdAt)}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
+                                <div className="flex items-center gap-2 flex-shrink-0">
+                                    {selectedJob.jobType && (
+                                        <span className={`tag-pill hidden sm:inline-flex ${JOB_TYPE_STYLE[selectedJob.jobType] || ''}`}>
+                                            {selectedJob.jobType?.replace(/_/g, ' ')}
+                                        </span>
+                                    )}
+                                    <button onClick={() => setSelectedJob(null)} className="hp-btn-ghost w-9 h-9 rounded-lg flex items-center justify-center">✕</button>
+                                </div>
+                            </div>
 
-                                <div className="mb-8">
+                            {/* Modal Body */}
+                            <div className="p-8 overflow-y-auto hide-scrollbar space-y-8">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    {[
+                                        { label: 'Location', value: selectedJob.location, icon: '📍' },
+                                        { label: 'Salary', value: formatSalary(selectedJob.salaryMin, selectedJob.salaryMax), icon: '💰', accent: true },
+                                        { label: 'Experience', value: selectedJob.experienceRequired || 'Open', icon: '🎓' },
+                                        { label: 'Type', value: selectedJob.jobType?.replace(/_/g, ' '), icon: '💼' },
+                                    ].filter(s => s.value).map(({ label, value, icon, accent }) => (
+                                        <div key={label} style={{ background: 'var(--hp-surface-alt)', border: '1px solid var(--hp-border)', borderRadius: 12, padding: 12 }}>
+                                            <div style={{ fontSize: '.7rem', color: 'var(--hp-muted)', marginBottom: '.25rem' }}>{icon} {label}</div>
+                                            <div style={{ fontWeight: 600, fontSize: '.85rem', color: accent ? 'var(--hp-accent)' : 'var(--hp-text)' }}>{value}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div>
                                     <h4 className="font-black text-sm uppercase tracking-widest text-[var(--hp-muted)] mb-4">Required Skills</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {selectedJob.skillsRequired?.map(sk => (
@@ -348,14 +370,19 @@ export default function HomePage() {
                                     </div>
                                 </div>
 
-                                <div className="mb-8">
+                                <div>
                                     <h4 className="font-black text-sm uppercase tracking-widest text-[var(--hp-muted)] mb-4">Description</h4>
-                                    <p className="text-[var(--hp-text-sub)] leading-relaxed text-sm">{selectedJob.description || 'No description provided.'}</p>
+                                    <div className="text-sm leading-relaxed whitespace-pre-line p-5 rounded-xl"
+                                        style={{ color: 'var(--hp-text-sub)', background: 'var(--hp-surface-alt)', border: '1px solid var(--hp-border)', lineHeight: 1.8 }}>
+                                        {selectedJob.description || 'No description provided.'}
+                                    </div>
                                 </div>
                             </div>
-                            <div className="p-8 border-t border-[var(--hp-border)] flex gap-4 bg-[var(--hp-card)]">
-                                <button onClick={() => navigate(`/jobs/${selectedJob.id}`)} className="hp-btn-primary flex-1 py-4 text-sm">Apply Now</button>
-                                <button onClick={() => setSelectedJob(null)} className="hp-btn-ghost flex-1 py-4 text-sm">Save Job</button>
+
+                            {/* Modal Footer */}
+                            <div className="p-6 border-t border-[var(--hp-border)] flex gap-4 bg-[var(--hp-card)]">
+                                <button onClick={() => navigate(`/jobs/${selectedJob.id}`)} className="hp-btn-primary flex-1 py-4 text-sm" style={{ boxShadow: '0 6px 24px rgba(var(--hp-accent-rgb),.2)' }}>Apply Now →</button>
+                                <button onClick={() => setSelectedJob(null)} className="hp-btn-ghost flex-1 py-4 text-sm">Close</button>
                             </div>
                         </motion.div>
                     </div>

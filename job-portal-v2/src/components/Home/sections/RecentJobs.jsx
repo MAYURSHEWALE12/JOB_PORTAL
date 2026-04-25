@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { fadeUp, staggerContainer } from './variants';
 import { resolvePublicUrl } from '../../../services/api';
 import { formatSalary, timeAgo } from '../../../utils/formatters';
+import CompanyAvatar from '../../CompanyAvatar';
 
 const JOB_TYPE_STYLE = {
     FULL_TIME: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30',
@@ -11,30 +12,6 @@ const JOB_TYPE_STYLE = {
     FREELANCE: 'bg-pink-500/15 text-pink-400 ring-1 ring-pink-500/30',
 };
 
-function CompanyAvatar({ job, size = 'md' }) {
-    const rawUrl = job.companyLogo || job.employer?.companyProfile?.logoUrl || job.employer?.profileImageUrl;
-    const url = resolvePublicUrl(rawUrl);
-    const name = job.companyName || job.employer?.companyProfile?.companyName || job.employer?.firstName || 'J';
-    
-    const dim = size === 'lg'
-        ? 'w-14 h-14 text-xl rounded-2xl'
-        : 'w-11 h-11 text-base rounded-xl';
-
-    return url ? (
-        <img
-            src={url} alt={name}
-            className={`${dim} object-cover flex-shrink-0 border border-white/10`}
-            onError={e => { e.target.style.display = 'none'; }}
-        />
-    ) : (
-        <div
-            className={`${dim} flex-shrink-0 flex items-center justify-center font-bold text-white`}
-            style={{ background: 'linear-gradient(135deg, var(--hp-accent), var(--hp-accent2))' }}
-        >
-            {name.charAt(0).toUpperCase()}
-        </div>
-    );
-}
 
 export default function RecentJobs({ loading, recentJobs, onJobSelect }) {
     if (loading) {
