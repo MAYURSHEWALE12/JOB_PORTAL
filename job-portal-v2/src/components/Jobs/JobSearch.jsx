@@ -457,9 +457,26 @@ export default function JobSearch() {
         setApplyError('');
         setApplySuccess('');
         try {
-            await applicationAPI.apply(selected.id, user.id, coverLetter, selectedResumeId);
+            const res = await applicationAPI.apply(selected.id, user.id, coverLetter, selectedResumeId);
+            const applicationId = res.data?.id;
+            
             setApplySuccess('Application submitted successfully!');
             setAppliedJobs(prev => new Set([...prev, selected.id]));
+
+            // Check if there is a quiz for this job
+            try {
+                const quizRes = await quizAPI.getByJob(selected.id);
+                if (quizRes.data && applicationId) {
+                    setApplySuccess('Application success! Redirecting to assessment...');
+                    setTimeout(() => {
+                        navigate(`/quiz/take/${selected.id}/${applicationId}`);
+                    }, 1500);
+                    return;
+                }
+            } catch (qErr) {
+                // No quiz or error, just continue with normal success
+            }
+
             setTimeout(() => { setShowModal(false); setApplySuccess(''); }, 2000);
         } catch (err) {
             const msg = err.response?.data?.error

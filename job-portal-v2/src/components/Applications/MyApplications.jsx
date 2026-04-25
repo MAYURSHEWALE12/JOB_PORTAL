@@ -306,9 +306,19 @@ export default function MyApplications() {
                                     </p>
                                 </div>
 
-                                <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] font-mono border-t border-[var(--color-divider)] pt-4">
-                                    <span className="flex items-center gap-1">📍 {app.job?.location}</span>
-                                    <span>{formatDate(app.appliedAt)}</span>
+                                 <div className="flex items-center justify-between text-[10px] text-[var(--color-text-muted)] font-mono border-t border-[var(--color-divider)] pt-4">
+                                    <div className="flex flex-col">
+                                        <span className="flex items-center gap-1">📍 {app.job?.location}</span>
+                                        <span>{formatDate(app.appliedAt)}</span>
+                                    </div>
+                                    {/* Minimalist assessment indicator */}
+                                    {app.status !== 'REJECTED' && (
+                                        <div className="flex flex-col items-end">
+                                            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)]/10 flex items-center justify-center text-[10px] font-black text-[var(--color-primary)] border border-[var(--color-primary)]/20">
+                                                {app.quizResult ? `${Math.round((app.quizResult.score / app.quizResult.total) * 100)}%` : '??'}
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {app.status === 'OFFERED' && (
@@ -431,9 +441,7 @@ export default function MyApplications() {
                                             Your profile aligns with <span className="text-[var(--color-primary)] font-bold">{matchAnalysis.data.score}%</span> of the employer requirements for this role.
                                         </p>
                                     </div>
-                                )}
-
-                                {/* Assessment Section */}
+                                        {/* Assessment Section */}
                                 {(quizInfo.available || quizInfo.result) && (
                                     <div className="bg-[var(--color-primary)]/[0.03] border border-[var(--color-border-subtle)] p-6 rounded-[28px] relative overflow-hidden group">
                                         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -446,28 +454,39 @@ export default function MyApplications() {
                                             <div>
                                                 <h4 className="text-[11px] font-black text-[var(--color-primary)] uppercase tracking-widest mb-1">Expert Assessment</h4>
                                                 <p className="text-sm font-bold text-[var(--color-text)]">
-                                                    {quizInfo.result ? 'Results Certified' : 'Skill Validation Required'}
+                                                    {quizInfo.result ? 'Assessment Certified' : 'Skill Validation Required'}
                                                 </p>
                                             </div>
                                             {quizInfo.result && (
-                                                <div className="bg-[var(--color-primary)] text-black px-3 py-1 rounded-full text-[10px] font-black tracking-tighter">
-                                                    {quizInfo.result.correctAnswers}/{quizInfo.result.totalQuestions}
+                                                <div className="flex flex-col items-end">
+                                                    <div className="bg-[var(--color-primary)] text-black px-4 py-1.5 rounded-full text-xs font-black shadow-lg shadow-[var(--color-primary)]/20">
+                                                        {Math.round((quizInfo.result.correctAnswers / quizInfo.result.totalQuestions) * 100)}%
+                                                    </div>
+                                                    <span className="text-[9px] font-bold text-[var(--color-text-muted)] mt-1 uppercase tracking-tighter">Verified Score</span>
                                                 </div>
                                             )}
                                         </div>
 
                                         {quizInfo.result ? (
-                                            <div className="space-y-3">
-                                                <div className="flex items-center gap-2 text-xs text-[var(--color-text-mid)]">
-                                                    <span className={quizInfo.result.passed ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}>
-                                                        {quizInfo.result.passed ? '✅ Verified Proficient' : '❌ Target Score Not Met'}
-                                                    </span>
-                                                    <span>•</span>
-                                                    <span>{formatDate(quizInfo.result.completedAt)}</span>
+                                            <div className="space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${quizInfo.result.passed ? 'bg-[var(--color-success)]/10 text-[var(--color-success)]' : 'bg-[var(--color-error)]/10 text-[var(--color-error)]'}`}>
+                                                        {quizInfo.result.passed ? '🏆' : '📚'}
+                                                    </div>
+                                                    <div>
+                                                        <div className={`text-xs font-bold ${quizInfo.result.passed ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                                                            {quizInfo.result.passed ? 'Proficiency Verified' : 'Assessment Completed'}
+                                                        </div>
+                                                        <div className="text-[10px] text-[var(--color-text-muted)]">
+                                                            {quizInfo.result.correctAnswers} of {quizInfo.result.totalQuestions} questions correct
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed italic">
-                                                    "This result has been pinned to your profile for current and future opportunities."
-                                                </p>
+                                                <div className="p-4 rounded-xl bg-[var(--color-page)] border border-[var(--color-border-subtle)]">
+                                                    <p className="text-[10px] text-[var(--color-text-muted)] leading-relaxed italic">
+                                                        "Your score has been permanently recorded and shared with the hiring team. High scores significantly increase your chances of being shortlisted."
+                                                    </p>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
@@ -478,11 +497,13 @@ export default function MyApplications() {
                                                     onClick={() => setShowQuizModal(true)}
                                                     className="w-full py-4 bg-white border border-[var(--color-primary)] text-[var(--color-primary)] font-black text-xs rounded-2xl hover:bg-[var(--color-primary)] hover:text-white transition-all shadow-sm"
                                                 >
-                                                    BEGIN EVALUATION ↗
+                                                    START ASSESSMENT ↗
                                                 </button>
                                             </div>
                                         )}
                                     </div>
+                                )}
+
                                 )}
 
                                 {/* Context Boxes */}
