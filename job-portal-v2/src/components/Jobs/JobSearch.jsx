@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard } from '../Skeleton';
 
@@ -30,24 +31,6 @@ function resolveLogoUrl(job) {
     return resolvePublicUrl(rawUrl);
 }
 
-function formatSalary(min, max) {
-    if (!min && !max) return null;
-    const fmt = n => `₹${(n / 100000).toFixed(1)}L`;
-    if (min && max) return `${fmt(min)} – ${fmt(max)}`;
-    if (min) return `${fmt(min)}+`;
-    return `Up to ${fmt(max)}`;
-}
-
-function timeAgo(dateStr) {
-    if (!dateStr) return '';
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const days = Math.floor(diff / 86400000);
-    if (days === 0) return 'Today';
-    if (days === 1) return 'Yesterday';
-    if (days < 7) return `${days}d ago`;
-    if (days < 30) return `${Math.floor(days / 7)}w ago`;
-    return `${Math.floor(days / 30)}mo ago`;
-}
 
 /* ─── Sub-components ─────────────────────────────────────────────── */
 function CompanyAvatar({ job, size = 'md' }) {

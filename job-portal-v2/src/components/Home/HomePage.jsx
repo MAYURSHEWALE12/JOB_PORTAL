@@ -5,6 +5,7 @@ import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 // Icons & Stores
 import { useThemeStore } from '../../store/themeStore';
 import { jobAPI, resolvePublicUrl } from '../../services/api';
+import { formatSalary, timeAgo } from '../../utils/formatters';
 
 // Section Components
 import Navbar from './sections/Navbar';
@@ -328,11 +329,13 @@ export default function HomePage() {
                                 <div className="grid grid-cols-2 gap-4 mb-8">
                                     <div className="p-4 rounded-xl bg-[var(--hp-surface-alt)]">
                                         <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-1">Salary</div>
-                                        <div className="font-bold text-[var(--hp-text)]">₹{selectedJob.salaryRange}</div>
+                                        <div className="font-bold text-[var(--hp-text)]">
+                                            {formatSalary(selectedJob.salaryMin, selectedJob.salaryMax) || 'Salary undisclosed'}
+                                        </div>
                                     </div>
                                     <div className="p-4 rounded-xl bg-[var(--hp-surface-alt)]">
                                         <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-1">Experience</div>
-                                        <div className="font-bold text-[var(--hp-text)]">{selectedJob.experienceLevel || '2+ Years'}</div>
+                                        <div className="font-bold text-[var(--hp-text)]">{selectedJob.experienceRequired || 'Not specified'}</div>
                                     </div>
                                 </div>
 
