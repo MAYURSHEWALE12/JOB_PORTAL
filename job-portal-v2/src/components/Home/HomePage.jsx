@@ -4,7 +4,7 @@ import { motion, useScroll, useSpring, AnimatePresence } from 'framer-motion';
 
 // Icons & Stores
 import { useThemeStore } from '../../store/themeStore';
-import jobAPI from '../../services/jobAPI';
+import { jobAPI } from '../../services/api';
 
 // Section Components
 import Navbar from './sections/Navbar';
