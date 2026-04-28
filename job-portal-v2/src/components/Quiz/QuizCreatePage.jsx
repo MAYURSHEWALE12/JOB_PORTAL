@@ -145,7 +145,7 @@ export default function QuizCreatePage() {
                 })),
             };
 
-            await quizAPI.create(quizData, jobId);
+            await quizAPI.create({ ...quizData, jobId });
             alert('Quiz created successfully!');
             navigate('/dashboard');
         } catch (err) {
