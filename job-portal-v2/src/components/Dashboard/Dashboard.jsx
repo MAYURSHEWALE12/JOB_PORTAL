@@ -98,11 +98,11 @@ export default function Dashboard() {
     };
 
     const tabs = [
-        { key: 'search', label: 'Find Jobs', show: true, priority: 1 },
+        { key: 'search', label: 'Find Jobs', show: user?.role !== 'ADMIN', priority: 1 },
         { key: 'messages', label: 'Messages', show: true, priority: 2, badge: unreadCount > 0 ? unreadCount : null },
         { key: 'applications', label: 'Applications', show: user?.role === 'JOBSEEKER', priority: 3 },
         { key: 'viewapps', label: 'Applicants', show: user?.role === 'EMPLOYER', priority: 3 },
-        { key: 'interviews', label: 'Interviews', show: true, priority: 4 },
+        { key: 'interviews', label: 'Interviews', show: user?.role !== 'ADMIN', priority: 4 },
         { key: 'profile', label: 'Profile', show: false, priority: 5 },
         { key: 'saved', label: 'Saved Jobs', show: user?.role === 'JOBSEEKER', priority: 10 },
         { key: 'resume', label: 'Resume', show: user?.role === 'JOBSEEKER', priority: 10 },
