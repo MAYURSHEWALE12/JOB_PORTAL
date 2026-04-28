@@ -106,7 +106,7 @@ export default function Dashboard() {
         { key: 'profile', label: 'Profile', show: false, priority: 5 },
         { key: 'saved', label: 'Saved Jobs', show: user?.role === 'JOBSEEKER', priority: 10 },
         { key: 'resume', label: 'Resume', show: user?.role === 'JOBSEEKER', priority: 10 },
-        { key: 'analytics', label: 'Analytics', show: true, priority: 10 },
+        { key: 'analytics', label: 'Analytics', show: user?.role !== 'ADMIN', priority: 10 },
         { key: 'postjob', label: 'Post Job', show: user?.role === 'EMPLOYER', priority: 10 },
         { key: 'managejobs', label: 'Manage Jobs', show: user?.role === 'EMPLOYER', priority: 10 },
         { key: 'company', label: 'Company', show: user?.role === 'EMPLOYER', priority: 10 },
