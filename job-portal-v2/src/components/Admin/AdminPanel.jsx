@@ -209,7 +209,7 @@ export default function AdminPanel() {
                     <div className="admin-card p-6">
                         <h3 className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] mb-6">Network Distribution</h3>
                         <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
                                 <PieChart>
                                     <Pie
                                         data={userRoleData}
@@ -243,7 +243,7 @@ export default function AdminPanel() {
                     <div className="admin-card p-6">
                         <h3 className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] mb-6">Market Activity</h3>
                         <div className="h-64">
-                            <ResponsiveContainer width="100%" height="100%">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={1}>
                                 <BarChart data={jobStatusData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="var(--hp-border)" vertical={false} opacity={0.5} />
                                     <XAxis dataKey="name" stroke="var(--hp-muted)" fontSize={11} tickLine={false} axisLine={false} />
