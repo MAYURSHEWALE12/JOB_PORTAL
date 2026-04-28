@@ -1,9 +1,9 @@
 import { resolvePublicUrl } from '../services/api';
 
-export default function CompanyAvatar({ job, size = 'md', className = '' }) {
-    const rawUrl = job.companyLogo || job.employer?.companyProfile?.logoUrl || job.employer?.profileImageUrl;
+export default function CompanyAvatar({ job, name: fallbackName, logoUrl: fallbackLogoUrl, size = 'md', className = '' }) {
+    const rawUrl = job?.companyLogo || job?.employer?.companyProfile?.logoUrl || job?.employer?.profileImageUrl || fallbackLogoUrl;
     const url = resolvePublicUrl(rawUrl);
-    const name = job.companyName || job.employer?.companyProfile?.companyName || job.employer?.firstName || 'J';
+    const name = job?.companyName || job?.employer?.companyProfile?.companyName || job?.employer?.firstName || fallbackName || 'J';
     
     const dim = size === 'lg'
         ? 'w-14 h-14 text-xl rounded-2xl'
