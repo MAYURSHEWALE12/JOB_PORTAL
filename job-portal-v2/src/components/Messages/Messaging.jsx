@@ -48,6 +48,7 @@ export default function Messaging() {
 
     const messagesEndRef = useRef(null);
     const fileInputRef = useRef(null);
+    const typingTimeoutRef = useRef(null);
 
     useEffect(() => {
         fetchInbox();
@@ -81,8 +82,22 @@ export default function Messaging() {
         };
 
         window.addEventListener('newMessage', handleNewMessage);
-        return () => window.removeEventListener('newMessage', handleNewMessage);
-    }, [selectedPartner, connected]);
+        
+        const handleMessageRead = (event) => {
+            const data = event.detail;
+            if (selectedPartner && data.viewerId === selectedPartner.id) {
+                setConversation(prev => prev.map(m => 
+                    (m.senderId === user.id || m.sender?.id === user.id) ? { ...m, isRead: true } : m
+                ));
+            }
+        };
+        window.addEventListener('messageRead', handleMessageRead);
+
+        return () => {
+            window.removeEventListener('newMessage', handleNewMessage);
+            window.removeEventListener('messageRead', handleMessageRead);
+        };
+    }, [selectedPartner, connected, user.id]);
 
     // Also listen to messages array as backup
     useEffect(() => {
@@ -155,9 +170,33 @@ export default function Messaging() {
         }
     };
 
+    const handleTyping = (e) => {
+        setNewMessage(e.target.value);
+        if (!selectedPartner) return;
+
+        // Clear existing timeout
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        } else {
+            // Only send if we weren't already typing
+            sendTyping(selectedPartner.id, true);
+        }
+
+        // Set new timeout to stop typing after 1.5s
+        typingTimeoutRef.current = setTimeout(() => {
+            sendTyping(selectedPartner.id, false);
+            typingTimeoutRef.current = null;
+        }, 1500);
+    };
+
     const handleSend = async (e) => {
         e.preventDefault();
         if (!newMessage.trim() && !selectedFile) return;
+
+        // Stop typing indicator on send
+        if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+        sendTyping(selectedPartner.id, false);
+        typingTimeoutRef.current = null;
 
         setSending(true);
         setError('');
@@ -293,13 +332,17 @@ export default function Messaging() {
         >
             <style>{`
                 .hp-message-mine {
-                    background: linear-gradient(135deg, var(--hp-accent), var(--hp-accent2));
+                    background: linear-gradient(135deg, rgba(var(--hp-accent-rgb), 0.9), rgba(var(--hp-accent2-rgb), 0.9));
+                    backdrop-filter: blur(12px);
                     color: #fff;
                     border-bottom-right-radius: 4px;
+                    box-shadow: 0 4px 15px rgba(var(--hp-accent-rgb), 0.2);
+                    border: 1px solid rgba(255,255,255,0.1);
                 }
                 .hp-message-theirs {
-                    background: var(--hp-surface-alt);
-                    border: 1px solid var(--hp-border);
+                    background: rgba(var(--hp-surface-alt-rgb), 0.6);
+                    backdrop-filter: blur(12px);
+                    border: 1px solid rgba(255,255,255,0.05);
                     color: var(--hp-text);
                     border-bottom-left-radius: 4px;
                 }
@@ -612,11 +655,12 @@ export default function Messaging() {
                                                         <>
                                                             <span className="flex items-center" title={msg.isRead ? "Read" : "Delivered"}>
                                                                 {msg.isRead ? (
-                                                                    <svg className="w-3.5 h-3.5" style={{ color: '#34d399' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                    <svg className="w-4 h-4" style={{ color: '#34d399' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 17l4 4L23 7" className="transform translate-x-1" />
                                                                     </svg>
                                                                 ) : (
-                                                                    <svg className="w-3 h-3 opacity-50" style={{ color: 'var(--hp-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <svg className="w-4 h-4 opacity-50" style={{ color: 'var(--hp-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                                                     </svg>
                                                                 )}
@@ -691,11 +735,12 @@ export default function Messaging() {
                                     <input
                                         type="text"
                                         value={newMessage}
-                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        onChange={handleTyping}
                                         placeholder="Type a message..."
                                         className="hp-input flex-1"
+                                        style={{ borderRadius: '24px', paddingLeft: '20px', background: 'rgba(var(--hp-surface-alt-rgb), 0.5)', backdropFilter: 'blur(10px)', border: '1px solid rgba(var(--hp-accent-rgb), 0.2)', boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)' }}
                                     />
-                                    <button type="submit" disabled={sending || (!newMessage.trim() && !selectedFile)} className="hp-btn-primary px-5 sm:px-6">
+                                    <button type="submit" disabled={sending || (!newMessage.trim() && !selectedFile)} className="hp-btn-primary px-5 sm:px-6" style={{ borderRadius: '24px' }}>
                                         {sending ? (
                                             <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                                         ) : (
