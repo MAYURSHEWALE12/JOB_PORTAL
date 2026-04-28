@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import apiClient from '../../services/api';
 import { Skeleton } from '../Skeleton';
+import CompanyAvatar from '../CompanyAvatar';
+
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -117,6 +120,19 @@ export default function AdminPanel() {
         return matchesSearch && matchesStatus;
     });
 
+    // Chart Data
+    const userRoleData = [
+        { name: 'Job Seekers', value: stats?.totalJobSeekers || 0, color: '#60a5fa' },
+        { name: 'Employers', value: stats?.totalEmployers || 0, color: '#a78bfa' },
+        { name: 'Admins', value: (stats?.totalUsers || 0) - ((stats?.totalJobSeekers || 0) + (stats?.totalEmployers || 0)), color: '#34d399' }
+    ].filter(item => item.value > 0);
+
+    const jobStatusData = [
+        { name: 'Active', count: stats?.activeJobs || 0, color: '#4ade80' },
+        { name: 'Closed/Expired', count: (stats?.totalJobs || 0) - (stats?.activeJobs || 0), color: '#f87171' }
+    ];
+
+
     return (
         <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="space-y-10" style={{ color: 'var(--hp-text)' }}>
             <style>{`
@@ -153,15 +169,17 @@ export default function AdminPanel() {
                 }
             `}</style>
 
-            {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-end gap-4">
+            {/* Header with Diagnostics */}
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6 mb-12">
                 <div>
-                    <h2 className="text-4xl font-black tracking-tighter mb-2">HireHub Command</h2>
-                    <p className="text-[var(--hp-muted)] font-medium">Core infrastructure and user network management.</p>
-                </div>
-                <div className="flex bg-[var(--hp-surface-alt)] p-1.5 rounded-2xl border border-[var(--hp-border)]">
-                    <button onClick={() => setActiveTab('users')} className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}>Network</button>
-                    <button onClick={() => setActiveTab('jobs')} className={`tab-btn ${activeTab === 'jobs' ? 'active' : ''}`}>Market</button>
+                    <h2 className="text-4xl sm:text-5xl font-black tracking-tighter mb-3 flex items-center gap-4">
+                        HireHub Command
+                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">Systems Operational</span>
+                        </div>
+                    </h2>
+                    <p className="text-[var(--hp-muted)] font-medium text-sm">Core infrastructure, data visualization, and user network management.</p>
                 </div>
             </div>
 
@@ -176,15 +194,81 @@ export default function AdminPanel() {
                         { label: 'Live', value: stats.activeJobs, accent: '#4ade80' },
                         { label: 'Flow', value: stats.totalApplications, accent: 'var(--hp-accent2)' },
                     ].map(stat => (
-                        <motion.div key={stat.label} variants={itemVariants} className="stat-card p-5">
-                            <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-3">{stat.label}</div>
-                            <div className="text-3xl font-black tracking-tight" style={{ color: stat.accent }}>{stat.value}</div>
+                        <motion.div key={stat.label} variants={itemVariants} className="stat-card p-5 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-24 h-24 opacity-10 blur-xl rounded-full transition-transform group-hover:scale-150" style={{ background: stat.accent }}></div>
+                            <div className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] mb-3 relative z-10">{stat.label}</div>
+                            <div className="text-3xl font-black tracking-tight relative z-10" style={{ color: stat.accent }}>{stat.value}</div>
                         </motion.div>
                     ))}
                 </motion.div>
             )}
 
+            {/* Interactive Charts Area */}
+            {stats && (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-12">
+                    <div className="admin-card p-6">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] mb-6">Network Distribution</h3>
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={userRoleData}
+                                        cx="50%" cy="50%"
+                                        innerRadius={60} outerRadius={80}
+                                        paddingAngle={5}
+                                        dataKey="value"
+                                        stroke="none"
+                                    >
+                                        {userRoleData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip 
+                                        contentStyle={{ backgroundColor: 'var(--hp-card)', borderColor: 'var(--hp-border)', borderRadius: '12px' }}
+                                        itemStyle={{ color: 'var(--hp-text)', fontWeight: 'bold' }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="flex justify-center gap-4 mt-2">
+                            {userRoleData.map((entry, index) => (
+                                <div key={index} className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-[var(--hp-muted)]">
+                                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: entry.color }}></span>
+                                    {entry.name} ({entry.value})
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="admin-card p-6">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] mb-6">Market Activity</h3>
+                        <div className="h-64">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={jobStatusData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--hp-border)" vertical={false} opacity={0.5} />
+                                    <XAxis dataKey="name" stroke="var(--hp-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                                    <YAxis stroke="var(--hp-muted)" fontSize={11} tickLine={false} axisLine={false} />
+                                    <Tooltip 
+                                        cursor={{ fill: 'var(--hp-surface-alt)', opacity: 0.5 }}
+                                        contentStyle={{ backgroundColor: 'var(--hp-card)', borderColor: 'var(--hp-border)', borderRadius: '12px' }}
+                                    />
+                                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                                        {jobStatusData.map((entry, index) => (
+                                            <Cell key={`cell-${index}`} fill={entry.color} />
+                                        ))}
+                                    </Bar>
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main Terminal Area */}
+            <div className="flex bg-[var(--hp-surface-alt)] p-1.5 rounded-2xl border border-[var(--hp-border)] w-fit mb-6">
+                <button onClick={() => setActiveTab('users')} className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}>Network Matrix</button>
+                <button onClick={() => setActiveTab('jobs')} className={`tab-btn ${activeTab === 'jobs' ? 'active' : ''}`}>Market Postings</button>
+            </div>
             <div className="admin-card overflow-hidden">
                 <div className="p-6 border-b border-[var(--hp-border)] flex flex-col md:flex-row gap-4">
                     <input
@@ -234,28 +318,68 @@ export default function AdminPanel() {
                             </thead>
                             <tbody className="text-sm">
                                 {activeTab === 'users' ? filteredUsers.map(user => (
-                                    <tr key={user.id} className="border-b border-[var(--hp-border)] hover:bg-white/[0.02] transition-colors">
-                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs">#{user.id}</td>
-                                        <td className="py-5 font-bold">{user.firstName} {user.lastName} <br /><span className="text-[10px] font-medium opacity-50">{user.email}</span></td>
-                                        <td className="py-5"><span className={`hp-badge ${user.role === 'ADMIN' ? 'bg-teal-500/10 text-teal-500' : 'bg-blue-500/10 text-blue-500'}`}>{user.role}</span></td>
+                                    <tr key={user.id} className="border-b border-[var(--hp-border)] hover:bg-[rgba(var(--hp-accent-rgb),0.05)] transition-all group">
+                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs group-hover:text-[var(--hp-accent)] transition-colors">#{user.id}</td>
+                                        <td className="py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10">
+                                                    <CompanyAvatar 
+                                                        name={`${user.firstName} ${user.lastName}`} 
+                                                        logoUrl={user.profileImageUrl} 
+                                                        size="sm" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-[var(--hp-text)] block">{user.firstName} {user.lastName}</span>
+                                                    <span className="text-[10px] font-medium opacity-50">{user.email}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-5">
+                                            <span className={`hp-badge ${user.role === 'ADMIN' ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20' : user.role === 'EMPLOYER' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                                                {user.role}
+                                            </span>
+                                        </td>
                                         <td className="py-5 text-right pr-4">
-                                            <div className="flex justify-end gap-3">
-                                                <select value={user.role} onChange={(e) => handleChangeRole(user.id, e.target.value)} disabled={updatingId === user.id} className="hp-select text-[10px] font-bold">
+                                            <div className="flex justify-end items-center gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <select value={user.role} onChange={(e) => handleChangeRole(user.id, e.target.value)} disabled={updatingId === user.id} className="hp-select text-[10px] font-bold !py-2 !pr-8">
                                                     <option value="JOBSEEKER">Seeker</option>
                                                     <option value="EMPLOYER">Employer</option>
                                                     <option value="ADMIN">Admin</option>
                                                 </select>
-                                                <button onClick={() => setPendingDeletion({ id: user.id, type: 'user', name: user.firstName })} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-lg text-xs font-black uppercase transition-all">Terminate</button>
+                                                <button onClick={() => setPendingDeletion({ id: user.id, type: 'user', name: user.firstName })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-all" title="Terminate Node">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
                                 )) : filteredJobs.map(job => (
-                                    <tr key={job.id} className="border-b border-[var(--hp-border)] hover:bg-white/[0.02] transition-colors">
-                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs">#{job.id}</td>
-                                        <td className="py-5 font-bold">{job.title} <br /><span className="text-[10px] font-medium opacity-50">{job.location}</span></td>
-                                        <td className="py-5"><span className="hp-badge bg-emerald-500/10 text-emerald-500">{job.status}</span></td>
-                                        <td className="py-5 text-right pr-4">
-                                            <button onClick={() => setPendingDeletion({ id: job.id, type: 'job', name: job.title })} className="text-red-500 hover:bg-red-500/10 px-4 py-2 rounded-lg text-xs font-black uppercase transition-all">Delete Record</button>
+                                    <tr key={job.id} className="border-b border-[var(--hp-border)] hover:bg-[rgba(var(--hp-accent-rgb),0.05)] transition-all group">
+                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs group-hover:text-[var(--hp-accent)] transition-colors">#{job.id}</td>
+                                        <td className="py-5">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-10 h-10">
+                                                    <CompanyAvatar 
+                                                        name={job.employer?.companyProfile?.companyName || `${job.employer?.firstName} ${job.employer?.lastName}`} 
+                                                        logoUrl={job.employer?.companyProfile?.logoUrl} 
+                                                        size="sm" 
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <span className="font-bold text-[var(--hp-text)] block">{job.title}</span>
+                                                    <span className="text-[10px] font-medium opacity-50">{job.employer?.companyProfile?.companyName || 'Unknown'} • {job.location}</span>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td className="py-5">
+                                            <span className={`hp-badge ${job.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                                {job.status}
+                                            </span>
+                                        </td>
+                                        <td className="py-5 text-right pr-4 opacity-80 group-hover:opacity-100 transition-opacity">
+                                            <button onClick={() => setPendingDeletion({ id: job.id, type: 'job', name: job.title })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-all" title="Delete Record">
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                            </button>
                                         </td>
                                     </tr>
                                 ))}
