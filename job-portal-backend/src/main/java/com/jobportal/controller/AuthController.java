@@ -214,6 +214,64 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestBody Map<String, String> body) {
+        try {
+            String email = body.get("email");
+            if (email == null || email.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Email is required"));
+            }
+
+            if (!userService.emailExists(email)) {
+                // Return success even if email doesn't exist for security
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "If an account with that email exists, a reset link has been sent.");
+                return ResponseEntity.ok(response);
+            }
+
+            String token = userService.initiatePasswordReset(email);
+            User user = userService.getUserByEmail(email);
+            
+            // Send email
+            emailService.sendPasswordResetEmail(email, user.getFirstName(), token);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Reset link sent to your email.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Forgot password error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Failed to initiate password reset"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
+        try {
+            String token = body.get("token");
+            String newPassword = body.get("newPassword");
+
+            if (token == null || token.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Reset token is required"));
+            }
+            if (newPassword == null || newPassword.length() < 6) {
+                return ResponseEntity.badRequest().body(createErrorResponse("New password must be at least 6 characters"));
+            }
+
+            userService.resetPasswordByToken(token, newPassword);
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Password has been reset successfully.");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Reset password error", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(createErrorResponse(e.getMessage()));
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<?> getCurrentUser(@RequestHeader("Authorization") String token) {
         try {

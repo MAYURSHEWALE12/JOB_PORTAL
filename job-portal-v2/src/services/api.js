@@ -92,6 +92,8 @@ export const authAPI = {
     validateToken: () => apiClient.post('/auth/validate-token'),
     changePassword: (userId, currentPassword, newPassword) =>
         apiClient.post(`/auth/change-password/${userId}?currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`),
+    forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
+    resetPassword: (token, newPassword) => apiClient.post('/auth/reset-password', { token, newPassword }),
 };
 
 export const jobAPI = {

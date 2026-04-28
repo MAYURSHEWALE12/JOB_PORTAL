@@ -526,4 +526,35 @@ public class UserService {
         log.debug("Checking if user exists with ID: {}", id);
         return userRepository.existsById(id);
     }
+    public String initiatePasswordReset(String email) {
+        log.info("Initiating password reset for email: {}", email);
+        User user = getUserByEmail(email);
+        
+        String token = UUID.randomUUID().toString();
+        user.setResetToken(token);
+        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+        
+        log.info("Reset token generated for user: {}", email);
+        return token;
+    }
+
+    public void resetPasswordByToken(String token, String newPassword) {
+        log.info("Resetting password with token");
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+        
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            log.warn("Password reset failed: Token expired for user {}", user.getEmail());
+            throw new BadRequestException("Reset token has expired");
+        }
+        
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+        
+        log.info("Password reset successfully for user: {}", user.getEmail());
+    }
 }

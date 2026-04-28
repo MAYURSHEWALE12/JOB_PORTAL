@@ -582,4 +582,82 @@ public class EmailService {
             return false;
         }
     }
+    public boolean sendPasswordResetEmail(String toEmail, String firstName, String token) {
+        if (!isEmailConfigured()) {
+            log.debug("Email not configured. Skipping password reset email to {}", toEmail);
+            return false;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject("Password Reset Request - Job Portal");
+            helper.setReplyTo(fromAddress, fromName);
+
+            message.setHeader("X-Priority", "1");
+            message.setSentDate(new Date());
+
+            String resetUrl = frontendUrl + "/reset-password?token=" + token;
+            String html = buildPasswordResetEmailHtml(firstName, resetUrl);
+            helper.setText(html, true);
+
+            mailSender.send(message);
+            log.info("Password reset email sent to {}", toEmail);
+            return true;
+
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
+            return false;
+        } catch (MailException e) {
+            log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
+            return false;
+        }
+    }
+
+    private String buildPasswordResetEmailHtml(String firstName, String resetUrl) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+                    body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 10px; }
+                    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
+                    .header { background: linear-gradient(135deg, #1e293b 0%%, #334155 100%%); padding: 48px 40px; text-align: center; }
+                    .logo-icon { font-size: 40px; margin-bottom: 24px; display: block; }
+                    .header h1 { color: #f8fafc; font-size: 24px; margin: 0; font-weight: 800; }
+                    .content { padding: 48px 40px; }
+                    .greeting { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 16px; }
+                    .text { font-size: 16px; color: #475569; line-height: 1.7; margin-bottom: 32px; }
+                    .btn { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 18px 36px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
+                    .expiry { font-size: 13px; color: #94a3b8; margin-top: 32px; text-align: center; }
+                    .footer { padding: 32px 40px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; font-size: 13px; color: #94a3b8; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <span class="logo-icon">🔐</span>
+                        <h1>Reset Your Password</h1>
+                    </div>
+                    <div class="content">
+                        <p class="greeting">Hi %s,</p>
+                        <p class="text">We received a request to reset the password for your Job Portal account. Click the button below to set a new password. If you didn't request this, you can safely ignore this email.</p>
+                        
+                        <center>
+                            <a href="%s" class="btn">Reset Password →</a>
+                        </center>
+                        
+                        <p class="expiry">This link will expire in 1 hour for your security.</p>
+                    </div>
+                    <div class="footer">© 2026 Vertex Job Portal • Professional Excellence</div>
+                </div>
+            </body>
+            </html>
+            """.formatted(firstName, resetUrl);
+    }
 }
