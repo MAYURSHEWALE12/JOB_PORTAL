@@ -22,6 +22,7 @@ export const useWebsocketStore = create((set, get) => ({
     messages: [], // All incoming messages for real-time updates
     newMessages: {}, // userId -> count
     typingStatus: {}, // userId -> isTyping
+    onlineStatus: {}, // userId -> 'ONLINE' | 'OFFLINE'
     lastRead: null, // latest read receipt event
 
     connect: (userId) => {
@@ -29,6 +30,9 @@ export const useWebsocketStore = create((set, get) => ({
 
         const client = new Client({
             webSocketFactory: () => new SockJS(SOCKET_URL),
+            connectHeaders: {
+                userId: userId.toString()
+            },
             onConnect: () => {
                 console.log('Connected to WebSocket');
                 set({ connected: true });
@@ -78,6 +82,17 @@ export const useWebsocketStore = create((set, get) => ({
                     const data = JSON.parse(message.body);
                     set({ lastRead: data });
                     window.dispatchEvent(new CustomEvent('messageRead', { detail: data }));
+                });
+
+                // Subscribe to online status
+                client.subscribe(`/topic/online-status`, (message) => {
+                    const data = JSON.parse(message.body);
+                    set((state) => ({
+                        onlineStatus: {
+                            ...state.onlineStatus,
+                            [data.userId]: data.status
+                        }
+                    }));
                 });
             },
             onDisconnect: () => {

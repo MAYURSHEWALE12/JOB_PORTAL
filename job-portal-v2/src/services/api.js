@@ -236,6 +236,10 @@ export const notificationAPI = {
     clearAll: (userId) => apiClient.delete(`/notifications/clear-all?userId=${userId}`),
 };
 
+export const presenceAPI = {
+    getOnlineUsers: () => apiClient.get('/presence/online-users'),
+};
+
 export const quizAPI = {
     create: (data) => apiClient.post(`/quizzes/job/${data.jobId}`, data),
     getByJob: (jobId) => apiClient.get(`/quizzes/job/${jobId}/view`),

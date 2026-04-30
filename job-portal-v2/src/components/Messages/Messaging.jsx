@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { messageAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
+import { messageAPI, presenceAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useWebsocketStore } from '../../store/websocketStore';
+import { toast } from 'react-hot-toast';
 
 
 
@@ -24,13 +25,23 @@ const isPdfFile = (url, name) => {
 
 export default function Messaging() {
     const { user } = useAuthStore();
-    const { sendTyping, sendReadReceipt, typingStatus, clearNewMessages, connected, messages: socketMessages } = useWebsocketStore();
+    const { 
+        sendTyping, 
+        sendReadReceipt, 
+        typingStatus, 
+        onlineStatus,
+        clearNewMessages, 
+        connected, 
+        messages: socketMessages 
+    } = useWebsocketStore();
 
     const [inbox, setInbox] = useState([]);
     const [users, setUsers] = useState([]);
     const [selectedPartner, setSelectedPartner] = useState(null);
     const [conversation, setConversation] = useState([]);
     const [newMessage, setNewMessage] = useState('');
+    const [searchConversation, setSearchConversation] = useState('');
+    const [isSearching, setIsSearching] = useState(false);
     const [sending, setSending] = useState(false);
     const [loadingInbox, setLoadingInbox] = useState(false);
     const [loadingConvo, setLoadingConvo] = useState(false);
@@ -53,7 +64,24 @@ export default function Messaging() {
     useEffect(() => {
         fetchInbox();
         fetchUsers();
+        fetchOnlineUsers();
     }, []);
+
+    const fetchOnlineUsers = async () => {
+        try {
+            const res = await presenceAPI.getOnlineUsers();
+            // Update store's initial online status
+            const initialStatus = {};
+            res.data.forEach(id => {
+                initialStatus[id] = 'ONLINE';
+            });
+            useWebsocketStore.setState(state => ({
+                onlineStatus: { ...state.onlineStatus, ...initialStatus }
+            }));
+        } catch (err) {
+            console.error('Failed to fetch online users:', err);
+        }
+    };
 
     // Real-time message listener
     useEffect(() => {
@@ -302,19 +330,23 @@ export default function Messaging() {
         return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
     };
 
-    const getAvatarUrl = (profileImageUrl) => {
-        return resolvePublicUrl(profileImageUrl);
-    };
-
-    const renderAvatar = (firstName, lastName, profileImageUrl, sizeClass = 'w-11 h-11 text-base') => {
+    const renderAvatar = (firstName, lastName, profileImageUrl, userId = null, sizeClass = 'w-11 h-11 text-base') => {
         const avatarUrl = getAvatarUrl(profileImageUrl);
-        if (avatarUrl) {
-            return <img src={avatarUrl} alt="Profile" className={`${sizeClass} rounded-xl object-cover flex-shrink-0 border border-[var(--hp-border)]`} onError={e => e.target.style.display = 'none'} />;
-        }
+        const isOnline = userId && onlineStatus[userId] === 'ONLINE';
+
         return (
-            <div className={`${sizeClass} flex-shrink-0 flex items-center justify-center font-bold text-white rounded-xl shadow-sm`}
-                style={{ background: 'linear-gradient(135deg, var(--hp-accent), var(--hp-accent2))' }}>
-                {getInitials(firstName, lastName) || 'U'}
+            <div className="relative flex-shrink-0">
+                {avatarUrl ? (
+                    <img src={avatarUrl} alt="Profile" className={`${sizeClass} rounded-xl object-cover border border-[var(--hp-border)]`} onError={e => e.target.style.display = 'none'} />
+                ) : (
+                    <div className={`${sizeClass} flex items-center justify-center font-bold text-white rounded-xl shadow-sm`}
+                        style={{ background: 'linear-gradient(135deg, var(--hp-accent), var(--hp-accent2))' }}>
+                        {getInitials(firstName, lastName) || 'U'}
+                    </div>
+                )}
+                {isOnline && (
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-green-500 border-2 border-[var(--hp-card)] rounded-full shadow-sm z-20"></div>
+                )}
             </div>
         );
     };
@@ -412,7 +444,7 @@ export default function Messaging() {
                                     className="w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all text-left border border-transparent hover:border-[var(--hp-border)]"
                                     style={{ background: 'var(--hp-surface-alt)' }}
                                 >
-                                    {renderAvatar(u.firstName, u.lastName, u.profileImageUrl)}
+                                    {renderAvatar(u.firstName, u.lastName, u.profileImageUrl, u.id)}
                                     <div className="min-w-0 flex-1">
                                         <p className="font-bold text-[var(--hp-text)] truncate">
                                             {u.firstName} {u.lastName}
@@ -486,7 +518,7 @@ export default function Messaging() {
                                             <div className="absolute left-0 top-0 bottom-0 w-1 rounded-r-full" style={{ background: 'var(--hp-accent)' }} />
                                         )}
                                         <div className={`flex-shrink-0 ${hasUnread ? 'ring-2 ring-offset-2 ring-offset-[var(--hp-card)]' : ''}`} style={{ ringColor: 'var(--hp-accent)' }}>
-                                            {renderAvatar(partner?.firstName, partner?.lastName, partner?.profileImageUrl)}
+                                            {renderAvatar(partner?.firstName, partner?.lastName, partner?.profileImageUrl, partner?.id)}
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between mb-1">
@@ -537,14 +569,48 @@ export default function Messaging() {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                                     </svg>
                                 </button>
-                                {renderAvatar(selectedPartner.firstName, selectedPartner.lastName, selectedPartner.profileImageUrl)}
-                                <div>
-                                    <p className="font-bold text-[var(--hp-text)] text-[1.05rem]">
-                                        {selectedPartner.firstName} {selectedPartner.lastName}
-                                    </p>
+                                {renderAvatar(selectedPartner.firstName, selectedPartner.lastName, selectedPartner.profileImageUrl, selectedPartner.id)}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2">
+                                        <p className="font-bold text-[var(--hp-text)] text-[1.05rem] truncate">
+                                            {selectedPartner.firstName} {selectedPartner.lastName}
+                                        </p>
+                                        {onlineStatus[selectedPartner.id] === 'ONLINE' && (
+                                            <span className="flex items-center gap-1.5 text-[10px] font-bold text-green-500 uppercase tracking-widest bg-green-500/10 px-2 py-0.5 rounded-full">
+                                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                                Online
+                                            </span>
+                                        )}
+                                    </div>
                                     <p className="text-xs font-bold tracking-wider uppercase mt-0.5" style={{ color: 'var(--hp-accent2)' }}>
                                         {selectedPartner.role}
                                     </p>
+                                </div>
+
+                                <div className="flex items-center gap-2">
+                                    {isSearching ? (
+                                        <div className="flex items-center bg-[var(--hp-card)] border border-[var(--hp-border)] rounded-full px-3 py-1.5 animate-in slide-in-from-right-4 duration-300">
+                                            <input
+                                                type="text"
+                                                placeholder="Search messages..."
+                                                className="bg-transparent text-xs text-[var(--hp-text)] outline-none w-32 sm:w-48"
+                                                value={searchConversation}
+                                                onChange={(e) => setSearchConversation(e.target.value)}
+                                                autoFocus
+                                            />
+                                            <button onClick={() => { setIsSearching(false); setSearchConversation(''); }} className="ml-2 text-[var(--hp-muted)] hover:text-[var(--hp-text)]">
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button 
+                                            onClick={() => setIsSearching(true)}
+                                            className="p-2 rounded-lg hover:bg-[var(--hp-border)] text-[var(--hp-muted)] transition-colors"
+                                            title="Search conversation"
+                                        >
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                                        </button>
+                                    )}
                                 </div>
                             </div>
 
@@ -569,7 +635,9 @@ export default function Messaging() {
                                     </div>
                                 )}
 
-                                {conversation.map((msg) => {
+                                {conversation
+                                    .filter(msg => !searchConversation || (msg.content && msg.content.toLowerCase().includes(searchConversation.toLowerCase())))
+                                    .map((msg) => {
                                     const isMine = msg.senderId === user.id || msg.sender?.id === user.id;
                                     const hasFile = !!msg.fileUrl;
                                     const isImage = hasFile && isImageFile(msg.fileUrl, msg.fileName);
