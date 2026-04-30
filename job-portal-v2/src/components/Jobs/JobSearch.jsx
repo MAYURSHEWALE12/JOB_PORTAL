@@ -9,7 +9,6 @@ import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard } from '../Skeleton';
 import CompanyAvatar from '../CompanyAvatar';
-import FloatingRadar from './FloatingRadar';
 
 
 
@@ -196,6 +195,110 @@ function JobCard({ job, isSelected, isApplied, isSaved, isSaving, onSelect, onTo
                         </svg>
                     )}
                 </button>
+            </div>
+        </motion.div>
+    );
+}
+
+/* ─── Radar Bar Component ────────────────────────────────────────── */
+function RadarBar() {
+    const [alerts, setAlerts] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showInput, setShowInput] = useState(false);
+    const [newKeyword, setNewKeyword] = useState('');
+
+    useEffect(() => {
+        fetchAlerts();
+    }, []);
+
+    const fetchAlerts = async () => {
+        try {
+            const res = await apiClient.get('/job-alerts/user');
+            setAlerts(res.data);
+        } catch (err) { console.error(err); }
+        finally { setLoading(false); }
+    };
+
+    const handleAdd = async (e) => {
+        e.preventDefault();
+        if (!newKeyword.trim()) return;
+        try {
+            await apiClient.post('/job-alerts/user', {
+                keywords: newKeyword,
+                isActive: true,
+                emailEnabled: true,
+                inAppEnabled: true
+            });
+            setNewKeyword('');
+            setShowInput(false);
+            fetchAlerts();
+        } catch (err) { /* ignore */ }
+    };
+
+    const handleDelete = async (id) => {
+        try {
+            await apiClient.delete(`/job-alerts/${id}`);
+            setAlerts(prev => prev.filter(a => a.id !== id));
+        } catch (err) { /* ignore */ }
+    };
+
+    return (
+        <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="hp-card p-4 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-2 border-dashed"
+            style={{ borderColor: 'var(--hp-accent)', background: 'rgba(var(--hp-accent-rgb), 0.02)' }}
+        >
+            <div className="flex items-center gap-4">
+                <div className="relative">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(var(--hp-accent-rgb), 0.1)' }}>
+                        <svg className="w-5 h-5 text-[var(--hp-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3" />
+                            <circle cx="12" cy="12" r="9" strokeWidth={2} />
+                        </svg>
+                    </div>
+                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[var(--hp-card)] animate-pulse"></div>
+                </div>
+                <div>
+                    <h4 className="text-xs font-black uppercase tracking-widest text-[var(--hp-text)]">Active Radar</h4>
+                    <div className="flex flex-wrap gap-2 mt-1.5">
+                        {loading ? (
+                            <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">Calibrating...</span>
+                        ) : alerts.length === 0 ? (
+                            <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">No active trackers</span>
+                        ) : (
+                            alerts.map(a => (
+                                <span key={a.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[10px] font-bold text-[var(--hp-accent)]">
+                                    {a.keywords.split(',')[0]}
+                                    <button onClick={() => handleDelete(a.id)} className="hover:text-red-500 transition-colors">×</button>
+                                </span>
+                            ))
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+                {showInput ? (
+                    <form onSubmit={handleAdd} className="flex gap-2">
+                        <input 
+                            autoFocus
+                            placeholder="Skill or Title..."
+                            className="px-3 py-1.5 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-surface-alt)] outline-none focus:border-[var(--hp-accent)]"
+                            value={newKeyword}
+                            onChange={e => setNewKeyword(e.target.value)}
+                        />
+                        <button className="hp-btn-primary !py-1.5 !px-3 text-[10px] uppercase font-black">Deploy</button>
+                        <button type="button" onClick={() => setShowInput(false)} className="text-[10px] font-black uppercase text-[var(--hp-muted)]">Cancel</button>
+                    </form>
+                ) : (
+                    <button 
+                        onClick={() => setShowInput(true)}
+                        className="hp-btn-primary !py-2 !px-5 text-[10px] uppercase font-black tracking-widest"
+                    >
+                        + Add Radar Tracker
+                    </button>
+                )}
             </div>
         </motion.div>
     );
@@ -656,6 +759,11 @@ export default function JobSearch() {
                 </div>
             </motion.form>
 
+            {/* ── Radar Bar ── */}
+            {!loading && user?.role === 'JOBSEEKER' && (
+                <RadarBar />
+            )}
+
             {/* ── Results Header ── */}
             {!loading && !error && jobs.length > 0 && (
                 <motion.div
@@ -772,8 +880,6 @@ export default function JobSearch() {
                     </AnimatePresence>
                 </motion.div>
             )}
-
-            {user?.role === 'JOBSEEKER' && <FloatingRadar />}
 
             {/* ── Job Detail Modal ── */}
             <AnimatePresence>
