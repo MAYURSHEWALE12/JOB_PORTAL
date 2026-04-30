@@ -174,7 +174,7 @@ export default function ProfilePage() {
 
         setSavingPassword(true);
         try {
-            await authAPI.changePassword(user.id, passwordData.currentPassword, passwordData.newPassword);
+            await authAPI.changePassword(passwordData.currentPassword, passwordData.newPassword);
             setPasswordSuccess('Security credentials updated!');
             setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
             setTimeout(() => setPasswordSuccess(''), 3000);

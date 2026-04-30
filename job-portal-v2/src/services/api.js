@@ -90,8 +90,8 @@ export const authAPI = {
     logout: () => apiClient.post('/auth/logout'),
     me: () => apiClient.get('/auth/me'),
     validateToken: () => apiClient.post('/auth/validate-token'),
-    changePassword: (userId, currentPassword, newPassword) =>
-        apiClient.post(`/auth/change-password/${userId}?currentPassword=${encodeURIComponent(currentPassword)}&newPassword=${encodeURIComponent(newPassword)}`),
+    changePassword: (currentPassword, newPassword) =>
+        apiClient.post('/auth/change-password', { currentPassword, newPassword }),
     forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
     resetPassword: (token, newPassword) => apiClient.post('/auth/reset-password', { token, newPassword }),
 };
