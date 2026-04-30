@@ -693,12 +693,9 @@ public class EmailService {
             log.info("OTP email sent to {} for context: {}", toEmail, context);
             return true;
 
-        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
-            log.warn("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
-            return false;
-        } catch (MailException e) {
-            log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
-            return false;
+        } catch (Exception e) {
+            log.error("OTP email delivery failed to {}", toEmail, e);
+            throw new RuntimeException("Email delivery failed: " + e.getMessage());
         }
     }
 

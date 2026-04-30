@@ -199,11 +199,7 @@ public class AuthController {
                         .body(createErrorResponse("Email service not configured. Please set SMTP_USERNAME and SMTP_PASSWORD environment variables."));
             }
 
-            boolean sent = emailService.sendOTPEmail(user.getEmail(), user.getFirstName(), otp, "Account Security (Password Change)");
-            if (!sent) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(createErrorResponse("Failed to send verification email. Please contact support or try again later."));
-            }
+            emailService.sendOTPEmail(user.getEmail(), user.getFirstName(), otp, "Account Security (Password Change)");
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Verification code sent to " + user.getEmail());
@@ -273,11 +269,7 @@ public class AuthController {
             }
 
             // Send email
-            boolean sent = emailService.sendOTPEmail(email, user.getFirstName(), otp, "Password Reset Request");
-            if (!sent) {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(createErrorResponse("Failed to send reset email. The mail server might be down."));
-            }
+            emailService.sendOTPEmail(email, user.getFirstName(), otp, "Password Reset Request");
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Verification code sent to your email.");
