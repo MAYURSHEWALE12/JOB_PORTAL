@@ -32,11 +32,19 @@ public class EmailService {
     @Value("${spring.mail.host:}")
     private String mailHost;
 
+    @Value("${spring.mail.username:}")
+    private String mailUsername;
+
+    @Value("${spring.mail.password:}")
+    private String mailPassword;
+
     @Value("${app.frontend.url:http://localhost:5174}")
     private String frontendUrl;
 
     public boolean isEmailConfigured() {
-        return mailHost != null && !mailHost.isBlank();
+        return mailHost != null && !mailHost.isBlank() && 
+               mailUsername != null && !mailUsername.isBlank() && 
+               mailPassword != null && !mailPassword.isBlank();
     }
 
     public void sendWelcomeEmail(String toEmail, String firstName, String role) {

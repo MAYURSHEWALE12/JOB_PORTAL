@@ -194,6 +194,11 @@ public class AuthController {
             User user = userService.getUserById(userId);
             String otp = userService.initiateChangePasswordOTP(userId);
             
+            if (!emailService.isEmailConfigured()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResponse("Email service not configured. Please set SMTP_USERNAME and SMTP_PASSWORD environment variables."));
+            }
+
             boolean sent = emailService.sendOTPEmail(user.getEmail(), user.getFirstName(), otp, "Account Security (Password Change)");
             if (!sent) {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -262,6 +267,11 @@ public class AuthController {
             String otp = userService.initiatePasswordReset(email);
             User user = userService.getUserByEmail(email);
             
+            if (!emailService.isEmailConfigured()) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResponse("Email service not configured. Please set SMTP_USERNAME and SMTP_PASSWORD on your server."));
+            }
+
             // Send email
             boolean sent = emailService.sendOTPEmail(email, user.getFirstName(), otp, "Password Reset Request");
             if (!sent) {
