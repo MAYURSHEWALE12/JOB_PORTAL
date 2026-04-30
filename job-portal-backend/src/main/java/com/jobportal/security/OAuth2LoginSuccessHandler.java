@@ -40,12 +40,8 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
 
             log.info("OAuth2 login successful for user: {} via {}", user.getEmail(), user.getAuthProvider());
 
-            String referer = request.getHeader("Referer");
             String resolvedFrontendUrl = frontendUrl;
-            if (referer != null && !referer.isEmpty()) {
-                java.net.URI uri = java.net.URI.create(referer);
-                resolvedFrontendUrl = uri.getScheme() + "://" + uri.getHost() + (uri.getPort() != -1 ? ":" + uri.getPort() : "");
-            }
+
 
             String redirectUrl = UriComponentsBuilder.fromUriString(resolvedFrontendUrl + "/oauth2/redirect")
                     .queryParam("token", token)
