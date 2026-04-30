@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { apiClient } from '../../services/api';
+import apiClient from '../../services/api';
 
 const ALERT_TYPES = [
     { value: 'FULL_TIME', label: 'Full-Time' },
