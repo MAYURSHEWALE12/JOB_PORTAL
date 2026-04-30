@@ -9,7 +9,7 @@ import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard } from '../Skeleton';
 import CompanyAvatar from '../CompanyAvatar';
-import RadarWidget from './RadarWidget';
+import FloatingRadar from './FloatingRadar';
 
 
 
@@ -751,35 +751,29 @@ export default function JobSearch() {
 
             {/* ── Job Grid / List ── */}
             {!loading && !error && (
-                <div className="flex flex-col lg:flex-row gap-6 items-start">
-                    <motion.div
-                        className={`flex-1 grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 max-w-3xl'}`}
-                        initial="hidden" animate="show"
-                        variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } }}
-                    >
-                        <AnimatePresence mode="popLayout">
-                            {sortedJobs.map(job => (
-                                <JobCard
-                                    key={job.id}
-                                    job={job}
-                                    isSelected={selected?.id === job.id}
-                                    isApplied={appliedJobs.has(job.id)}
-                                    isSaved={savedJobs.has(job.id)}
-                                    isSaving={savingJobId === job.id}
-                                    onSelect={setSelected}
-                                    onToggleSave={handleToggleSave}
-                                />
-                            ))}
-                        </AnimatePresence>
-                    </motion.div>
-                    
-                    {user?.role === 'JOBSEEKER' && (
-                        <div className="w-full lg:w-72 flex-shrink-0">
-                            <RadarWidget />
-                        </div>
-                    )}
-                </div>
+                <motion.div
+                    className={`grid gap-4 ${viewMode === 'grid' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 max-w-3xl'}`}
+                    initial="hidden" animate="show"
+                    variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.05 } } }}
+                >
+                    <AnimatePresence mode="popLayout">
+                        {sortedJobs.map(job => (
+                            <JobCard
+                                key={job.id}
+                                job={job}
+                                isSelected={selected?.id === job.id}
+                                isApplied={appliedJobs.has(job.id)}
+                                isSaved={savedJobs.has(job.id)}
+                                isSaving={savingJobId === job.id}
+                                onSelect={setSelected}
+                                onToggleSave={handleToggleSave}
+                            />
+                        ))}
+                    </AnimatePresence>
+                </motion.div>
             )}
+
+            {user?.role === 'JOBSEEKER' && <FloatingRadar />}
 
             {/* ── Job Detail Modal ── */}
             <AnimatePresence>
