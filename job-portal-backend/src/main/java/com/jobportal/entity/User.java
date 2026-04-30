@@ -54,6 +54,7 @@ public class User {
     @Column(name = "reset_token_expiry")
     private LocalDateTime resetTokenExpiry;
 
+    @Builder.Default
     @Column(name = "auth_provider")
     private String authProvider = "LOCAL";
 

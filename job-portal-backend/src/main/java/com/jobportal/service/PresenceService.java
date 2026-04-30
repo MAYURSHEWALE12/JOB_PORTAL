@@ -59,7 +59,7 @@ public class PresenceService {
     }
 
     private void broadcastStatus(Long userId, boolean isOnline) {
-        messagingTemplate.convertAndSend("/topic/online-status", Map.of(
+        messagingTemplate.convertAndSend("/topic/online-status", (Object) Map.of(
                 "userId", userId,
                 "status", isOnline ? "ONLINE" : "OFFLINE"
         ));
