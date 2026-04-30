@@ -194,7 +194,11 @@ public class AuthController {
             User user = userService.getUserById(userId);
             String otp = userService.initiateChangePasswordOTP(userId);
             
-            emailService.sendOTPEmail(user.getEmail(), user.getFirstName(), otp, "Account Security (Password Change)");
+            boolean sent = emailService.sendOTPEmail(user.getEmail(), user.getFirstName(), otp, "Account Security (Password Change)");
+            if (!sent) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResponse("Failed to send verification email. Please contact support or try again later."));
+            }
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Verification code sent to " + user.getEmail());
@@ -259,7 +263,11 @@ public class AuthController {
             User user = userService.getUserByEmail(email);
             
             // Send email
-            emailService.sendOTPEmail(email, user.getFirstName(), otp, "Password Reset Request");
+            boolean sent = emailService.sendOTPEmail(email, user.getFirstName(), otp, "Password Reset Request");
+            if (!sent) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body(createErrorResponse("Failed to send reset email. The mail server might be down."));
+            }
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Verification code sent to your email.");
@@ -268,7 +276,7 @@ public class AuthController {
         } catch (Exception e) {
             log.error("Forgot password error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Failed to initiate password reset"));
+                    .body(createErrorResponse("Failed to initiate password reset: " + e.getMessage()));
         }
     }
 

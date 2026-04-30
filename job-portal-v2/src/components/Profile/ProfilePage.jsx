@@ -177,7 +177,8 @@ export default function ProfilePage() {
             setOtpSent(true);
             toast.success('Verification code sent to your email!');
         } catch (err) {
-            setPasswordError(err.response?.data?.message || 'Failed to send verification code');
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to send verification code';
+            toast.error(msg);
         } finally {
             setRequestingOTP(false);
         }

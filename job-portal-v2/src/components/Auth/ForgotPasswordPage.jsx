@@ -27,7 +27,7 @@ const ForgotPasswordPage = () => {
             setStep(2);
             toast.success('Verification code sent to your email!');
         } catch (err) {
-            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to send code';
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to send verification code';
             toast.error(msg);
         } finally {
             setLoading(false);
