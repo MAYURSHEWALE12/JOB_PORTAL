@@ -204,8 +204,8 @@ function JobCard({ job, isSelected, isApplied, isSaved, isSaving, onSelect, onTo
 function RadarBar() {
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [showInput, setShowInput] = useState(false);
-    const [newKeyword, setNewKeyword] = useState('');
+    const [showForm, setShowForm] = useState(false);
+    const [newAlert, setNewAlert] = useState({ keywords: '', location: '', jobType: 'FULL_TIME', salaryMin: 0, emailEnabled: true });
 
     useEffect(() => {
         fetchAlerts();
@@ -221,16 +221,15 @@ function RadarBar() {
 
     const handleAdd = async (e) => {
         e.preventDefault();
-        if (!newKeyword.trim()) return;
+        if (!newAlert.keywords.trim()) return;
         try {
             await apiClient.post('/job-alerts/user', {
-                keywords: newKeyword,
+                ...newAlert,
                 isActive: true,
-                emailEnabled: true,
                 inAppEnabled: true
             });
-            setNewKeyword('');
-            setShowInput(false);
+            setNewAlert({ keywords: '', location: '', jobType: 'FULL_TIME', salaryMin: 0, emailEnabled: true });
+            setShowForm(false);
             fetchAlerts();
         } catch (err) { /* ignore */ }
     };
@@ -243,64 +242,125 @@ function RadarBar() {
     };
 
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="hp-card p-4 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-2 border-dashed"
-            style={{ borderColor: 'var(--hp-accent)', background: 'rgba(var(--hp-accent-rgb), 0.02)' }}
-        >
-            <div className="flex items-center gap-4">
-                <div className="relative">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(var(--hp-accent-rgb), 0.1)' }}>
-                        <svg className="w-5 h-5 text-[var(--hp-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3" />
-                            <circle cx="12" cy="12" r="9" strokeWidth={2} />
-                        </svg>
+        <div className="mb-8">
+            <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="hp-card overflow-hidden border-2 border-dashed"
+                style={{ borderColor: 'var(--hp-accent)', background: 'rgba(var(--hp-accent-rgb), 0.02)' }}
+            >
+                {/* Header Row */}
+                <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'rgba(var(--hp-accent-rgb), 0.1)' }}>
+                                <svg className="w-5 h-5 text-[var(--hp-accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 8v4l3 3" />
+                                    <circle cx="12" cy="12" r="9" strokeWidth={2} />
+                                </svg>
+                            </div>
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[var(--hp-card)] animate-pulse"></div>
+                        </div>
+                        <div>
+                            <h4 className="text-xs font-black uppercase tracking-widest text-[var(--hp-text)]">Live Job Radar</h4>
+                            <div className="flex flex-wrap gap-2 mt-1.5">
+                                {loading ? (
+                                    <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">Calibrating...</span>
+                                ) : alerts.length === 0 ? (
+                                    <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">No active trackers</span>
+                                ) : (
+                                    alerts.map(a => (
+                                        <span key={a.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[10px] font-bold text-[var(--hp-accent)]">
+                                            {a.keywords.split(',')[0]}
+                                            <button onClick={() => handleDelete(a.id)} className="hover:text-red-500 transition-colors">×</button>
+                                        </span>
+                                    ))
+                                )}
+                            </div>
+                        </div>
                     </div>
-                    <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[var(--hp-card)] animate-pulse"></div>
-                </div>
-                <div>
-                    <h4 className="text-xs font-black uppercase tracking-widest text-[var(--hp-text)]">Active Radar</h4>
-                    <div className="flex flex-wrap gap-2 mt-1.5">
-                        {loading ? (
-                            <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">Calibrating...</span>
-                        ) : alerts.length === 0 ? (
-                            <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">No active trackers</span>
-                        ) : (
-                            alerts.map(a => (
-                                <span key={a.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[10px] font-bold text-[var(--hp-accent)]">
-                                    {a.keywords.split(',')[0]}
-                                    <button onClick={() => handleDelete(a.id)} className="hover:text-red-500 transition-colors">×</button>
-                                </span>
-                            ))
-                        )}
-                    </div>
-                </div>
-            </div>
 
-            <div className="flex items-center gap-3">
-                {showInput ? (
-                    <form onSubmit={handleAdd} className="flex gap-2">
-                        <input 
-                            autoFocus
-                            placeholder="Skill or Title..."
-                            className="px-3 py-1.5 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-surface-alt)] outline-none focus:border-[var(--hp-accent)]"
-                            value={newKeyword}
-                            onChange={e => setNewKeyword(e.target.value)}
-                        />
-                        <button className="hp-btn-primary !py-1.5 !px-3 text-[10px] uppercase font-black">Deploy</button>
-                        <button type="button" onClick={() => setShowInput(false)} className="text-[10px] font-black uppercase text-[var(--hp-muted)]">Cancel</button>
-                    </form>
-                ) : (
                     <button 
-                        onClick={() => setShowInput(true)}
-                        className="hp-btn-primary !py-2 !px-5 text-[10px] uppercase font-black tracking-widest"
+                        onClick={() => setShowForm(!showForm)}
+                        className="hp-btn-primary !py-2 !px-5 text-[10px] uppercase font-black tracking-widest flex items-center gap-2"
                     >
-                        + Add Radar Tracker
+                        {showForm ? 'Close Settings' : '+ Add Radar Tracker'}
+                        <svg className={`w-3 h-3 transition-transform ${showForm ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                        </svg>
                     </button>
-                )}
-            </div>
-        </motion.div>
+                </div>
+
+                {/* Expanded Form */}
+                <AnimatePresence>
+                    {showForm && (
+                        <motion.div 
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="border-t border-[var(--hp-border)] bg-[var(--hp-surface-alt)]/30"
+                        >
+                            <form onSubmit={handleAdd} className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Keywords</label>
+                                    <input 
+                                        required placeholder="React, Node..."
+                                        value={newAlert.keywords}
+                                        onChange={e => setNewAlert({...newAlert, keywords: e.target.value})}
+                                        className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Location</label>
+                                    <input 
+                                        placeholder="Remote, Pune..."
+                                        value={newAlert.location}
+                                        onChange={e => setNewAlert({...newAlert, location: e.target.value})}
+                                        className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Job Type</label>
+                                    <select 
+                                        value={newAlert.jobType}
+                                        onChange={e => setNewAlert({...newAlert, jobType: e.target.value})}
+                                        className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
+                                    >
+                                        <option value="FULL_TIME">Full-Time</option>
+                                        <option value="PART_TIME">Part-Time</option>
+                                        <option value="CONTRACT">Contract</option>
+                                        <option value="REMOTE">Remote</option>
+                                    </select>
+                                </div>
+                                <div className="flex items-end gap-3">
+                                    <div className="flex-1 space-y-1.5">
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Min Salary ($)</label>
+                                        <input 
+                                            type="number"
+                                            value={newAlert.salaryMin}
+                                            onChange={e => setNewAlert({...newAlert, salaryMin: e.target.value})}
+                                            className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
+                                        />
+                                    </div>
+                                    <button className="hp-btn-primary !py-2.5 !px-4 text-[10px] uppercase font-black">Deploy</button>
+                                </div>
+                                <div className="lg:col-span-4 pt-2">
+                                    <label className="inline-flex items-center gap-2 cursor-pointer">
+                                        <input 
+                                            type="checkbox"
+                                            checked={newAlert.emailEnabled}
+                                            onChange={e => setNewAlert({...newAlert, emailEnabled: e.target.checked})}
+                                            className="w-3.5 h-3.5 accent-[var(--hp-accent)]"
+                                        />
+                                        <span className="text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-widest">Enable Email Alerts</span>
+                                    </label>
+                                </div>
+                            </form>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </motion.div>
+        </div>
     );
 }
 
