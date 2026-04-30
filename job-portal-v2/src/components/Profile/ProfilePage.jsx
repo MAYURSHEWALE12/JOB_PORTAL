@@ -180,6 +180,7 @@ export default function ProfilePage() {
         } catch (err) {
             const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to send verification code';
             toast.error(msg);
+            setPasswordError(msg);
         } finally {
             setRequestingOTP(false);
         }
