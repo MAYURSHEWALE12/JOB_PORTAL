@@ -14,7 +14,7 @@ import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@RequestMapping("/api/presence")
+@RequestMapping("/presence")
 @RequiredArgsConstructor
 @Tag(name = "Presence", description = "Endpoints for tracking user online status")
 @Slf4j
