@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
@@ -7,8 +7,12 @@ const OAuth2RedirectHandler = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const setUser = useAuthStore((state) => state.setUser);
+    const hasProcessed = useRef(false);
 
     useEffect(() => {
+        if (hasProcessed.current) return;
+        hasProcessed.current = true;
+
         const params = new URLSearchParams(location.search);
         const token = params.get('token');
         const error = params.get('error');
@@ -25,14 +29,15 @@ const OAuth2RedirectHandler = () => {
 
             setUser(user, token);
             toast.success('Successfully logged in with Google!');
-            navigate('/dashboard');
+            navigate('/dashboard', { replace: true });
         } else if (error) {
             toast.error(decodeURIComponent(error));
-            navigate('/login');
+            navigate('/login', { replace: true });
         } else {
-            navigate('/login');
+            navigate('/login', { replace: true });
         }
     }, [location, navigate, setUser]);
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-[var(--color-page)]">
