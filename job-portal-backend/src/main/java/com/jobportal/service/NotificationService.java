@@ -69,7 +69,7 @@ public class NotificationService {
         // We broadcast to a global topic. Note: This is NOT saved to DB for everyone 
         // to keep it lightweight. Only active users see it.
         messagingTemplate.convertAndSend("/topic/notifications/all", 
-            java.util.Map.of(
+            (Object) java.util.Map.of(
                 "title", title,
                 "message", message,
                 "type", type,

@@ -62,6 +62,7 @@ public class Interview {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Builder.Default
     @Column(name = "calendar_invite_sent", nullable = false)
     private Boolean calendarInviteSent = false;
 
@@ -83,9 +84,11 @@ public class Interview {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Builder.Default
     @Column(name = "reminder_sent_24h")
     private Boolean reminderSent24h = false;
 
+    @Builder.Default
     @Column(name = "reminder_sent_1h")
     private Boolean reminderSent1h = false;
 }
