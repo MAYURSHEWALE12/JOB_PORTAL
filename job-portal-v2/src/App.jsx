@@ -109,7 +109,27 @@ function App() {
     }, [initTheme]);
 
     useEffect(() => {
-        const handleNewNotification = () => playNotificationSound();
+        const handleNewNotification = (e) => {
+            const notification = e.detail;
+            playNotificationSound();
+            
+            // Show real-time toast
+            import('react-hot-toast').then(({ toast }) => {
+                toast(notification.message || notification.title, {
+                    icon: notification.isBroadcast ? '📢' : '🔔',
+                    style: {
+                        borderRadius: '16px',
+                        background: 'var(--hp-card)',
+                        color: 'var(--hp-text)',
+                        border: '1px solid var(--hp-border)',
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        backdropFilter: 'blur(10px)'
+                    },
+                    duration: 6000
+                });
+            });
+        };
         const handleNewMessage = () => playMessageSound();
         
         window.addEventListener('newNotification', handleNewNotification);
