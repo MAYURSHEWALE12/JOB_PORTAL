@@ -55,4 +55,13 @@ public class NotificationController {
         notificationService.markAllAsRead(userId);
         return ResponseEntity.ok().build();
     }
+    @DeleteMapping("/clear-all")
+    public ResponseEntity<Void> clearAllNotifications(@RequestParam Long userId, HttpServletRequest request) {
+        Long currentUserId = securityUtil.getCurrentUserId(request);
+        if (!currentUserId.equals(userId)) {
+            throw new CustomException("Access denied", HttpStatus.FORBIDDEN);
+        }
+        notificationService.clearAllNotifications(userId);
+        return ResponseEntity.ok().build();
+    }
 }

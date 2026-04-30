@@ -53,9 +53,15 @@ public class NotificationService {
         });
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public void markAllAsRead(Long userId) {
         List<Notification> notifications = notificationRepository.findByUserIdOrderByCreatedAtDesc(userId);
         notifications.forEach(notification -> notification.setRead(true));
         notificationRepository.saveAll(notifications);
+    }
+
+    @org.springframework.transaction.annotation.Transactional
+    public void clearAllNotifications(Long userId) {
+        notificationRepository.deleteByUserId(userId);
     }
 }

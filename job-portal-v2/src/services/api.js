@@ -233,6 +233,7 @@ export const notificationAPI = {
     getAll: (userId) => apiClient.get(`/notifications/user/${userId}`),
     markAsRead: (id) => apiClient.put(`/notifications/${id}/read`),
     markAllAsRead: (userId) => apiClient.put(`/notifications/read-all?userId=${userId}`),
+    clearAll: (userId) => apiClient.delete(`/notifications/clear-all?userId=${userId}`),
 };
 
 export const quizAPI = {

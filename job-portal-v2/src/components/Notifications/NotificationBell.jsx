@@ -50,13 +50,14 @@ export default function NotificationBell() {
         }
     };
 
-    const handleMarkAllAsRead = async () => {
+    const handleClearAll = async () => {
         if (!user) return;
         try {
-            await notificationAPI.markAllAsRead(user.id);
-            setFetchedNotifications(prev => prev.map(n => ({ ...n, read: true })));
+            await notificationAPI.clearAll(user.id);
+            setFetchedNotifications([]);
+            useWebsocketStore.getState().clearAllNotifications();
         } catch (err) {
-            console.error('Failed to mark all as read:', err);
+            console.error('Failed to clear notifications:', err);
         }
     };
 
@@ -135,9 +136,9 @@ export default function NotificationBell() {
                             >
                                 <div className="p-4 border-b flex justify-between items-center bg-[var(--hp-card)]" style={{ borderColor: 'var(--hp-border)' }}>
                                     <h3 className="font-bold text-[var(--hp-text)] tracking-tight">Notifications</h3>
-                                    {unreadCount > 0 && (
+                                    {allNotifications.length > 0 && (
                                         <button
-                                            onClick={handleMarkAllAsRead}
+                                            onClick={handleClearAll}
                                             className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-accent2)] hover:opacity-80 transition-opacity"
                                         >
                                             Clear All

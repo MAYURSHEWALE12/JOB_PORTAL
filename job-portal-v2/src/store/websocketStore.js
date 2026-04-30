@@ -140,5 +140,7 @@ export const useWebsocketStore = create((set, get) => ({
         }));
     },
     
-    resetUnreadNotifications: () => set({ unreadNotifications: 0 })
+    resetUnreadNotifications: () => set({ unreadNotifications: 0 }),
+    
+    clearAllNotifications: () => set({ notifications: [], unreadNotifications: 0 })
 }));
