@@ -18,6 +18,7 @@ import com.jobportal.repository.ResumeAnalysisRepository;
 import com.jobportal.repository.QuizRepository;
 import com.jobportal.repository.InterviewRepository;
 import com.jobportal.service.UserService;
+import com.jobportal.service.NotificationService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
