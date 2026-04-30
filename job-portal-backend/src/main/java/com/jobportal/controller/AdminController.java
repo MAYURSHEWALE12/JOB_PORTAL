@@ -47,6 +47,7 @@ public class AdminController {
     private final QuizRepository quizRepository;
     private final InterviewRepository interviewRepository;
     private final UserService userService;
+    private final NotificationService notificationService;
 
     /**
      * GET /api/admin/stats
@@ -136,5 +137,26 @@ public class AdminController {
     @GetMapping("/applications")
     public ResponseEntity<List<JobApplication>> getAllApplications() {
         return ResponseEntity.ok(applicationRepository.findAll());
+    }
+
+
+    /**
+     * POST /api/admin/broadcast
+     * Send a notification to ALL connected users
+     */
+    @PostMapping("/broadcast")
+    public ResponseEntity<?> broadcast(@RequestBody Map<String, String> payload) {
+        String title = payload.getOrDefault("title", "Platform Announcement");
+        String message = payload.get("message");
+        String type = payload.getOrDefault("type", "INFO");
+
+        if (message == null || message.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Message content is required"));
+        }
+
+        notificationService.broadcastNotification(title, message, type);
+        log.info("Admin broadcast sent: {}", title);
+        
+        return ResponseEntity.ok(Map.of("message", "Broadcast sent successfully"));
     }
 }

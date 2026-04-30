@@ -47,6 +47,13 @@ export const useWebsocketStore = create((set, get) => ({
                     window.dispatchEvent(new CustomEvent('newNotification', { detail: notification }));
                 });
 
+                // Subscribe to global broadcasts
+                client.subscribe('/topic/notifications/all', (message) => {
+                    const broadcast = JSON.parse(message.body);
+                    // Broadcasts are not saved to DB in this implementation, so we just dispatch event for toast
+                    window.dispatchEvent(new CustomEvent('newNotification', { detail: broadcast }));
+                });
+
                 // Subscribe to chat
                 client.subscribe(`/topic/messages/${userId}`, (message) => {
                     const msg = JSON.parse(message.body);

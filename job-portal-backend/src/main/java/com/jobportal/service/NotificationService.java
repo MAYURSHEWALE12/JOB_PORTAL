@@ -64,4 +64,18 @@ public class NotificationService {
     public void clearAllNotifications(Long userId) {
         notificationRepository.deleteByUserId(userId);
     }
+
+    public void broadcastNotification(String title, String message, String type) {
+        // We broadcast to a global topic. Note: This is NOT saved to DB for everyone 
+        // to keep it lightweight. Only active users see it.
+        messagingTemplate.convertAndSend("/topic/notifications/all", 
+            java.util.Map.of(
+                "title", title,
+                "message", message,
+                "type", type,
+                "timestamp", java.time.LocalDateTime.now().toString(),
+                "isBroadcast", true
+            )
+        );
+    }
 }

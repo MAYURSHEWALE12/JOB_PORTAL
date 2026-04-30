@@ -33,6 +33,9 @@ export default function AdminPanel() {
     const [searchQuery, setSearchQuery] = useState('');
     const [roleFilter, setRoleFilter] = useState('ALL');
     const [statusFilter, setStatusFilter] = useState('ALL');
+    const [broadcastMsg, setBroadcastMsg] = useState({ title: '', message: '', type: 'INFO' });
+    const [sendingBroadcast, setSendingBroadcast] = useState(false);
+    const [broadcastSuccess, setBroadcastSuccess] = useState(false);
 
     useEffect(() => {
         fetchStats();
@@ -101,6 +104,26 @@ export default function AdminPanel() {
             setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
         } catch (err) { setError('Authorization update sequence failed.'); }
         finally { setUpdatingId(null); }
+    };
+
+    const handleBroadcast = async (e) => {
+        e.preventDefault();
+        if (!broadcastMsg.message.trim()) return;
+        
+        setSendingBroadcast(true);
+        setBroadcastSuccess(false);
+        setError('');
+        
+        try {
+            await apiClient.post('/admin/broadcast', broadcastMsg);
+            setBroadcastSuccess(true);
+            setBroadcastMsg({ title: '', message: '', type: 'INFO' });
+            setTimeout(() => setBroadcastSuccess(false), 5000);
+        } catch (err) {
+            setError('Broadcast signal failed to propagate across the network.');
+        } finally {
+            setSendingBroadcast(false);
+        }
     };
 
     const filteredUsers = users.filter(user => {
@@ -268,6 +291,7 @@ export default function AdminPanel() {
             <div className="flex bg-[var(--hp-surface-alt)] p-1.5 rounded-2xl border border-[var(--hp-border)] w-fit mb-6">
                 <button onClick={() => setActiveTab('users')} className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}>Network Matrix</button>
                 <button onClick={() => setActiveTab('jobs')} className={`tab-btn ${activeTab === 'jobs' ? 'active' : ''}`}>Market Postings</button>
+                <button onClick={() => setActiveTab('broadcast')} className={`tab-btn ${activeTab === 'broadcast' ? 'active' : ''}`}>Broadcast Center</button>
             </div>
             <div className="admin-card overflow-hidden">
                 <div className="p-6 border-b border-[var(--hp-border)] flex flex-col md:flex-row gap-4">
@@ -297,7 +321,6 @@ export default function AdminPanel() {
                         )}
                     </select>
                 </div>
-
                 <div className="p-8">
                     <AnimatePresence>
                         {error && (
@@ -309,84 +332,141 @@ export default function AdminPanel() {
                                 <button onClick={() => setError('')} className="opacity-50 hover:opacity-100 transition-opacity">✕</button>
                             </motion.div>
                         )}
+                        {broadcastSuccess && (
+                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="mb-6 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold">
+                                Broadcast sequence completed successfully. Signal transmitted to all nodes.
+                            </motion.div>
+                        )}
                     </AnimatePresence>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)]">
-                                <tr><th className="pb-6 pl-4">ID</th><th className="pb-6">Profile</th><th className="pb-6">Authority/Status</th><th className="pb-6 text-right pr-4">Operations</th></tr>
-                            </thead>
-                            <tbody className="text-sm">
-                                {activeTab === 'users' ? filteredUsers.map(user => (
-                                    <tr key={user.id} className="border-b border-[var(--hp-border)] hover:bg-[rgba(var(--hp-accent-rgb),0.05)] transition-all group">
-                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs group-hover:text-[var(--hp-accent)] transition-colors">#{user.id}</td>
-                                        <td className="py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10">
-                                                    <CompanyAvatar 
-                                                        name={`${user.firstName} ${user.lastName}`} 
-                                                        logoUrl={user.profileImageUrl} 
-                                                        size="sm" 
-                                                    />
+                    {activeTab === 'broadcast' ? (
+                        <div className="max-w-2xl mx-auto py-8">
+                            <div className="text-center mb-10">
+                                <div className="w-16 h-16 rounded-2xl bg-[var(--hp-accent)]/10 flex items-center justify-center text-[var(--hp-accent)] text-2xl mx-auto mb-4">📢</div>
+                                <h4 className="text-xl font-black tracking-tight mb-2">Global System Broadcast</h4>
+                                <p className="text-sm text-[var(--hp-muted)]">Transmit a real-time signal to all active users on the platform.</p>
+                            </div>
+
+                            <form onSubmit={handleBroadcast} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Signal Title</label>
+                                    <input 
+                                        type="text"
+                                        placeholder="e.g. Platform Update, System Alert..."
+                                        value={broadcastMsg.title}
+                                        onChange={(e) => setBroadcastMsg({...broadcastMsg, title: e.target.value})}
+                                        className="w-full px-5 py-4 rounded-xl border border-[var(--hp-border)] bg-[var(--hp-surface-alt)] text-sm outline-none focus:border-[var(--hp-accent)] transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Message Content</label>
+                                    <textarea 
+                                        rows="4"
+                                        placeholder="Type your global announcement here..."
+                                        required
+                                        value={broadcastMsg.message}
+                                        onChange={(e) => setBroadcastMsg({...broadcastMsg, message: e.target.value})}
+                                        className="w-full px-5 py-4 rounded-xl border border-[var(--hp-border)] bg-[var(--hp-surface-alt)] text-sm outline-none focus:border-[var(--hp-accent)] transition-all resize-none"
+                                    ></textarea>
+                                </div>
+                                <div className="grid grid-cols-3 gap-4">
+                                    {['INFO', 'WARNING', 'SUCCESS'].map(type => (
+                                        <button 
+                                            key={type}
+                                            type="button"
+                                            onClick={() => setBroadcastMsg({...broadcastMsg, type})}
+                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest border transition-all ${broadcastMsg.type === type ? 'border-[var(--hp-accent)] bg-[var(--hp-accent)]/10 text-[var(--hp-accent)]' : 'border-[var(--hp-border)] bg-[var(--hp-surface-alt)] text-[var(--hp-muted)]'}`}
+                                        >
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                                <button 
+                                    disabled={sendingBroadcast}
+                                    className="w-full py-5 rounded-2xl bg-[var(--hp-accent)] text-[#07090f] font-black uppercase tracking-widest text-xs shadow-lg shadow-[var(--hp-accent)]/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:hover:scale-100"
+                                >
+                                    {sendingBroadcast ? 'Transmitting...' : 'Initiate Global Broadcast'}
+                                </button>
+                            </form>
+                        </div>
+                    ) : (
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="text-[10px] font-black uppercase tracking-widest text-[var(--hp-muted)]">
+                                    <tr><th className="pb-6 pl-4">ID</th><th className="pb-6">Profile</th><th className="pb-6">Authority/Status</th><th className="pb-6 text-right pr-4">Operations</th></tr>
+                                </thead>
+                                <tbody className="text-sm">
+                                    {activeTab === 'users' ? filteredUsers.map(user => (
+                                        <tr key={user.id} className="border-b border-[var(--hp-border)] hover:bg-[rgba(var(--hp-accent-rgb),0.05)] transition-all group">
+                                            <td className="py-5 pl-4 opacity-50 font-mono text-xs group-hover:text-[var(--hp-accent)] transition-colors">#{user.id}</td>
+                                            <td className="py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10">
+                                                        <CompanyAvatar 
+                                                            name={`${user.firstName} ${user.lastName}`} 
+                                                            logoUrl={user.profileImageUrl} 
+                                                            size="sm" 
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <span className="font-bold text-[var(--hp-text)] block">{user.firstName} {user.lastName}</span>
+                                                        <span className="text-[10px] font-medium opacity-50">{user.email}</span>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <span className="font-bold text-[var(--hp-text)] block">{user.firstName} {user.lastName}</span>
-                                                    <span className="text-[10px] font-medium opacity-50">{user.email}</span>
+                                            </td>
+                                            <td className="py-5">
+                                                <span className={`hp-badge ${user.role === 'ADMIN' ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20' : user.role === 'EMPLOYER' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
+                                                    {user.role}
+                                                </span>
+                                            </td>
+                                            <td className="py-5 text-right pr-4">
+                                                <div className="flex justify-end items-center gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                    <select value={user.role} onChange={(e) => handleChangeRole(user.id, e.target.value)} disabled={updatingId === user.id} className="hp-select text-[10px] font-bold !py-2 !pr-8">
+                                                        <option value="JOBSEEKER">Seeker</option>
+                                                        <option value="EMPLOYER">Employer</option>
+                                                        <option value="ADMIN">Admin</option>
+                                                    </select>
+                                                    <button onClick={() => setPendingDeletion({ id: user.id, type: 'user', name: user.firstName })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-all" title="Terminate Node">
+                                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                                    </button>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-5">
-                                            <span className={`hp-badge ${user.role === 'ADMIN' ? 'bg-teal-500/10 text-teal-500 border border-teal-500/20' : user.role === 'EMPLOYER' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
-                                                {user.role}
-                                            </span>
-                                        </td>
-                                        <td className="py-5 text-right pr-4">
-                                            <div className="flex justify-end items-center gap-3 opacity-80 group-hover:opacity-100 transition-opacity">
-                                                <select value={user.role} onChange={(e) => handleChangeRole(user.id, e.target.value)} disabled={updatingId === user.id} className="hp-select text-[10px] font-bold !py-2 !pr-8">
-                                                    <option value="JOBSEEKER">Seeker</option>
-                                                    <option value="EMPLOYER">Employer</option>
-                                                    <option value="ADMIN">Admin</option>
-                                                </select>
-                                                <button onClick={() => setPendingDeletion({ id: user.id, type: 'user', name: user.firstName })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-all" title="Terminate Node">
+                                            </td>
+                                        </tr>
+                                    )) : filteredJobs.map(job => (
+                                        <tr key={job.id} className="border-b border-[var(--hp-border)] hover:bg-[rgba(var(--hp-accent-rgb),0.05)] transition-all group">
+                                            <td className="py-5 pl-4 opacity-50 font-mono text-xs group-hover:text-[var(--hp-accent)] transition-colors">#{job.id}</td>
+                                            <td className="py-5">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10">
+                                                        <CompanyAvatar 
+                                                            name={job.employer?.companyProfile?.companyName || `${job.employer?.firstName} ${job.employer?.lastName}`} 
+                                                            logoUrl={job.employer?.companyProfile?.logoUrl} 
+                                                            size="sm" 
+                                                        />
+                                                    </div>
+                                                    <div>
+                                                        <span className="font-bold text-[var(--hp-text)] block">{job.title}</span>
+                                                        <span className="text-[10px] font-medium opacity-50">{job.employer?.companyProfile?.companyName || 'Unknown'} • {job.location}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="py-5">
+                                                <span className={`hp-badge ${job.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
+                                                    {job.status}
+                                                </span>
+                                            </td>
+                                            <td className="py-5 text-right pr-4 opacity-80 group-hover:opacity-100 transition-opacity">
+                                                <button onClick={() => setPendingDeletion({ id: job.id, type: 'job', name: job.title })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-all" title="Delete Record">
                                                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                                 </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )) : filteredJobs.map(job => (
-                                    <tr key={job.id} className="border-b border-[var(--hp-border)] hover:bg-[rgba(var(--hp-accent-rgb),0.05)] transition-all group">
-                                        <td className="py-5 pl-4 opacity-50 font-mono text-xs group-hover:text-[var(--hp-accent)] transition-colors">#{job.id}</td>
-                                        <td className="py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10">
-                                                    <CompanyAvatar 
-                                                        name={job.employer?.companyProfile?.companyName || `${job.employer?.firstName} ${job.employer?.lastName}`} 
-                                                        logoUrl={job.employer?.companyProfile?.logoUrl} 
-                                                        size="sm" 
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <span className="font-bold text-[var(--hp-text)] block">{job.title}</span>
-                                                    <span className="text-[10px] font-medium opacity-50">{job.employer?.companyProfile?.companyName || 'Unknown'} • {job.location}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="py-5">
-                                            <span className={`hp-badge ${job.status === 'ACTIVE' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
-                                                {job.status}
-                                            </span>
-                                        </td>
-                                        <td className="py-5 text-right pr-4 opacity-80 group-hover:opacity-100 transition-opacity">
-                                            <button onClick={() => setPendingDeletion({ id: job.id, type: 'job', name: job.title })} className="text-red-400 hover:text-red-300 hover:bg-red-500/10 p-2 rounded-lg transition-all" title="Delete Record">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    )}
+                </div> </div>
             </div>
 
             {/* 🔥 CUSTOM CENTERED CONFIRMATION MODAL */}
