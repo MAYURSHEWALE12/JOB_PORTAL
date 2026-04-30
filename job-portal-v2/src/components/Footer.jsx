@@ -10,8 +10,8 @@ export default function Footer() {
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-8">
                     <div className="col-span-2 sm:col-span-1">
                         <Link to="/">
-                        <Logo size="sm" showTagline />
-                    </Link>
+                            <Logo size="sm" showTagline />
+                        </Link>
                         <p className="text-[var(--color-text-muted)] text-xs sm:text-sm mt-2">
                             Connecting talent with opportunities.
                         </p>
@@ -55,7 +55,7 @@ export default function Footer() {
 
                 <div className="text-center pt-4 sm:pt-6 border-t border-[var(--color-divider)]">
                     <p className="text-xs text-[var(--color-text-muted)]">
-                        © {currentYear} HireHub. Built with React & Spring Boot.
+                        © {currentYear} HireHub BY BABLU. Built with React & Spring Boot.
                     </p>
                 </div>
             </div>
