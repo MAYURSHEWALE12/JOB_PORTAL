@@ -121,9 +121,16 @@ export default function Messaging() {
         };
         window.addEventListener('messageRead', handleMessageRead);
 
+        const handleMessageDeleted = (event) => {
+            const msgId = event.detail;
+            setConversation(prev => prev.filter(m => m.id !== msgId));
+        };
+        window.addEventListener('messageDeleted', handleMessageDeleted);
+
         return () => {
             window.removeEventListener('newMessage', handleNewMessage);
             window.removeEventListener('messageRead', handleMessageRead);
+            window.removeEventListener('messageDeleted', handleMessageDeleted);
         };
     }, [selectedPartner, connected, user.id]);
 

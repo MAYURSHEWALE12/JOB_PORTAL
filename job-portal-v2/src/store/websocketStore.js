@@ -48,10 +48,21 @@ export const useWebsocketStore = create((set, get) => ({
                 });
 
                 // Subscribe to chat
-                client.subscribe(`/topic/chat/${userId}`, (message) => {
+                client.subscribe(`/topic/messages/${userId}`, (message) => {
                     const msg = JSON.parse(message.body);
-                    const senderId = msg.sender.id;
                     console.log('WebSocket message received:', msg);
+
+                    if (msg.deleted) {
+                        // Handle message deletion
+                        set((state) => ({
+                            messages: state.messages.filter(m => m.id !== msg.id)
+                        }));
+                        window.dispatchEvent(new CustomEvent('messageDeleted', { detail: msg.id }));
+                        return;
+                    }
+
+                    const senderId = msg.sender?.id;
+                    if (!senderId) return;
                     
                     // Store message for real-time updates
                     set((state) => ({
