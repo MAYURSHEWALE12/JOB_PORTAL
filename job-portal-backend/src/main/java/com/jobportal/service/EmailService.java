@@ -93,55 +93,53 @@ public class EmailService {
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <style>
                     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
-                    body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f0f4f8; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-                    .wrapper { background-color: #f0f4f8; padding: 40px 10px; }
-                    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-                    .header { background: linear-gradient(135deg, #0f172a 0%%, #1e293b 100%%); padding: 48px 40px; text-align: center; }
+                    body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+                    .wrapper { background-color: #f8fafc; padding: 40px 10px; }
+                    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 32px; overflow: hidden; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08); border: 1px solid #e2e8f0; }
+                    .header { background: #0f172a; padding: 60px 40px; text-align: center; }
                     .logo-icon { font-size: 40px; margin-bottom: 24px; display: block; }
-                    .header h1 { color: #f8fafc; font-size: 28px; margin: 0; font-weight: 800; letter-spacing: -0.02em; }
-                    .content { padding: 48px 40px; }
-                    .greeting { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 16px; }
-                    .text { font-size: 16px; color: #475569; line-height: 1.7; margin-bottom: 32px; }
-                    .role-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 24px; margin-bottom: 32px; display: flex; align-items: center; gap: 16px; }
-                    .role-icon { font-size: 24px; padding: 12px; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-                    .role-info h3 { margin: 0; font-size: 14px; text-transform: uppercase; color: #64748b; letter-spacing: 0.1em; }
-                    .role-info p { margin: 4px 0 0; font-size: 18px; font-weight: 700; color: #0f172a; }
-                    .btn { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 18px 36px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; transition: transform 0.2s; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
-                    .footer { padding: 32px 40px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; }
-                    .footer p { color: #94a3b8; font-size: 13px; margin: 0; }
-                    .social-links { margin-top: 16px; }
-                    .social-links a { color: #64748b; text-decoration: none; margin: 0 8px; font-weight: 600; }
+                    .header h1 { color: #ffffff; font-size: 32px; margin: 0; font-weight: 800; letter-spacing: -0.03em; }
+                    .header h1 span { color: #3b82f6; }
+                    .content { padding: 50px 40px; }
+                    .greeting { font-size: 24px; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
+                    .text { font-size: 16px; color: #475569; line-height: 1.8; margin-bottom: 32px; }
+                    .role-badge { display: inline-flex; align-items: center; background: #f1f5f9; border-radius: 12px; padding: 12px 20px; gap: 12px; margin-bottom: 32px; border: 1px solid #e2e8f0; }
+                    .role-icon { font-size: 20px; }
+                    .role-text { font-size: 14px; font-weight: 700; color: #0f172a; text-transform: uppercase; letter-spacing: 0.05em; }
+                    .btn { display: inline-block; background: #3b82f6; color: #ffffff !important; padding: 20px 40px; border-radius: 16px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25); transition: all 0.2s; }
+                    .footer { padding: 40px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; }
+                    .footer p { color: #94a3b8; font-size: 13px; margin: 0 0 16px; }
+                    .social-links a { color: #64748b; text-decoration: none; margin: 0 10px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em; }
                 </style>
             </head>
             <body>
                 <div class="wrapper">
                     <div class="container">
                         <div class="header">
-                            <span class="logo-icon">🚀</span>
-                            <h1>Welcome to Vertex Job Portal</h1>
+                            <span class="logo-icon">✨</span>
+                            <h1>Hire<span>Hub</span></h1>
                         </div>
                         <div class="content">
                             <p class="greeting">Hi %s,</p>
                             <p class="text">Your journey to professional excellence starts here. We're thrilled to have you join our elite community of talent and visionary employers.</p>
                             
-                            <div class="role-card">
+                            <div class="role-badge">
                                 <span class="role-icon">%s</span>
-                                <div class="role-info">
-                                    <h3>Account Type</h3>
-                                    <p>%s</p>
-                                </div>
+                                <span class="role-text">Account: %s</span>
                             </div>
                             
-                            <p class="text">Head over to your dashboard to complete your profile and start exploring opportunities tailored for you.</p>
+                            <p class="text">Head over to your dashboard to complete your profile and start exploring opportunities tailored specifically for your expertise.</p>
                             
                             <center>
                                 <a href="%s/dashboard" class="btn">Explore My Dashboard →</a>
                             </center>
                         </div>
                         <div class="footer">
-                            <p>© 2026 Vertex Job Portal. All rights reserved.</p>
+                            <p>© 2026 HireHub Excellence Platform. All rights reserved.</p>
                             <div class="social-links">
-                                <a href="#">Support</a> | <a href="#">Twitter</a> | <a href="#">LinkedIn</a>
+                                <a href="#">Support</a>
+                                <a href="#">Privacy</a>
+                                <a href="#">Community</a>
                             </div>
                         </div>
                     </div>
@@ -150,6 +148,7 @@ public class EmailService {
             </html>
             """.formatted(firstName, roleIcon, roleLabel, frontendUrl);
     }
+
 
     public boolean sendJobAlertEmail(String toEmail, String userName, Job job) {
         if (!isEmailConfigured()) {
@@ -192,40 +191,51 @@ public class EmailService {
         String company = getCompanyName(job);
         String salary = job.getSalaryMin() != null
                 ? String.format("₹%,.0f - ₹%,.0f", job.getSalaryMin(), job.getSalaryMax())
-                : "Not specified";
+                : "Competitive / Not specified";
 
         return """
             <!DOCTYPE html>
             <html>
-            <head><style>
-                body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
-                .container { max-width: 550px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden; }
-                .header { background: linear-gradient(135deg, #0ea5e9 0%%, #0284c7 100%%); color: white; padding: 32px 24px; font-size: 22px; font-weight: 700; text-align: center; }
-                .body { padding: 32px 28px; }
-                .body h2 { margin: 0 0 8px; color: #0f172a; font-size: 20px; font-weight: 700; }
-                .body .company { color: #0ea5e9; font-weight: 600; font-size: 14px; margin-bottom: 24px; display: inline-block; padding: 4px 12px; background: #f0f9ff; border-radius: 20px; }
-                .body p { color: #475569; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 16px; }
-                .detail { margin: 12px 0; font-size: 14px; color: #334155; background: #f8fafc; padding: 12px 16px; border-radius: 8px; border: 1px solid #f1f5f9; display: block; }
-                .btn { display: inline-block; margin-top: 24px; padding: 14px 28px; background: linear-gradient(135deg, #0ea5e9 0%%, #0284c7 100%%); color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.2); }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-            </style></head>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+                    body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 10px; }
+                    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; }
+                    .header { background: #3b82f6; color: white; padding: 32px; text-align: center; }
+                    .header h2 { margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+                    .body { padding: 40px; }
+                    .greeting { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+                    .subtitle { color: #64748b; font-size: 15px; margin-bottom: 32px; }
+                    .job-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; margin-bottom: 32px; }
+                    .job-title { margin: 0 0 12px; color: #0f172a; font-size: 24px; font-weight: 800; line-height: 1.2; }
+                    .company-tag { display: inline-block; color: #3b82f6; font-weight: 700; font-size: 14px; margin-bottom: 24px; padding: 6px 16px; background: rgba(59, 130, 246, 0.1); border-radius: 100px; }
+                    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+                    .detail-item { font-size: 14px; color: #475569; display: flex; align-items: center; gap: 8px; }
+                    .btn { display: inline-block; width: 100%%; text-align: center; padding: 18px; background: #0f172a; color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 16px; border-radius: 14px; box-shadow: 0 10px 20px rgba(15, 23, 42, 0.1); }
+                    .footer { background: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
+                </style>
+            </head>
             <body>
                 <div class="container">
-                    <div class="header">🔔 New Job Match</div>
+                    <div class="header"><h2>New Job Match</h2></div>
                     <div class="body">
-                        <p style="font-size: 16px; font-weight: 600; color: #0f172a;">Hi %s,</p>
-                        <p>A new job was just posted that matches your career preferences!</p>
-                        <div style="margin-top: 24px; padding-top: 24px; border-top: 1px solid #e2e8f0;">
-                            <h2>%s</h2>
-                            <div class="company">%s</div>
-                            <div class="detail"><strong>📍 Location:</strong> %s</div>
-                            <div class="detail"><strong>💰 Salary:</strong> %s</div>
-                            <div class="detail"><strong>📋 Type:</strong> %s</div>
-                            <div class="detail"><strong>🏷️ Experience:</strong> %s</div>
+                        <p class="greeting">Hi %s,</p>
+                        <p class="subtitle">A new opportunity that perfectly aligns with your profile was just posted.</p>
+                        
+                        <div class="job-card">
+                            <h3 class="job-title">%s</h3>
+                            <div class="company-tag">%s</div>
+                            
+                            <div style="margin-bottom: 8px; font-size: 14px; color: #64748b;">📍 %s</div>
+                            <div style="margin-bottom: 8px; font-size: 14px; color: #64748b;">💰 %s</div>
+                            <div style="margin-bottom: 8px; font-size: 14px; color: #64748b;">📋 %s</div>
+                            <div style="font-size: 14px; color: #64748b;">🏷️ %s</div>
                         </div>
-                        <center><a class="btn" href="%s">View & Apply Now →</a></center>
+                        
+                        <a class="btn" href="%s">View & Apply Now →</a>
                     </div>
-                    <div class="footer">Job Portal • Manage alerts in your dashboard</div>
+                    <div class="footer">HireHub Intelligent Matching • Manage alerts in your settings</div>
                 </div>
             </body>
             </html>
@@ -240,6 +250,7 @@ public class EmailService {
                 "" + frontendUrl + "/jobs/" + job.getId()
             );
     }
+
 
     private String getCompanyName(Job job) {
         if (job.getEmployer() != null && job.getEmployer().getCompanyProfile() != null) {
@@ -327,7 +338,7 @@ public class EmailService {
                     <div class="content">
                         <span class="doc-tag">Confidential Offer</span>
                         <p class="greeting">Dear %s,</p>
-                        <p class="announcement">Congratulations! We are delighted to officially extend an offer for you to join organized excellence. Your unique skills and potential have truly stood out.</p>
+                        <p class="announcement">Congratulations! We are delighted to officially extend an offer for you to join organized excellence at HireHub. Your unique skills and potential have truly stood out.</p>
                         
                         <div class="role-highlight">
                             <div class="role-item">
@@ -350,13 +361,14 @@ public class EmailService {
                         </center>
                     </div>
                     <div class="footer">
-                        <p>This is a secure communication from Vertex Job Portal. If you have questions regarding your offer, please contact the employer through the messaging dashboard.</p>
+                        <p>This is a secure communication from HireHub. If you have questions regarding your offer, please contact the employer through the messaging dashboard.</p>
                     </div>
                 </div>
             </body>
             </html>
             """.formatted(candidateName, jobTitle, companyName, formattedContent, frontendUrl);
     }
+
 
     public boolean sendOfferAcceptedEmail(String toEmail, String employerName, String candidateName, String jobTitle, String companyName) {
         if (!isEmailConfigured()) {
@@ -396,35 +408,41 @@ public class EmailService {
         return """
             <!DOCTYPE html>
             <html>
-            <head><style>
-                body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
-                .container { max-width: 550px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden; }
-                .header { background: linear-gradient(135deg, #10b981 0%%, #34d399 100%%); color: white; padding: 32px 24px; font-size: 24px; font-weight: 700; text-align: center; }
-                .body { padding: 32px 28px; }
-                .body p { color: #475569; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 16px; }
-                .highlight-box { background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 12px; padding: 20px; margin: 24px 0; text-align: center; }
-                .highlight-box p { color: #065f46; margin: 0; font-size: 16px; font-weight: 500; }
-                .btn { display: inline-block; margin-top: 16px; padding: 14px 28px; background: linear-gradient(135deg, #059669 0%%, #10b981 100%%); color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2); }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-            </style></head>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap');
+                    body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 10px; }
+                    .container { max-width: 550px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.05); overflow: hidden; }
+                    .header { background: #10b981; color: white; padding: 40px 24px; text-align: center; }
+                    .header h2 { margin: 0; font-size: 24px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+                    .body { padding: 40px; }
+                    .greeting { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 16px; }
+                    .highlight-box { background: #ecfdf5; border: 1px solid #d1fae5; border-radius: 16px; padding: 24px; margin: 32px 0; text-align: center; }
+                    .highlight-box p { color: #065f46; margin: 0; font-size: 16px; font-weight: 600; line-height: 1.6; }
+                    .btn { display: inline-block; padding: 16px 32px; background: #059669; color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 15px; border-radius: 12px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2); }
+                    .footer { background: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
+                </style>
+            </head>
             <body>
                 <div class="container">
-                    <div class="header">✅ Offer Accepted!</div>
+                    <div class="header"><h2>Offer Accepted!</h2></div>
                     <div class="body">
-                        <p style="font-size: 18px; font-weight: 600; color: #0f172a;">Hi %s,</p>
-                        <p>Great news from your ATS pipeline!</p>
+                        <p class="greeting">Hi %s,</p>
+                        <p style="color: #475569;">Great news from your HireHub pipeline!</p>
                         <div class="highlight-box">
-                            <p><strong>%s</strong> has officially <strong>accepted</strong> your offer for the position of <strong>%s</strong> at <strong>%s</strong>.</p>
+                            <p><strong>%s</strong> has officially <strong>accepted</strong> your offer for <strong>%s</strong> at <strong>%s</strong>.</p>
                         </div>
-                        <p>You can now log in and proceed with their onboarding process.</p>
-                        <center><a class="btn" href="%s/dashboard">Open ATS Board →</a></center>
+                        <p style="color: #475569; margin-bottom: 32px;">You can now log in to proceed with onboarding and next steps.</p>
+                        <center><a class="btn" href="%s/dashboard">Open ATS Dashboard →</a></center>
                     </div>
-                    <div class="footer">Job Portal • Need help? Check out our support section</div>
+                    <div class="footer">HireHub Excellence • Smart Talent Management</div>
                 </div>
             </body>
             </html>
             """.formatted(employerName, candidateName, jobTitle, companyName, frontendUrl);
     }
+
 
     public boolean sendInterviewScheduledEmail(String toEmail, String name, String interviewTitle,
                                                 String jobTitle, String companyName,
@@ -472,49 +490,58 @@ public class EmailService {
         String dateTime = scheduledAt.format(java.time.format.DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy 'at' hh:mm a"));
         String locationDetails = "";
         if (location != null && !location.isEmpty()) {
-            locationDetails += "<div class=\"detail\"><span>📍</span> <span>" + location + "</span></div>";
+            locationDetails += "<div class=\"detail-item\"><span>📍</span> <span>" + location + "</span></div>";
         }
         if (meetingLink != null && !meetingLink.isEmpty()) {
-            locationDetails += "<div class=\"detail\"><span>💻</span> <span><a href=\"" + meetingLink + "\">" + meetingLink + "</a></span></div>";
+            locationDetails += "<div class=\"detail-item\"><span>💻</span> <span><a href=\"" + meetingLink + "\" style=\"color: #3b82f6; text-decoration: none; font-weight: 700;\">Join Meeting Link</a></span></div>";
         }
 
         return """
             <!DOCTYPE html>
             <html>
-            <head><style>
-                body { font-family: 'Inter', -apple-system, system-ui, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 20px; }
-                .container { max-width: 550px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 16px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05); overflow: hidden; }
-                .header { background: linear-gradient(135deg, #3b82f6 0%%, #60a5fa 100%%); color: white; padding: 32px 24px; font-size: 24px; font-weight: 700; text-align: center; }
-                .body { padding: 32px 28px; }
-                .body p { color: #475569; font-size: 15px; line-height: 1.6; margin-top: 0; margin-bottom: 16px; }
-                .detail { margin: 12px 0; font-size: 15px; color: #334155; background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1px solid #f1f5f9; display: flex; align-items: flex-start; gap: 12px; }
-                .detail span:first-child { font-size: 18px; line-height: 1.2; }
-                .detail a { color: #3b82f6; text-decoration: none; font-weight: 600; }
-                .btn { display: inline-block; margin-top: 24px; padding: 14px 28px; background: linear-gradient(135deg, #2563eb 0%%, #3b82f6 100%%); color: #ffffff !important; text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.2); }
-                .footer { background: #f8fafc; padding: 20px; text-align: center; font-size: 13px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
-            </style></head>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap');
+                    body { font-family: 'Outfit', sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 10px; }
+                    .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+                    .header { background: #3b82f6; color: white; padding: 40px 24px; text-align: center; }
+                    .header h2 { margin: 0; font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+                    .body { padding: 40px; }
+                    .greeting { font-size: 20px; font-weight: 700; color: #0f172a; margin-bottom: 8px; }
+                    .interview-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 20px; padding: 32px; margin: 32px 0; }
+                    .interview-title { font-size: 22px; font-weight: 800; color: #0f172a; margin: 0 0 20px; }
+                    .detail-item { font-size: 15px; color: #475569; margin-bottom: 12px; display: flex; align-items: flex-start; gap: 12px; }
+                    .btn { display: inline-block; width: 100%%; text-align: center; padding: 18px; background: #3b82f6; color: #ffffff !important; text-decoration: none; font-weight: 700; font-size: 16px; border-radius: 14px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
+                    .footer { background: #f8fafc; padding: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; }
+                </style>
+            </head>
             <body>
                 <div class="container">
-                    <div class="header">📅 Interview Scheduled</div>
+                    <div class="header"><h2>Interview Scheduled</h2></div>
                     <div class="body">
-                        <p style="font-size: 18px; font-weight: 600; color: #0f172a;">Hi %s,</p>
-                        <p>You have been invited to an interview for the <strong>%s</strong> role at <strong>%s</strong>!</p>
-                        <div style="margin: 24px 0; padding-top: 20px; border-top: 1px solid #e2e8f0;">
-                            <h2 style="margin:0 0 16px; font-size: 18px; color:#1e293b;">%s</h2>
-                            <div class="detail"><span>📅</span> <span><strong>Date & Time:</strong><br/>%s</span></div>
-                            <div class="detail"><span>⏱️</span> <span><strong>Duration:</strong><br/>%d minutes</span></div>
-                            %s
+                        <p class="greeting">Hi %s,</p>
+                        <p style="color: #475569;">You've been invited to interview for the <strong>%s</strong> role at <strong>%s</strong>.</p>
+                        
+                        <div class="interview-box">
+                            <h3 class="interview-title">%s</h3>
+                            <div class="detail-item"><span>📅</span> <span><strong>Date:</strong> %s</span></div>
+                            <div class="detail-item"><span>⏱️</span> <span><strong>Duration:</strong> %d minutes</span></div>
                             %s
                         </div>
-                        <center><a class="btn" href="%s/dashboard">View in Dashboard →</a></center>
+                        
+                        %s
+                        
+                        <a class="btn" href="%s/dashboard">Manage Interview in HireHub →</a>
                     </div>
-                    <div class="footer">Job Portal • Manage your interviews in the dashboard</div>
+                    <div class="footer">HireHub Scheduling Platform • Good luck!</div>
                 </div>
             </body>
             </html>
             """.formatted(name, jobTitle, companyName, interviewTitle, dateTime, durationMinutes,
-                locationDetails, description != null && !description.isEmpty() ? "<p style=\"margin-top:16px;\"><strong>Notes:</strong> " + description + "</p>" : "", frontendUrl);
+                locationDetails, description != null && !description.isEmpty() ? "<p style=\"margin-bottom:24px; color: #475569;\"><strong>Notes:</strong> " + description + "</p>" : "", frontendUrl);
     }
+
 
     public boolean sendInterviewReminderEmail(String toEmail, String name, String interviewTitle,
                                               String jobTitle, String companyName,
@@ -635,13 +662,13 @@ public class EmailService {
                     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
                     body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 10px; }
                     .container { max-width: 600px; margin: 0 auto; background: #ffffff; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.08); }
-                    .header { background: linear-gradient(135deg, #1e293b 0%%, #334155 100%%); padding: 48px 40px; text-align: center; }
+                    .header { background: #1e293b; padding: 48px 40px; text-align: center; }
                     .logo-icon { font-size: 40px; margin-bottom: 24px; display: block; }
                     .header h1 { color: #f8fafc; font-size: 24px; margin: 0; font-weight: 800; }
                     .content { padding: 48px 40px; }
                     .greeting { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 16px; }
                     .text { font-size: 16px; color: #475569; line-height: 1.7; margin-bottom: 32px; }
-                    .btn { display: inline-block; background: #2563eb; color: #ffffff !important; padding: 18px 36px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); }
+                    .btn { display: inline-block; background: #3b82f6; color: #ffffff !important; padding: 18px 36px; border-radius: 14px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2); }
                     .expiry { font-size: 13px; color: #94a3b8; margin-top: 32px; text-align: center; }
                     .footer { padding: 32px 40px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; font-size: 13px; color: #94a3b8; }
                 </style>
@@ -654,7 +681,7 @@ public class EmailService {
                     </div>
                     <div class="content">
                         <p class="greeting">Hi %s,</p>
-                        <p class="text">We received a request to reset the password for your Job Portal account. Click the button below to set a new password. If you didn't request this, you can safely ignore this email.</p>
+                        <p class="text">We received a request to reset the password for your HireHub account. Click the button below to set a new password. If you didn't request this, you can safely ignore this email.</p>
                         
                         <center>
                             <a href="%s" class="btn">Reset Password →</a>
@@ -662,12 +689,13 @@ public class EmailService {
                         
                         <p class="expiry">This link will expire in 1 hour for your security.</p>
                     </div>
-                    <div class="footer">© 2026 Vertex Job Portal • Professional Excellence</div>
+                    <div class="footer">© 2026 HireHub • Professional Excellence</div>
                 </div>
             </body>
             </html>
             """.formatted(firstName, resetUrl);
     }
+
     public boolean sendOTPEmail(String toEmail, String firstName, String otp, String context) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping OTP email to {}", toEmail);
@@ -716,7 +744,7 @@ public class EmailService {
                     .greeting { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 12px; }
                     .context-tag { display: inline-block; padding: 6px 12px; background: #f1f5f9; color: #64748b; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 24px; }
                     .otp-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 20px; padding: 32px; margin: 24px 0; }
-                    .otp-code { font-size: 48px; font-weight: 800; color: #2563eb; letter-spacing: 0.2em; font-family: monospace; }
+                    .otp-code { font-size: 48px; font-weight: 800; color: #3b82f6; letter-spacing: 0.2em; font-family: monospace; }
                     .instruction { font-size: 14px; color: #64748b; line-height: 1.6; }
                     .footer { padding: 32px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; font-size: 12px; color: #94a3b8; }
                 </style>
@@ -725,7 +753,7 @@ public class EmailService {
                 <div class="container">
                     <div class="header">
                         <span class="logo-icon">🛡️</span>
-                        <h1>Vertex Security</h1>
+                        <h1>HireHub Security</h1>
                     </div>
                     <div class="content">
                         <p class="greeting">Hi %s,</p>
@@ -739,11 +767,12 @@ public class EmailService {
                         <p class="instruction">This code will expire in 10 minutes.</p>
                     </div>
                     <div class="footer">
-                        © 2026 Vertex Job Portal • Account Protection Systems
+                        © 2026 HireHub Excellence • Account Protection Systems
                     </div>
                 </div>
             </body>
             </html>
             """.formatted(firstName, context, otp);
     }
+
 }
