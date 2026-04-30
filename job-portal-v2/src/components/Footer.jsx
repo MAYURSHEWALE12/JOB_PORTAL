@@ -55,7 +55,7 @@ export default function Footer() {
 
                 <div className="text-center pt-4 sm:pt-6 border-t border-[var(--color-divider)]">
                     <p className="text-xs text-[var(--color-text-muted)]">
-                        © {currentYear} HireHub BY BABLU. Built with React & Spring Boot.
+                        © {currentYear} HireHub. Built with React & Spring Boot.
                     </p>
                 </div>
             </div>
