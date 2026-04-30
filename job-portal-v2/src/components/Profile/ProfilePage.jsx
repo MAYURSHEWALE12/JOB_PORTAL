@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { userAPI, authAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
+import toast from 'react-hot-toast';
 
 
 
