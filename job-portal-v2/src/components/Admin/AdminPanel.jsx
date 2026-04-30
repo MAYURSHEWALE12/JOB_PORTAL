@@ -466,7 +466,7 @@ export default function AdminPanel() {
                             </table>
                         </div>
                     )}
-                </div> </div>
+                </div>
             </div>
 
             {/* 🔥 CUSTOM CENTERED CONFIRMATION MODAL */}
