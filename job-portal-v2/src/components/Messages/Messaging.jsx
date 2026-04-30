@@ -745,9 +745,9 @@ export default function Messaging() {
                                                                 )}
                                                             </span>
 
-                                                            {/* Hover Actions */}
-                                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background/50 rounded-lg ml-2">
-                                                                <button onClick={() => startEdit(msg)} className="p-1 rounded hover:bg-[var(--hp-surface-alt)] text-[var(--hp-muted)] hover:text-[var(--hp-accent)] transition-colors" title="Edit">
+                                                            {/* Actions (Edit/Delete) */}
+                                                            <div className="flex items-center gap-1.5 bg-[var(--hp-surface-alt)]/80 backdrop-blur-sm rounded-lg px-1.5 py-0.5 ml-1 border border-[var(--hp-border)]/50">
+                                                                <button onClick={() => startEdit(msg)} className="p-1 rounded hover:bg-[var(--hp-accent)]/10 text-[var(--hp-muted)] hover:text-[var(--hp-accent)] transition-colors" title="Edit">
                                                                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                                                                 </button>
                                                                 <button onClick={() => handleDeleteMessage(msg.id)} className="p-1 rounded hover:bg-red-500/10 text-[var(--hp-muted)] hover:text-red-400 transition-colors" title="Delete">
