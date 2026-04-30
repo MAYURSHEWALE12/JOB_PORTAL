@@ -90,10 +90,11 @@ export const authAPI = {
     logout: () => apiClient.post('/auth/logout'),
     me: () => apiClient.get('/auth/me'),
     validateToken: () => apiClient.post('/auth/validate-token'),
-    changePassword: (currentPassword, newPassword) =>
-        apiClient.post('/auth/change-password', { currentPassword, newPassword }),
+    changePassword: (currentPassword, newPassword, otp) =>
+        apiClient.post('/auth/change-password', { currentPassword, newPassword, otp }),
+    requestChangePasswordOTP: () => apiClient.post('/auth/request-change-otp'),
     forgotPassword: (email) => apiClient.post('/auth/forgot-password', { email }),
-    resetPassword: (token, newPassword) => apiClient.post('/auth/reset-password', { token, newPassword }),
+    resetPassword: (email, otp, newPassword) => apiClient.post('/auth/reset-password', { email, otp, newPassword }),
 };
 
 export const jobAPI = {

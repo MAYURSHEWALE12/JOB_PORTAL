@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.SecureRandom;
+import java.util.UUID;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
@@ -526,35 +528,89 @@ public class UserService {
         log.debug("Checking if user exists with ID: {}", id);
         return userRepository.existsById(id);
     }
+    private String generateOTP() {
+        SecureRandom random = new SecureRandom();
+        int otp = 100000 + random.nextInt(900000);
+        return String.valueOf(otp);
+    }
+
     public String initiatePasswordReset(String email) {
         log.info("Initiating password reset for email: {}", email);
         User user = getUserByEmail(email);
         
-        String token = UUID.randomUUID().toString();
-        user.setResetToken(token);
-        user.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+        String otp = generateOTP();
+        user.setResetToken(otp);
+        user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(10)); // OTPs usually expire faster (10 mins)
         userRepository.save(user);
         
-        log.info("Reset token generated for user: {}", email);
-        return token;
+        log.info("Reset OTP generated for user: {}", email);
+        return otp;
     }
 
-    public void resetPasswordByToken(String token, String newPassword) {
-        log.info("Resetting password with token");
-        User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new BadRequestException("Invalid or expired reset token"));
+    public String initiateChangePasswordOTP(Long userId) {
+        log.info("Initiating change password OTP for user ID: {}", userId);
+        User user = getUserById(userId);
         
-        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
-            log.warn("Password reset failed: Token expired for user {}", user.getEmail());
-            throw new BadRequestException("Reset token has expired");
+        String otp = generateOTP();
+        user.setResetToken(otp);
+        user.setResetTokenExpiry(LocalDateTime.now().plusMinutes(10));
+        userRepository.save(user);
+        
+        log.info("Change password OTP generated for user: {}", user.getEmail());
+        return otp;
+    }
+
+    public void verifyOTP(String email, String otp) {
+        log.info("Verifying OTP for user: {}", email);
+        User user = getUserByEmail(email);
+        
+        if (user.getResetToken() == null || !user.getResetToken().equals(otp)) {
+            throw new BadRequestException("Invalid verification code");
         }
         
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Verification code has expired");
+        }
+    }
+
+    public void resetPasswordByOTP(String email, String otp, String newPassword) {
+        log.info("Resetting password with OTP for user: {}", email);
+        verifyOTP(email, otp);
+        
+        User user = getUserByEmail(email);
         user.setPassword(passwordEncoder.encode(newPassword));
         user.setResetToken(null);
         user.setResetTokenExpiry(null);
         user.setUpdatedAt(LocalDateTime.now());
         userRepository.save(user);
         
-        log.info("Password reset successfully for user: {}", user.getEmail());
+        log.info("Password reset successfully for user: {}", email);
+    }
+
+    public void changePasswordWithOTP(Long userId, String currentPassword, String newPassword, String otp) {
+        log.info("Changing password with OTP for user ID: {}", userId);
+        User user = getUserById(userId);
+        
+        // 1. Verify OTP
+        if (user.getResetToken() == null || !user.getResetToken().equals(otp)) {
+            throw new BadRequestException("Invalid verification code");
+        }
+        if (user.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Verification code has expired");
+        }
+        
+        // 2. Verify Current Password
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new BadRequestException("Incorrect current password");
+        }
+        
+        // 3. Update Password
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        user.setUpdatedAt(LocalDateTime.now());
+        userRepository.save(user);
+        
+        log.info("Password changed successfully for user: {}", user.getEmail());
     }
 }

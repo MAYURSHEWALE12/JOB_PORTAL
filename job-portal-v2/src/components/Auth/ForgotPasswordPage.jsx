@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { authAPI } from '../../services/api';
 import toast from 'react-hot-toast';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 const ForgotPasswordPage = () => {
     const [email, setEmail] = useState('');
+    const [otp, setOtp] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [step, setStep] = useState(1); // 1: Email, 2: OTP + New Password
     const [loading, setLoading] = useState(false);
-    const [submitted, setSubmitted] = useState(false);
+    
+    const navigate = useNavigate();
 
-    const handleSubmit = async (e) => {
+    const handleSendOTP = async (e) => {
         e.preventDefault();
         if (!email) {
             toast.error('Please enter your email address');
@@ -19,10 +24,29 @@ const ForgotPasswordPage = () => {
         setLoading(true);
         try {
             await authAPI.forgotPassword(email);
-            setSubmitted(true);
-            toast.success('Reset link sent to your email!');
+            setStep(2);
+            toast.success('Verification code sent to your email!');
         } catch (err) {
-            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to send reset link';
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Failed to send code';
+            toast.error(msg);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleResetPassword = async (e) => {
+        e.preventDefault();
+        if (!otp) { toast.error('Please enter the verification code'); return; }
+        if (newPassword.length < 6) { toast.error('Password must be at least 6 characters'); return; }
+        if (newPassword !== confirmPassword) { toast.error('Passwords do not match'); return; }
+
+        setLoading(true);
+        try {
+            await authAPI.resetPassword(email, otp, newPassword);
+            toast.success('Password reset successful! Redirecting to login...');
+            setTimeout(() => navigate('/login'), 2000);
+        } catch (err) {
+            const msg = err.response?.data?.message || err.response?.data?.error || 'Reset failed';
             toast.error(msg);
         } finally {
             setLoading(false);
@@ -47,60 +71,114 @@ const ForgotPasswordPage = () => {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                             </svg>
                         </div>
-                        <h1 className="text-3xl font-black text-[var(--hp-text)] tracking-tight mb-3">Forgot Password?</h1>
+                        <h1 className="text-3xl font-black text-[var(--hp-text)] tracking-tight mb-3">
+                            {step === 1 ? "Forgot Password?" : "Verify & Reset"}
+                        </h1>
                         <p className="text-[var(--hp-muted)] font-medium leading-relaxed">
-                            {submitted 
-                                ? "Check your inbox for the reset link we just sent." 
-                                : "Enter your registered email below and we'll send you a link to reset your password."}
+                            {step === 1 
+                                ? "Enter your registered email below and we'll send you a verification code." 
+                                : `Enter the 6-digit code sent to ${email} to reset your password.`}
                         </p>
                     </div>
 
-                    {!submitted ? (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Email Address</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--hp-muted)] group-focus-within:text-[var(--hp-accent)] transition-colors">
-                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    <AnimatePresence mode="wait">
+                        {step === 1 ? (
+                            <motion.form 
+                                key="step1"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                onSubmit={handleSendOTP} 
+                                className="space-y-6"
+                            >
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Email Address</label>
+                                    <div className="relative group">
+                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-[var(--hp-muted)] group-focus-within:text-[var(--hp-accent)] transition-colors">
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </div>
+                                        <input 
+                                            type="email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            placeholder="name@company.com"
+                                            className="hp-input pl-12 h-14 bg-[rgba(var(--hp-surface-alt-rgb),0.5)] border-[rgba(255,255,255,0.05)] focus:bg-[var(--hp-surface-alt)]"
+                                            required
+                                        />
                                     </div>
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    disabled={loading}
+                                    className="hp-btn-primary w-full h-14 text-base font-bold shadow-xl shadow-[var(--hp-accent)]/20 active:scale-[0.98] transition-transform"
+                                >
+                                    {loading ? "Sending Code..." : "Send Verification Code"}
+                                </button>
+                            </motion.form>
+                        ) : (
+                            <motion.form 
+                                key="step2"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                onSubmit={handleResetPassword} 
+                                className="space-y-6"
+                            >
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">6-Digit Code</label>
                                     <input 
-                                        type="email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        placeholder="name@company.com"
-                                        className="hp-input pl-12 h-14 bg-[rgba(var(--hp-surface-alt-rgb),0.5)] border-[rgba(255,255,255,0.05)] focus:bg-[var(--hp-surface-alt)]"
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                                        placeholder="000000"
+                                        className="hp-input h-14 text-center text-2xl font-black tracking-[0.5em] bg-[rgba(var(--hp-surface-alt-rgb),0.5)]"
                                         required
                                     />
                                 </div>
-                            </div>
 
-                            <button 
-                                type="submit" 
-                                disabled={loading}
-                                className="hp-btn-primary w-full h-14 text-base font-bold shadow-xl shadow-[var(--hp-accent)]/20 active:scale-[0.98] transition-transform"
-                            >
-                                {loading ? (
-                                    <span className="flex items-center gap-2">
-                                        <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        Sending Link...
-                                    </span>
-                                ) : "Send Reset Link"}
-                            </button>
-                        </form>
-                    ) : (
-                        <div className="space-y-6">
-                            <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-center text-sm font-bold flex items-center justify-center gap-2">
-                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                Request processed successfully
-                            </div>
-                            <button 
-                                onClick={() => setSubmitted(false)}
-                                className="hp-btn-ghost w-full h-14 text-sm font-bold"
-                            >
-                                Didn't receive an email? Try again
-                            </button>
-                        </div>
-                    )}
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">New Password</label>
+                                    <input 
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="hp-input h-14 bg-[rgba(var(--hp-surface-alt-rgb),0.5)]"
+                                        required
+                                    />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-xs font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Confirm New Password</label>
+                                    <input 
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="hp-input h-14 bg-[rgba(var(--hp-surface-alt-rgb),0.5)]"
+                                        required
+                                    />
+                                </div>
+
+                                <button 
+                                    type="submit" 
+                                    disabled={loading}
+                                    className="hp-btn-primary w-full h-14 text-base font-bold shadow-xl shadow-[var(--hp-accent)]/20 active:scale-[0.98] transition-transform"
+                                >
+                                    {loading ? "Resetting..." : "Reset Password"}
+                                </button>
+                                
+                                <button 
+                                    type="button"
+                                    onClick={() => setStep(1)}
+                                    className="w-full text-xs font-bold text-[var(--hp-muted)] hover:text-[var(--hp-accent)] transition-colors uppercase tracking-widest"
+                                >
+                                    Use a different email
+                                </button>
+                            </motion.form>
+                        )}
+                    </AnimatePresence>
 
                     <div className="mt-8 pt-8 border-t border-[rgba(255,255,255,0.05)] text-center">
                         <Link 

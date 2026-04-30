@@ -183,6 +183,29 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/request-change-otp")
+    public ResponseEntity<?> requestChangeOTP(@RequestHeader("Authorization") String token) {
+        try {
+            String jwtToken = token.startsWith("Bearer ") ? token.substring(7) : token;
+            if (!jwtUtil.validateToken(jwtToken))
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(createErrorResponse("Invalid session"));
+
+            Long userId = jwtUtil.extractUserId(jwtToken);
+            User user = userService.getUserById(userId);
+            String otp = userService.initiateChangePasswordOTP(userId);
+            
+            emailService.sendOTPEmail(user.getEmail(), user.getFirstName(), otp, "Account Security (Password Change)");
+
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Verification code sent to " + user.getEmail());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("Request change OTP error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(createErrorResponse("Failed to send verification code"));
+        }
+    }
+
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(@RequestHeader("Authorization") String token,
                                             @RequestBody Map<String, String> body) {
@@ -195,21 +218,24 @@ public class AuthController {
             Long userId = jwtUtil.extractUserId(jwtToken);
             String currentPassword = body.get("currentPassword");
             String newPassword = body.get("newPassword");
+            String otp = body.get("otp");
 
             if (currentPassword == null || currentPassword.isEmpty())
                 return ResponseEntity.badRequest().body(createErrorResponse("Current password is required"));
             if (newPassword == null || newPassword.length() < 6)
                 return ResponseEntity.badRequest().body(createErrorResponse("New password must be at least 6 characters"));
+            if (otp == null || otp.isEmpty())
+                return ResponseEntity.badRequest().body(createErrorResponse("Verification code is required"));
 
-            userService.changePassword(userId, currentPassword, newPassword);
+            userService.changePasswordWithOTP(userId, currentPassword, newPassword, otp);
 
-            Map<String, Object> response = new HashMap<>();
+            Map<String, String> response = new HashMap<>();
             response.put("message", "Password changed successfully");
-            response.put("userId", userId);
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            log.error("Change password error", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(createErrorResponse(e.getMessage()));
         }
     }
@@ -225,18 +251,18 @@ public class AuthController {
             if (!userService.emailExists(email)) {
                 // Return success even if email doesn't exist for security
                 Map<String, String> response = new HashMap<>();
-                response.put("message", "If an account with that email exists, a reset link has been sent.");
+                response.put("message", "If an account with that email exists, a verification code has been sent.");
                 return ResponseEntity.ok(response);
             }
 
-            String token = userService.initiatePasswordReset(email);
+            String otp = userService.initiatePasswordReset(email);
             User user = userService.getUserByEmail(email);
             
             // Send email
-            emailService.sendPasswordResetEmail(email, user.getFirstName(), token);
+            emailService.sendOTPEmail(email, user.getFirstName(), otp, "Password Reset Request");
 
             Map<String, String> response = new HashMap<>();
-            response.put("message", "Reset link sent to your email.");
+            response.put("message", "Verification code sent to your email.");
             return ResponseEntity.ok(response);
 
         } catch (Exception e) {
@@ -249,17 +275,20 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<?> resetPassword(@RequestBody Map<String, String> body) {
         try {
-            String token = body.get("token");
+            String email = body.get("email");
+            String otp = body.get("otp");
             String newPassword = body.get("newPassword");
 
-            if (token == null || token.trim().isEmpty()) {
-                return ResponseEntity.badRequest().body(createErrorResponse("Reset token is required"));
+            if (email == null || email.isEmpty())
+                return ResponseEntity.badRequest().body(createErrorResponse("Email is required"));
+            if (otp == null || otp.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body(createErrorResponse("Verification code is required"));
             }
             if (newPassword == null || newPassword.length() < 6) {
                 return ResponseEntity.badRequest().body(createErrorResponse("New password must be at least 6 characters"));
             }
 
-            userService.resetPasswordByToken(token, newPassword);
+            userService.resetPasswordByOTP(email, otp, newPassword);
 
             Map<String, String> response = new HashMap<>();
             response.put("message", "Password has been reset successfully.");

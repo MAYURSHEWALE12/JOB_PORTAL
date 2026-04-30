@@ -17,7 +17,6 @@ const QuizTakePage = lazy(() => import('./components/Quiz/QuizTakePage'));
 const QuizCreatePage = lazy(() => import('./components/Quiz/QuizCreatePage'));
 const CompanyProfilePage = lazy(() => import('./components/Company/CompanyProfilePage'));
 const ForgotPasswordPage = lazy(() => import('./components/Auth/ForgotPasswordPage'));
-const ResetPasswordPage = lazy(() => import('./components/Auth/ResetPasswordPage'));
 
 /* ─── Page Loading Spinner ──────────────────────────────────────── */
 const PageLoader = () => (
@@ -72,7 +71,6 @@ function AppRoutes() {
                     <Route path="/resume-builder" element={<AnimatedPage><ResumeBuilderPage /></AnimatedPage>} />
                     <Route path="/company/:userId" element={<AnimatedPage><CompanyProfilePage /></AnimatedPage>} />
                     <Route path="/forgot-password" element={<AnimatedPage><ForgotPasswordPage /></AnimatedPage>} />
-                    <Route path="/reset-password" element={<AnimatedPage><ResetPasswordPage /></AnimatedPage>} />
                     <Route path="/quiz/take/:jobId/:applicationId" element={
                         <ProtectedRoute>
                             <AnimatedPage><QuizTakePage /></AnimatedPage>

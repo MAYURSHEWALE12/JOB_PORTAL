@@ -660,4 +660,85 @@ public class EmailService {
             </html>
             """.formatted(firstName, resetUrl);
     }
+    public boolean sendOTPEmail(String toEmail, String firstName, String otp, String context) {
+        if (!isEmailConfigured()) {
+            log.debug("Email not configured. Skipping OTP email to {}", toEmail);
+            return false;
+        }
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress, fromName);
+            helper.setTo(toEmail);
+            helper.setSubject("Your Security Code: " + otp);
+            helper.setReplyTo(fromAddress, fromName);
+
+            message.setHeader("X-Priority", "1");
+            message.setSentDate(new Date());
+
+            String html = buildOTPEmailHtml(firstName, otp, context);
+            helper.setText(html, true);
+
+            mailSender.send(message);
+            log.info("OTP email sent to {} for context: {}", toEmail, context);
+            return true;
+
+        } catch (MessagingException | java.io.UnsupportedEncodingException e) {
+            log.warn("Failed to send OTP email to {}: {}", toEmail, e.getMessage());
+            return false;
+        } catch (MailException e) {
+            log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
+            return false;
+        }
+    }
+
+    private String buildOTPEmailHtml(String firstName, String otp, String context) {
+        return """
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <style>
+                    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800&display=swap');
+                    body { font-family: 'Outfit', -apple-system, sans-serif; background-color: #f8fafc; margin: 0; padding: 40px 10px; }
+                    .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 32px; overflow: hidden; box-shadow: 0 30px 60px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; }
+                    .header { background: #0f172a; padding: 40px; text-align: center; }
+                    .logo-icon { font-size: 32px; margin-bottom: 16px; display: block; }
+                    .header h1 { color: #f8fafc; font-size: 20px; margin: 0; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; }
+                    .content { padding: 40px; text-align: center; }
+                    .greeting { font-size: 20px; font-weight: 600; color: #0f172a; margin-bottom: 12px; }
+                    .context-tag { display: inline-block; padding: 6px 12px; background: #f1f5f9; color: #64748b; border-radius: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase; margin-bottom: 24px; }
+                    .otp-box { background: #f8fafc; border: 2px dashed #cbd5e1; border-radius: 20px; padding: 32px; margin: 24px 0; }
+                    .otp-code { font-size: 48px; font-weight: 800; color: #2563eb; letter-spacing: 0.2em; font-family: monospace; }
+                    .instruction { font-size: 14px; color: #64748b; line-height: 1.6; }
+                    .footer { padding: 32px; background: #f8fafc; border-top: 1px solid #f1f5f9; text-align: center; font-size: 12px; color: #94a3b8; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <span class="logo-icon">🛡️</span>
+                        <h1>Vertex Security</h1>
+                    </div>
+                    <div class="content">
+                        <p class="greeting">Hi %s,</p>
+                        <div class="context-tag">%s</div>
+                        <p class="instruction">Use the following verification code to confirm your identity. This code is sensitive and should not be shared.</p>
+                        
+                        <div class="otp-box">
+                            <div class="otp-code">%s</div>
+                        </div>
+                        
+                        <p class="instruction">This code will expire in 10 minutes.</p>
+                    </div>
+                    <div class="footer">
+                        © 2026 Vertex Job Portal • Account Protection Systems
+                    </div>
+                </div>
+            </body>
+            </html>
+            """.formatted(firstName, context, otp);
+    }
 }

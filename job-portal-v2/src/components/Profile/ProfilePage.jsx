@@ -42,8 +42,11 @@ export default function ProfilePage() {
         currentPassword: '',
         newPassword: '',
         confirmPassword: '',
+        otp: '',
     });
     const [savingPassword, setSavingPassword] = useState(false);
+    const [requestingOTP, setRequestingOTP] = useState(false);
+    const [otpSent, setOtpSent] = useState(false);
     const [passwordSuccess, setPasswordSuccess] = useState('');
     const [passwordError, setPasswordError] = useState('');
 
@@ -166,20 +169,37 @@ export default function ProfilePage() {
         setPasswordSuccess('');
     };
 
+    const handleRequestOTP = async () => {
+        setRequestingOTP(true);
+        setPasswordError('');
+        try {
+            await authAPI.requestChangePasswordOTP();
+            setOtpSent(true);
+            toast.success('Verification code sent to your email!');
+        } catch (err) {
+            setPasswordError(err.response?.data?.message || 'Failed to send verification code');
+        } finally {
+            setRequestingOTP(false);
+        }
+    };
+
     const handleSavePassword = async (e) => {
         e.preventDefault();
         if (!passwordData.currentPassword) { setPasswordError('Current password is required.'); return; }
         if (passwordData.newPassword.length < 6) { setPasswordError('New password must be at least 6 characters.'); return; }
         if (passwordData.newPassword !== passwordData.confirmPassword) { setPasswordError('New passwords do not match.'); return; }
+        if (!otpSent) { setPasswordError('Please request a verification code first.'); return; }
+        if (!passwordData.otp) { setPasswordError('Verification code is required.'); return; }
 
         setSavingPassword(true);
         try {
-            await authAPI.changePassword(passwordData.currentPassword, passwordData.newPassword);
+            await authAPI.changePassword(passwordData.currentPassword, passwordData.newPassword, passwordData.otp);
             setPasswordSuccess('Security credentials updated!');
-            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+            setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '', otp: '' });
+            setOtpSent(false);
             setTimeout(() => setPasswordSuccess(''), 3000);
         } catch (err) {
-            setPasswordError(err.response?.data?.error || 'Authentication failed. Check your current password.');
+            setPasswordError(err.response?.data?.error || err.response?.data?.message || 'Authentication failed.');
         } finally {
             setSavingPassword(false);
         }
@@ -472,9 +492,45 @@ export default function ProfilePage() {
                                     </div>
                                 </div>
                             </div>
-                            <button type="submit" disabled={savingPassword} className="hp-btn-primary w-full py-4 text-base mt-4 shadow-xl shadow-purple-500/20" style={{ background: 'linear-gradient(135deg, var(--hp-accent2), #8b5cf6)' }}>
-                                {savingPassword ? 'Updating Vault...' : 'Secure My Account'}
-                            </button>
+
+                            <div className="pt-4 border-t border-[rgba(255,255,255,0.05)]">
+                                {!otpSent ? (
+                                    <button 
+                                        type="button" 
+                                        onClick={handleRequestOTP} 
+                                        disabled={requestingOTP}
+                                        className="hp-btn-ghost w-full py-4 text-sm font-bold flex items-center justify-center gap-2"
+                                    >
+                                        {requestingOTP ? (
+                                            <div className="w-5 h-5 border-2 border-[var(--hp-accent)] border-t-transparent rounded-full animate-spin" />
+                                        ) : (
+                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                        )}
+                                        Send Verification Code to {user.email}
+                                    </button>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-xs font-bold text-[var(--hp-muted)] uppercase tracking-widest ml-1 flex justify-between">
+                                                <span>6-Digit Verification Code</span>
+                                                <button type="button" onClick={handleRequestOTP} className="text-[var(--hp-accent)] hover:underline normal-case tracking-normal">Resend?</button>
+                                            </label>
+                                            <input 
+                                                type="text" 
+                                                name="otp" 
+                                                value={passwordData.otp} 
+                                                onChange={handlePasswordChange} 
+                                                placeholder="000000" 
+                                                className="hp-input text-center text-xl font-black tracking-widest" 
+                                                maxLength={6}
+                                            />
+                                        </div>
+                                        <button type="submit" disabled={savingPassword} className="hp-btn-primary w-full py-4 text-base shadow-xl shadow-purple-500/20" style={{ background: 'linear-gradient(135deg, var(--hp-accent2), #8b5cf6)' }}>
+                                            {savingPassword ? 'Updating Vault...' : 'Verify & Secure Account'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </form>
                     </motion.div>
                 );
