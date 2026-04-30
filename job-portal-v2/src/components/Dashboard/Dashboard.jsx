@@ -25,7 +25,6 @@ import AdminPanel from '../Admin/AdminPanel';
 import Analytics from './Analytics';
 import Messaging from '../Messages/Messaging';
 import InterviewsPage from '../Interviews/InterviewsPage';
-import JobRadar from './JobRadar';
 import CompanyBranding from '../Company/CompanyBranding';
 import Footer from '../Footer';
 import ErrorBoundary from '../ErrorBoundary';
@@ -101,7 +100,6 @@ export default function Dashboard() {
     const tabs = [
         { key: 'search', label: 'Find Jobs', show: user?.role !== 'ADMIN', priority: 1 },
         { key: 'messages', label: 'Messages', show: true, priority: 2, badge: unreadCount > 0 ? unreadCount : null },
-        { key: 'radar', label: 'Radar', show: user?.role === 'JOBSEEKER', priority: 2.5 },
         { key: 'applications', label: 'Applications', show: user?.role === 'JOBSEEKER', priority: 3 },
         { key: 'viewapps', label: 'Applicants', show: user?.role === 'EMPLOYER', priority: 3 },
         { key: 'interviews', label: 'Interviews', show: user?.role !== 'ADMIN', priority: 4 },
@@ -129,7 +127,6 @@ export default function Dashboard() {
             case 'postjob': return <PostJob />;
             case 'managejobs': return <ManageJobs />;
             case 'viewapps': return <ViewApplications />;
-            case 'radar': return <JobRadar />;
             case 'company': return <CompanyBranding />;
             case 'admin': return <AdminPanel />;
             case 'profile': return <ProfilePage />;
