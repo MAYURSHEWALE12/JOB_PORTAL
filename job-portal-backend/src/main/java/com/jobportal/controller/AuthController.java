@@ -206,7 +206,7 @@ public class AuthController {
         } catch (Exception e) {
             log.error("Request change OTP error", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(createErrorResponse("Failed to send verification code"));
+                    .body(createErrorResponse("Failed to send verification code: " + e.getMessage()));
         }
     }
 
