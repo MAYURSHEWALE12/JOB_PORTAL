@@ -131,3 +131,21 @@ export function SkeletonAnalytics() {
     </div>
   );
 }
+
+export function SkeletonAlertBar() {
+  return (
+    <div className="hp-card p-4 mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4 border-2 border-dashed border-[var(--color-border)] opacity-40">
+      <div className="flex items-center gap-4">
+        <Skeleton variant="avatar" className="h-10 w-10" />
+        <div className="space-y-2">
+          <Skeleton variant="text" className="w-24 h-3" />
+          <div className="flex gap-2">
+            <Skeleton variant="chip" className="w-16 h-5 rounded-lg" />
+            <Skeleton variant="chip" className="w-20 h-5 rounded-lg" />
+          </div>
+        </div>
+      </div>
+      <Skeleton variant="button" className="w-40 rounded-xl" />
+    </div>
+  );
+}

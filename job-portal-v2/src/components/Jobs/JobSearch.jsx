@@ -7,7 +7,7 @@ import apiClient, { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resu
 import { useAuthStore } from '../../store/authStore';
 import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
-import { SkeletonJobCard } from '../Skeleton';
+import { SkeletonJobCard, SkeletonAlertBar } from '../Skeleton';
 import CompanyAvatar from '../CompanyAvatar';
 
 
@@ -240,6 +240,8 @@ function RadarBar() {
             setAlerts(prev => prev.filter(a => a.id !== id));
         } catch (err) { /* ignore */ }
     };
+
+    if (loading) return <SkeletonAlertBar />;
 
     return (
         <div className="mb-8">
