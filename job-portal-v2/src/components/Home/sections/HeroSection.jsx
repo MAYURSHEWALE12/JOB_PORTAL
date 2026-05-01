@@ -55,9 +55,18 @@ export default function HeroSection({
                     </div>
 
                     {/* Location Zone */}
-                    <div className="flex items-center gap-4 px-6 py-4.5 sm:w-64 border-b sm:border-b-0 sm:border-r border-white/5 hover:bg-white/[0.02] transition-colors group">
-                        <svg className="w-5 h-5 text-[#2dd4bf] group-focus-within:scale-110 transition-transform shadow-sm" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                            <path fillRule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+                    <div className="flex items-center gap-4 px-6 py-4.5 sm:w-64 border-b sm:border-b-0 sm:border-r border-white/5 hover:bg-white/[0.02] transition-colors group relative">
+                        <svg 
+                            className="w-5 h-5 flex-shrink-0 transition-transform group-focus-within:scale-110" 
+                            viewBox="0 0 20 20" 
+                            xmlns="http://www.w3.org/2000/svg"
+                        >
+                            <path 
+                                fill="#2dd4bf" 
+                                fillRule="evenodd" 
+                                d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" 
+                                clipRule="evenodd" 
+                            />
                         </svg>
                         <input
                             type="text" value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
