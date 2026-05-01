@@ -109,9 +109,9 @@ function NotificationHandler() {
                     <div 
                         onClick={() => {
                             toast.dismiss(t.id);
-                            // Smart Redirection
+                            // Smart Redirection to Dashboard Tabs
                             if (notification.type === 'JOB_ALERT') {
-                                navigate(`/jobs?jobId=${notification.referenceId}`);
+                                navigate(`/dashboard?tab=search&jobId=${notification.referenceId}`);
                             } else if (notification.type === 'MESSAGE' || notification.type === 'CHAT') {
                                 navigate(`/dashboard?tab=messages&userId=${notification.referenceId}`);
                             } else {

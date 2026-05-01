@@ -56,9 +56,9 @@ export default function NotificationBell() {
         if (!notif.read) handleMarkAsRead(notif.id);
         setIsOpen(false);
 
-        // Smart Redirection Logic
+        // Smart Redirection Logic to Dashboard
         if (notif.type === 'JOB_ALERT') {
-            navigate(`/jobs?jobId=${notif.referenceId}`);
+            navigate(`/dashboard?tab=search&jobId=${notif.referenceId}`);
         } else if (notif.type === 'MESSAGE' || notif.type === 'CHAT') {
             navigate(`/dashboard?tab=messages&userId=${notif.referenceId}`);
         } else if (notif.type === 'INTERVIEW') {
