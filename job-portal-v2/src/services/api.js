@@ -28,9 +28,10 @@ export const resolvePublicUrl = (path) => {
     }
 
     // 3. Handle raw Cloudinary IDs (no slashes, typical for legacy or manual data)
-    // Cloud Name: daa2mvguh (from environment)
+    // Cloud Name: Source from environment with fallback
+    const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'daa2mvguh';
     if (!path.includes('/') && !path.includes('\\')) {
-        return `https://res.cloudinary.com/daa2mvguh/image/upload/v1/${path}`;
+        return `https://res.cloudinary.com/${cloudName}/image/upload/v1/${path}`;
     }
 
     // 4. Default to relative backend path
