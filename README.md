@@ -1,32 +1,31 @@
 # 🚀 HireHub: Premium Job Portal
 
-HireHub is a state-of-the-art, full-stack job portal application designed to bridge the gap between talented job seekers and industry-leading employers. Built with a modern tech stack centered around **Spring Boot 4**, **React 19**, and **Tailwind CSS 4**, it offers a high-performance, immersive experience with a focus on aesthetics and intelligent features.
+HireHub is a state-of-the-art, full-stack job portal application designed to bridge the gap between talented job seekers and industry-leading employers. Built with a modern tech stack centered around **Spring Boot**, **React 19**, and **Vanilla CSS**, it offers a high-performance, immersive experience with a focus on premium aesthetics and intelligent automation.
 
 ---
 
 ## ✨ Premium Features
 
 ### 👤 For Job Seekers
-- **Intelligent Job Discovery:** Advanced multi-filter search (location, salary, experience, job type).
-- **AI Resume Builder:** Build professional, ATS-friendly resumes directly in the platform.
-- **AI Match Analysis:** Predictive "Match Score" using AI to analyze how well your resume fits a specific job posting.
-- **Application Tracking:** Visual status pipeline (Applied → Reviewed → Interviewing → Offered).
-- **Interactive Quizzes:** Take skill assessments to prove your expertise to employers.
-- **Real-time Messaging:** Professional chat system with employers (unlocked after application).
-- **Job Notifications:** Instant alerts for status changes and new messages.
+- **🔔 Personal Job Alerts (Radar):** A sophisticated automated matching engine. Set your keywords, location, and salary, and let HireHub watch the market for you.
+- **⚡ Smart Notifications:** Interactive, real-time alerts for job matches, messages, and interview updates that take you exactly where you need to be with one click.
+- **🔍 Intelligent Job Discovery:** Advanced multi-filter search with a pulsing "Watching" indicator for live updates.
+- **🧬 AI Match Analysis:** Predictive "Match Score" using AI to analyze how well your resume fits a specific job posting.
+- **💬 Real-time Messaging:** Professional chat system with employers, integrated directly into your dashboard.
+- **📋 Visual Application Pipeline:** Track your journey from "Applied" to "Offered" with a sleek, interactive tracker.
+- **📝 AI Resume Builder:** Create professional, ATS-friendly resumes directly within the platform.
 
 ### 🏢 For Employers
-- **Recruiter Dashboard:** Comprehensive analytics for job postings (views, applications, status breakdown).
-- **ATS Management:** Streamlined workflow to manage candidates from application to offer.
-- **Quiz Creator:** Build custom screening tests for each job posting to filter top talent.
-- **Company Branding:** Fully customizable company profiles with logos, banners, and descriptions.
-- **Interview Scheduling:** Manage and track interview phases for candidates.
+- **📈 Recruiter Analytics:** Deep insights into job performance (views, applications, and candidate quality).
+- **🎯 Smart ATS Management:** A specialized workflow to move candidates through custom recruitment stages.
+- **🧠 Quiz Creator:** Build custom screening tests for each job posting to filter top-tier talent automatically.
+- **🏢 Company Branding:** Fully customizable profiles with premium glassmorphism design and custom banners.
+- **📅 Interview Command Center:** Schedule and manage interview phases with integrated seeker notifications.
 
-### 🛡️ Admin & Security
-- **Role-Based Access Control (RBAC):** Granular permissions for JobSeekers, Employers, and Admins.
-- **Google OAuth2 Integration:** One-click secure login for all users.
-- **Secret Management:** Secure handling of API keys and credentials via environment variables.
-- **Dark Mode Support:** Premium "Vertex Industrial" design system with seamless theme switching.
+### 🎨 Design & UX
+- **💎 Elite Mastery UI:** A custom design system focusing on micro-animations, glassmorphism, and premium typography.
+- **🦴 Skeleton Loading:** High-fidelity pulsing placeholders across all data-heavy sections for a seamless perceived performance.
+- **🌓 Adaptive Theme:** Full support for sleek Dark Mode and clean Light Mode with instant switching.
 
 ---
 
@@ -34,9 +33,9 @@ HireHub is a state-of-the-art, full-stack job portal application designed to bri
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Backend** | Java 25+, Spring Boot 4.0.4, Spring Security (JWT), Spring Data JPA, Hibernate, MySQL, WebSocket (STOMP) |
-| **Frontend** | React 19.2.4, Vite 8.0, Tailwind CSS 4.2.2, Zustand (State Management), Framer Motion (Animations), Recharts |
-| **Integrations** | Brevo (SMTP), Google OAuth2, WebSocket Notifications |
+| **Backend** | Java 17+, Spring Boot 3.x, Spring Security (JWT), Spring Data JPA, MySQL, WebSocket (STOMP) |
+| **Frontend** | React 19, Vite, Vanilla CSS, Zustand, Framer Motion, Recharts, Lucide Icons |
+| **Integrations** | Brevo (SMTP) for Job Alerts, Google OAuth2, Real-time WebSocket Broker |
 
 ---
 
@@ -45,14 +44,12 @@ HireHub is a state-of-the-art, full-stack job portal application designed to bri
 ```bash
 Job portal project/
 ├── job-portal-backend/         # Spring Boot REST API
-│   ├── src/main/java/.../      # Java Source Code
-│   ├── src/main/resources/     # application.properties & Static Assets
-│   └── .env                    # Local environment variables (Ignored by Git)
+│   ├── src/main/java/.../      # Java Source Code (Service, Controller, Repository)
+│   └── .env                    # Environment variables for DB & API Keys
 ├── job-portal-v2/              # React + Vite Frontend
-│   ├── src/components/         # Modular UI Components
-│   ├── src/store/              # Zustand Global Stores
-│   ├── src/services/           # API Client (Axios)
-│   └── tailwind.config.js      # Custom Design Tokens
+│   ├── src/components/         # Premium UI Components & Layouts
+│   ├── src/store/              # Zustand Global State Management
+│   └── src/services/           # API Integration Layer
 └── README.md                   # Project Documentation
 ```
 
@@ -61,52 +58,21 @@ Job portal project/
 ## 🚀 Getting Started
 
 ### 1. Prerequisites
-- **JDK 25+**
+- **JDK 17+**
 - **Node.js 18+**
 - **MySQL 8.0+**
-- **Maven 3.9+**
 
-### 2. Database Setup
-Create a MySQL database named `job_portal`:
-```sql
-CREATE DATABASE job_portal;
-```
-
-### 3. Backend Setup
-1. Navigate to the backend directory: `cd job-portal-backend`
-2. Create or update the `.env` file with your credentials:
-   ```env
-   DB_USERNAME=root
-   DB_PASSWORD=your_password
-   JWT_SECRET=your_long_secure_secret_key
-   SMTP_USERNAME=your_brevo_email
-   SMTP_PASSWORD=your_brevo_smtp_key
-   GOOGLE_CLIENT_ID=your_google_client_id
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
-   ```
-3. Run the application:
-   ```bash
-   .\mvnw.cmd spring-boot:run
-   ```
-
-### 4. Frontend Setup
-1. Navigate to the frontend directory: `cd job-portal-v2`
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-4. Access the app at `http://localhost:5173`.
+### 2. Quick Setup
+1. **Database**: Create a MySQL DB named `job_portal`.
+2. **Backend**: Navigate to `job-portal-backend`, configure `.env`, and run `mvn spring-boot:run`.
+3. **Frontend**: Navigate to `job-portal-v2`, run `npm install` and `npm run dev`.
 
 ---
 
-## 🔒 Security Best Practices
-- **Never upload `.env` files** to public repositories.
-- Use the provided `application.properties` which utilizes `${ENV_VAR}` placeholders.
-- Always use the `DB_PASSWORD` and `JWT_SECRET` variables in production environments.
+## 🛡️ Security & Performance
+- **Secure Authentication**: JWT-based stateless authentication with secure cookie storage.
+- **Optimized Performance**: Lazy loading, intelligent caching, and optimized database queries for large-scale job listings.
+- **Real-Time Scalability**: WebSocket broker configured for high-concurrency notification delivery.
 
 ---
 
@@ -114,4 +80,4 @@ CREATE DATABASE job_portal;
 This project is for educational and professional demonstration purposes.
 
 ## 🤝 Support
-For any questions or issues, please open an issue in the repository or contact the lead developer.
+For any questions regarding the **Elite Mastery** features or architectural implementation, please contact the lead developer.
