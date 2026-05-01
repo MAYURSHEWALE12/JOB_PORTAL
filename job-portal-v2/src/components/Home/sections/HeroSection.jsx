@@ -157,16 +157,16 @@ export default function HeroSection({
                     {/* Avatar strip */}
                     <div className="flex items-center gap-3">
                         <div className="flex -space-x-2.5">
-                            {[0.9, 0.72, 0.55, 0.4].map((op, i) => (
+                            {[1, 2, 3, 4].map((i) => (
                                 <div key={i}
-                                    className="w-9 h-9 rounded-full flex items-center justify-center text-[10px] font-bold ring-2"
-                                    style={{
-                                        background: `color-mix(in srgb, var(--hp-accent) ${Math.round(op * 100)}%, var(--hp-accent2))`,
-                                        ringColor: 'var(--hp-bg)',
-                                        color: 'var(--hp-text)',
-                                    }}
+                                    className="w-9 h-9 rounded-full overflow-hidden ring-2"
+                                    style={{ ringColor: 'var(--hp-bg)' }}
                                 >
-                                    {['AR', 'MK', 'PS', 'DJ'][i]}
+                                    <img 
+                                        src={`/src/assets/avatars/avatar${i}.png`} 
+                                        alt={`User ${i}`}
+                                        className="w-full h-full object-cover"
+                                    />
                                 </div>
                             ))}
                         </div>
