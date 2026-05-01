@@ -2,10 +2,10 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { fadeUp, staggerContainer } from './variants';
 
-export default function HeroSection({ 
-    searchQuery, setSearchQuery, 
-    searchLocation, setSearchLocation, 
-    handleSearch 
+export default function HeroSection({
+    searchQuery, setSearchQuery,
+    searchLocation, setSearchLocation,
+    handleSearch
 }) {
     return (
         <section className="relative overflow-hidden pt-40 pb-32 min-h-[90vh] flex items-center">
