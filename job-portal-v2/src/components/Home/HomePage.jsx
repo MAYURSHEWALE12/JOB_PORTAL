@@ -19,7 +19,6 @@ const JOB_TYPE_STYLE = {
 // Section Components
 import Navbar from './sections/Navbar';
 import HeroSection from './sections/HeroSection';
-import StatsSection from './sections/StatsSection';
 import ResumeBuilderSection from './sections/ResumeBuilderSection';
 import ProcessSteps from './sections/ProcessSteps';
 import RecentJobs from './sections/RecentJobs';
@@ -272,7 +271,6 @@ export default function HomePage() {
                     </div>
                 </div>
 
-                <StatsSection jobsCount={jobs.length} />
 
                 <ResumeBuilderSection />
 
