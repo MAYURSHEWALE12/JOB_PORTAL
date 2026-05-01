@@ -2,7 +2,7 @@ import { motion } from 'framer-motion';
 import { formatSalary, timeAgo } from '../../utils/formatters';
 import CompanyAvatar from '../CompanyAvatar';
 
-const JOB_TYPE_STYLE = {
+export const JOB_TYPE_STYLE = {
     FULL_TIME: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30',
     PART_TIME: 'bg-sky-500/15 text-sky-400 ring-1 ring-sky-500/30',
     CONTRACT:  'bg-amber-500/15 text-amber-400 ring-1 ring-amber-500/30',

@@ -9,7 +9,7 @@ import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard, SkeletonAlertBar } from '../Skeleton';
 import CompanyAvatar from '../CompanyAvatar';
-import JobCard from './JobCard';
+import JobCard, { JOB_TYPE_STYLE } from './JobCard';
 import './JobSearch.css';
 
 
