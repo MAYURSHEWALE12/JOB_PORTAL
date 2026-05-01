@@ -1,5 +1,5 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuthStore } from './store/authStore';
@@ -95,42 +95,59 @@ function AppRoutes() {
     );
 }
 
-import { useWebsocketStore } from './store/websocketStore';
-
-function App() {
-    const { user, isLoggedIn, restoreUser } = useAuthStore();
-    const { connect, disconnect } = useWebsocketStore();
-    const { initTheme } = useThemeStore();
+function NotificationHandler() {
+    const navigate = useNavigate();
     const { playNotificationSound, playMessageSound } = useNotificationSound();
-    const [isHydrating, setIsHydrating] = useState(true);
-
-    useEffect(() => {
-        initTheme();
-    }, [initTheme]);
 
     useEffect(() => {
         const handleNewNotification = (e) => {
             const notification = e.detail;
             playNotificationSound();
             
-            // Show real-time toast
             import('react-hot-toast').then(({ toast }) => {
-                toast(notification.message || notification.title, {
-                    icon: notification.isBroadcast ? '📢' : '🔔',
+                toast((t) => (
+                    <div 
+                        onClick={() => {
+                            toast.dismiss(t.id);
+                            // Smart Redirection
+                            if (notification.type === 'JOB_ALERT') {
+                                navigate(`/jobs?jobId=${notification.referenceId}`);
+                            } else if (notification.type === 'MESSAGE' || notification.type === 'CHAT') {
+                                navigate(`/dashboard?tab=messages&userId=${notification.referenceId}`);
+                            } else {
+                                navigate('/dashboard?tab=notifications');
+                            }
+                        }}
+                        className="cursor-pointer flex flex-col gap-1 p-1"
+                    >
+                        <div className="flex items-center gap-2 font-bold text-[13px]">
+                            <span>{notification.isBroadcast ? '📢' : '🔔'}</span>
+                            <span>{notification.title}</span>
+                        </div>
+                        <div className="text-xs text-[var(--hp-text)] opacity-80 line-clamp-2">
+                            {notification.message}
+                        </div>
+                        <div className="text-[10px] text-[var(--hp-accent)] font-bold uppercase tracking-wider mt-1">
+                            Click to view details →
+                        </div>
+                    </div>
+                ), {
                     style: {
                         borderRadius: '16px',
                         background: 'var(--hp-card)',
                         color: 'var(--hp-text)',
                         border: '1px solid var(--hp-border)',
-                        fontSize: '14px',
-                        fontWeight: '500',
-                        backdropFilter: 'blur(10px)'
+                        padding: '12px',
+                        maxWidth: '350px'
                     },
-                    duration: 6000
+                    duration: 8000
                 });
             });
         };
-        const handleNewMessage = () => playMessageSound();
+
+        const handleNewMessage = (e) => {
+            playMessageSound();
+        };
         
         window.addEventListener('newNotification', handleNewNotification);
         window.addEventListener('newMessage', handleNewMessage);
@@ -139,7 +156,22 @@ function App() {
             window.removeEventListener('newNotification', handleNewNotification);
             window.removeEventListener('newMessage', handleNewMessage);
         };
-    }, [playNotificationSound, playMessageSound]);
+    }, [navigate, playNotificationSound, playMessageSound]);
+
+    return null;
+}
+
+import { useWebsocketStore } from './store/websocketStore';
+
+function App() {
+    const { user, isLoggedIn, restoreUser } = useAuthStore();
+    const { connect, disconnect } = useWebsocketStore();
+    const { initTheme } = useThemeStore();
+    const [isHydrating, setIsHydrating] = useState(true);
+
+    useEffect(() => {
+        initTheme();
+    }, [initTheme]);
 
     useEffect(() => {
         const init = async () => {
@@ -168,6 +200,7 @@ function App() {
 
     return (
         <Router>
+            <NotificationHandler />
             <Toaster position="top-right" reverseOrder={false} />
             <AppRoutes />
         </Router>
