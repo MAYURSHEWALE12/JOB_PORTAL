@@ -81,6 +81,3 @@ export default function HeroSection({
         </section>
     );
 }
- </section>
-    );
-}
