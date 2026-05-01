@@ -33,9 +33,9 @@ export default function HeroSection({
                         </motion.p>
 
                         {/* ── Search Bar (Unified & Intact) ── */}
-                        <motion.form 
-                            variants={fadeUp} 
-                            onSubmit={handleSearch} 
+                        <motion.form
+                            variants={fadeUp}
+                            onSubmit={handleSearch}
                             className="mb-10 flex flex-col sm:flex-row items-center w-full max-w-2xl bg-[var(--hp-surface)]/50 backdrop-blur-2xl rounded-2xl border border-[var(--hp-border)] shadow-2xl overflow-hidden p-1.5 focus-within:border-[#2dd4bf]/40 transition-all duration-300"
                         >
                             <div className="flex-1 flex items-center gap-3 px-5 py-3.5 border-r border-[var(--hp-border)]/50">
@@ -54,7 +54,7 @@ export default function HeroSection({
                                     className="flex-1 bg-transparent text-sm outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-medium"
                                 />
                             </div>
-                            <button type="submit" className="hp-btn-primary px-10 py-3.5 text-sm font-bold rounded-xl whitespace-nowrap">Search Jobs</button>
+                            <button type="submit" className="hp-btn-primary px-10 py-3.5 text-sm font-bold rounded-xl whitespace-nowrap">Search</button>
                         </motion.form>
 
                         <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
