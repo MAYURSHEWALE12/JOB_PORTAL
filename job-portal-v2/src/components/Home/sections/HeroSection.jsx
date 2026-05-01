@@ -163,7 +163,7 @@ export default function HeroSection({
                                     style={{ ringColor: 'var(--hp-bg)' }}
                                 >
                                     <img 
-                                        src={`/src/assets/avatars/avatar${i}.png`} 
+                                        src={`/avatars/avatar${i}.png`} 
                                         alt={`User ${i}`}
                                         className="w-full h-full object-cover"
                                     />
