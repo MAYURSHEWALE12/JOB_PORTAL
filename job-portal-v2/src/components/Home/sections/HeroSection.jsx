@@ -32,25 +32,29 @@ export default function HeroSection({
                             Skip the cold emails. Connect directly with hiring managers at world-class companies using our verified talent pipeline.
                         </motion.p>
 
-                        {/* ── Search Bar ── */}
-                        <motion.form variants={fadeUp} onSubmit={handleSearch} className="mb-8 flex flex-col sm:flex-row gap-2 max-w-xl">
-                            <div className="flex-1 flex items-center gap-3 hp-search-input rounded-xl px-4 py-3">
-                                <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--hp-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" /></svg>
+                        {/* ── Search Bar (Unified & Intact) ── */}
+                        <motion.form 
+                            variants={fadeUp} 
+                            onSubmit={handleSearch} 
+                            className="mb-10 flex flex-col sm:flex-row items-center w-full max-w-2xl bg-[var(--hp-surface)]/50 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden p-1.5 focus-within:border-[#2dd4bf]/40 transition-all duration-300"
+                        >
+                            <div className="flex-1 flex items-center gap-3 px-5 py-3.5 border-r border-white/5">
+                                <svg className="w-4 h-4 text-[#2dd4bf]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" /></svg>
                                 <input
                                     type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                                     placeholder="Job title or keyword…"
-                                    className="flex-1 bg-transparent text-sm outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)]"
+                                    className="flex-1 bg-transparent text-sm outline-none text-white placeholder:text-white/30 font-medium"
                                 />
                             </div>
-                            <div className="flex items-center gap-3 hp-search-input rounded-xl px-4 py-3 sm:w-44">
-                                <svg className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--hp-muted)' }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <div className="hidden sm:flex items-center gap-3 px-5 py-3.5 w-48 border-r border-white/5">
+                                <svg className="w-4 h-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 <input
                                     type="text" value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
                                     placeholder="Location…"
-                                    className="flex-1 bg-transparent text-sm outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)]"
+                                    className="flex-1 bg-transparent text-sm outline-none text-white placeholder:text-white/30 font-medium"
                                 />
                             </div>
-                            <button type="submit" className="hp-btn-primary px-6 py-3 text-sm glow-cta">Search</button>
+                            <button type="submit" className="hp-btn-primary px-10 py-3.5 text-sm font-bold rounded-xl whitespace-nowrap">Search Jobs</button>
                         </motion.form>
 
                         <motion.div variants={fadeUp} className="flex flex-wrap gap-4">
