@@ -15,12 +15,20 @@ export default function HeroSection({
         >
             {/* ── Aurora Backdrop ── */}
             <div className="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[700px] md:w-[1100px] h-[600px] md:h-[900px] rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, var(--hp-accent) 0%, transparent 65%)', opacity: 0.07, filter: 'blur(140px)' }} />
+                style={{ 
+                    background: 'radial-gradient(circle, var(--hp-accent) 0%, transparent 65%)', 
+                    opacity: 0.07, 
+                    filter: 'blur(80px) md:blur(140px)' // Reduced blur on mobile
+                }} />
             <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[500px] md:w-[800px] h-[400px] md:h-[600px] rounded-full pointer-events-none"
-                style={{ background: 'radial-gradient(circle, var(--hp-accent2) 0%, transparent 65%)', opacity: 0.06, filter: 'blur(120px)' }} />
+                style={{ 
+                    background: 'radial-gradient(circle, var(--hp-accent2) 0%, transparent 65%)', 
+                    opacity: 0.06, 
+                    filter: 'blur(60px) md:blur(120px)' 
+                }} />
 
-            {/* Noise texture overlay */}
-            <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]">
+            {/* Noise texture overlay - DESKTOP ONLY */}
+            <svg aria-hidden className="hidden md:block pointer-events-none absolute inset-0 h-full w-full opacity-[0.015]">
                 <filter id="noise"><feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" /><feColorMatrix type="saturate" values="0" /></filter>
                 <rect width="100%" height="100%" filter="url(#noise)" />
             </svg>
@@ -77,7 +85,7 @@ export default function HeroSection({
                     style={{
                         background: 'color-mix(in srgb, var(--hp-surface) 40%, transparent)',
                         borderColor: 'rgba(255,255,255,0.08)',
-                        backdropFilter: 'blur(40px)',
+                        backdropFilter: window.innerWidth < 768 ? 'blur(12px)' : 'blur(40px)',
                         boxShadow: '0 25px 60px rgba(0,0,0,0.35)',
                     }}
                 >
