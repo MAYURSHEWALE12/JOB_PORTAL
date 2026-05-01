@@ -36,22 +36,22 @@ export default function HeroSection({
                         <motion.form 
                             variants={fadeUp} 
                             onSubmit={handleSearch} 
-                            className="mb-10 flex flex-col sm:flex-row items-center w-full max-w-2xl bg-[var(--hp-surface)]/50 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl overflow-hidden p-1.5 focus-within:border-[#2dd4bf]/40 transition-all duration-300"
+                            className="mb-10 flex flex-col sm:flex-row items-center w-full max-w-2xl bg-[var(--hp-surface)]/50 backdrop-blur-2xl rounded-2xl border border-[var(--hp-border)] shadow-2xl overflow-hidden p-1.5 focus-within:border-[#2dd4bf]/40 transition-all duration-300"
                         >
-                            <div className="flex-1 flex items-center gap-3 px-5 py-3.5 border-r border-white/5">
+                            <div className="flex-1 flex items-center gap-3 px-5 py-3.5 border-r border-[var(--hp-border)]/50">
                                 <svg className="w-4 h-4 text-[#2dd4bf]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" /></svg>
                                 <input
                                     type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                                     placeholder="Job title or keyword…"
-                                    className="flex-1 bg-transparent text-sm outline-none text-white placeholder:text-white/30 font-medium"
+                                    className="flex-1 bg-transparent text-sm outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-medium"
                                 />
                             </div>
-                            <div className="hidden sm:flex items-center gap-3 px-5 py-3.5 w-48 border-r border-white/5">
-                                <svg className="w-4 h-4 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                            <div className="hidden sm:flex items-center gap-3 px-5 py-3.5 w-48 border-r border-[var(--hp-border)]/50">
+                                <svg className="w-4 h-4 text-[var(--hp-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 <input
                                     type="text" value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
                                     placeholder="Location…"
-                                    className="flex-1 bg-transparent text-sm outline-none text-white placeholder:text-white/30 font-medium"
+                                    className="flex-1 bg-transparent text-sm outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-medium"
                                 />
                             </div>
                             <button type="submit" className="hp-btn-primary px-10 py-3.5 text-sm font-bold rounded-xl whitespace-nowrap">Search Jobs</button>
