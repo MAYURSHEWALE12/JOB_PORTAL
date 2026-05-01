@@ -57,15 +57,84 @@ Job portal project/
 
 ## 🚀 Getting Started
 
-### 1. Prerequisites
-- **JDK 17+**
-- **Node.js 18+**
-- **MySQL 8.0+**
+Follow these steps to set up HireHub on your local machine.
 
-### 2. Quick Setup
-1. **Database**: Create a MySQL DB named `job_portal`.
-2. **Backend**: Navigate to `job-portal-backend`, configure `.env`, and run `mvn spring-boot:run`.
-3. **Frontend**: Navigate to `job-portal-v2`, run `npm install` and `npm run dev`.
+### 1️⃣ Prerequisites
+Ensure you have the following installed:
+- **Java Development Kit (JDK) 17+**
+- **Node.js 18+** & **npm**
+- **MySQL Server 8.0+**
+- **Maven** (optional, wrapper included)
+
+---
+
+### 2️⃣ Database Configuration
+1. Open your MySQL terminal or workbench.
+2. Create the database:
+   ```sql
+   CREATE DATABASE job_portal;
+   ```
+
+---
+
+### 3️⃣ Backend Setup (Spring Boot)
+1. Navigate to the backend directory:
+   ```bash
+   cd job-portal-backend
+   ```
+2. Create a `.env` file in the root of `job-portal-backend/` and add your credentials:
+   ```env
+   # Database
+   DB_URL=jdbc:mysql://localhost:3306/job_portal
+   DB_USERNAME=your_mysql_username
+   DB_PASSWORD=your_mysql_password
+
+   # Security
+   JWT_SECRET=your_long_64_character_secret_key
+
+   # Integrations (Brevo/SMTP)
+   SMTP_HOST=smtp-relay.brevo.com
+   SMTP_PORT=587
+   SMTP_USERNAME=your_email
+   SMTP_PASSWORD=your_smtp_key
+
+   # Google OAuth2 (Optional for Social Login)
+   GOOGLE_CLIENT_ID=your_id
+   GOOGLE_CLIENT_SECRET=your_secret
+   ```
+3. Run the backend server:
+   ```bash
+   # Windows
+   .\mvnw.cmd spring-boot:run
+   
+   # Linux/Mac
+   ./mvnw spring-boot:run
+   ```
+   *The backend will be live at `http://localhost:8080`*
+
+---
+
+### 4️⃣ Frontend Setup (React + Vite)
+1. Navigate to the frontend directory:
+   ```bash
+   cd job-portal-v2
+   ```
+2. Install the premium dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the development server:
+   ```bash
+   npm run dev
+   ```
+   *The frontend will be live at `http://localhost:5173`*
+
+---
+
+### 🧪 Verification
+- Open your browser to `http://localhost:5173`.
+- You should see the **Vertex Industrial** landing page.
+- Log in or Register to start using the **Personal Job Alerts**!
 
 ---
 
