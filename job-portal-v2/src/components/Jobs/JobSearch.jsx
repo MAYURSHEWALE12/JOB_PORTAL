@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
+import apiClient, { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
