@@ -363,17 +363,6 @@ function RadarBar() {
                                     </label>
                                 </div>
                             </form>
-                        </motion.div>
-                    )}="checkbox"
-                                            checked={newAlert.emailEnabled}
-                                            onChange={e => setNewAlert({...newAlert, emailEnabled: e.target.checked})}
-                                            className="w-3.5 h-3.5 accent-[var(--hp-accent)]"
-                                        />
-                                        <span className="text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-widest">Enable Email Alerts</span>
-                                    </label>
-                                </div>
-                            </form>
-                        </motion.div>
                     )}
                 </AnimatePresence>
             </motion.div>
