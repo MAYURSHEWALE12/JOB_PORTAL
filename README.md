@@ -147,6 +147,31 @@ Ensure you have the following installed:
 
 ---
 
+## 🌐 Online Deployment Guide
+
+### 🚀 1. Frontend (Vercel / Netlify)
+1. **Push to GitHub**: Ensure your code is in a public or private GitHub repo.
+2. **Connect to Vercel**: Import your `job-portal-v2` directory.
+3. **Configure Build Settings**:
+   - **Framework Preset**: Vite
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+4. **Environment Variables**:
+   - Add `VITE_API_BASE_URL` pointing to your deployed backend URL.
+
+### ⚙️ 2. Backend (Render / Railway / AWS)
+1. **Database First**: Deploy a MySQL instance (Railway, Aiven, or PlanetScale).
+2. **Deploy Backend**: Import the `job-portal-backend` directory.
+3. **Configure Environment**: Add all variables from your `.env` file (DB_URL, JWT_SECRET, Cloudinary, etc.) to the hosting platform's dashboard.
+4. **Build Command**: `./mvnw clean package -DskipTests`
+5. **Start Command**: `java -jar target/*.jar`
+
+### 🗄️ 3. Database (Railway / MySQL)
+- Use a managed MySQL service for production stability.
+- Ensure your `DB_URL` uses the production connection string provided by the host.
+
+---
+
 ## 🛡️ Security & Performance
 - **Microscopic Audit Certified**: Every service and query vetted for production stability.
 - **Secure Authentication**: JWT-based stateless authentication with secure cookie storage.
