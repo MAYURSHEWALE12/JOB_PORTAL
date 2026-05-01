@@ -363,6 +363,7 @@ function RadarBar() {
                                     </label>
                                 </div>
                             </form>
+                        </motion.div>
                     )}
                 </AnimatePresence>
             </motion.div>
