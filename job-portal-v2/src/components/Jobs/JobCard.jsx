@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { formatSalary, timeAgo } from '../../utils/formatters';
 import CompanyAvatar from '../CompanyAvatar';
+import TiltCard from '../Home/TiltCard';
 
 export const JOB_TYPE_STYLE = {
     FULL_TIME: 'bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30',
@@ -25,19 +26,10 @@ export default function JobCard({
         || 'Verified Employer';
 
     return (
-        <motion.div
-            layout
-            variants={{
-                hidden: { opacity: 0, y: 16, scale: 0.98 },
-                show: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 24 } },
-            }}
-            whileHover={{ y: -4 }}
+        <TiltCard
+            tiltAmount={5}
             onClick={() => onSelect(job)}
-            className="hp-card p-6 cursor-pointer flex flex-col h-full group"
-            style={isSelected ? {
-                borderColor: 'var(--hp-accent)',
-                boxShadow: '0 8px 30px rgba(var(--hp-accent-rgb),.15)'
-            } : {}}
+            className={`hp-card p-6 cursor-pointer flex flex-col h-full group transition-colors ${isSelected ? 'border-[var(--hp-accent)] shadow-[0_8px_30px_rgba(var(--hp-accent-rgb),0.15)]' : ''}`}
         >
             {/* Top row */}
             <div className="flex items-start justify-between mb-4 gap-2">
@@ -131,6 +123,6 @@ export default function JobCard({
                     )}
                 </button>
             </div>
-        </motion.div>
+        </TiltCard>
     );
 }

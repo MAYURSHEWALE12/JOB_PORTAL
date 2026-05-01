@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Logo from '../../Logo';
@@ -26,10 +26,25 @@ export default function Navbar() {
     const navigate = useNavigate();
     const { isLoggedIn } = useAuthStore();
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [isScrolled, setIsScrolled] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => setIsScrolled(window.scrollY > 20);
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4" style={{ background: 'var(--hp-nav-bg)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--hp-border)' }}>
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
+        <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled ? 'py-3 px-6 md:px-12' : 'py-5 px-6 md:px-10'}`}>
+            <div 
+                className="max-w-7xl mx-auto flex justify-between items-center px-6 py-3 rounded-2xl transition-all duration-300"
+                style={{ 
+                    background: isScrolled ? 'color-mix(in srgb, var(--hp-nav-bg) 85%, transparent)' : 'transparent',
+                    backdropFilter: isScrolled ? 'blur(20px)' : 'none',
+                    border: isScrolled ? '1px solid var(--hp-border)' : '1px solid transparent',
+                    boxShadow: isScrolled ? '0 10px 40px rgba(0,0,0,0.15)' : 'none'
+                }}
+            >
                 <div 
                     onClick={() => navigate(isLoggedIn ? '/dashboard' : '/')} 
                     className="cursor-pointer"
