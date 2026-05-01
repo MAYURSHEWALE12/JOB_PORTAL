@@ -18,13 +18,13 @@ export default function HeroSection({
                 style={{ 
                     background: 'radial-gradient(circle, var(--hp-accent) 0%, transparent 65%)', 
                     opacity: 0.07, 
-                    filter: 'blur(80px) md:blur(140px)' // Reduced blur on mobile
+                    filter: window.innerWidth < 768 ? 'blur(80px)' : 'blur(140px)'
                 }} />
             <div className="absolute bottom-[-10%] left-1/2 -translate-x-1/2 w-[500px] md:w-[800px] h-[400px] md:h-[600px] rounded-full pointer-events-none"
                 style={{ 
                     background: 'radial-gradient(circle, var(--hp-accent2) 0%, transparent 65%)', 
                     opacity: 0.06, 
-                    filter: 'blur(60px) md:blur(120px)' 
+                    filter: window.innerWidth < 768 ? 'blur(60px)' : 'blur(120px)' 
                 }} />
 
             {/* Noise texture overlay - DESKTOP ONLY */}

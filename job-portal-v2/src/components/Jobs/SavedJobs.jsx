@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { savedJobAPI, applicationAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { SkeletonJobCard } from '../Skeleton';
+import JobCard from './JobCard';
 
 const containerVariants = {
     hidden: { opacity: 0 },
@@ -98,12 +99,12 @@ export default function SavedJobs() {
                 </p>
             </div>
 
-            <div className="card p-6 mb-8 flex items-center gap-4">
-                <span className="text-4xl font-serif font-semibold text-[var(--color-primary)]">
+            <div className="hp-card p-6 mb-8 flex items-center gap-4">
+                <span className="text-4xl font-black gradient-word">
                     {savedJobs.length}
                 </span>
-                <span className="text-[var(--color-text-muted)] font-medium">
-                    saved job{savedJobs.length !== 1 ? 's' : ''}
+                <span className="text-[var(--hp-muted)] font-bold uppercase tracking-widest text-xs">
+                    Saved Opportunities
                 </span>
             </div>
 
@@ -147,185 +148,101 @@ export default function SavedJobs() {
                     animate="visible"
                     className="flex gap-8 flex-col lg:flex-row"
                 >
-                    <div className={`space-y-4 ${selected ? 'lg:w-1/2' : 'w-full'}`}>
-                        {savedJobs.map((savedJob) => {
-                            const isSelected = selected?.id === savedJob.id;
-                            return (
-                                <motion.div
-                                    key={savedJob.id}
-                                    variants={itemVariants}
-                                    onClick={() => setSelected(savedJob)}
-                                    className={`card p-5 cursor-pointer transition-all duration-300
-                                        ${isSelected ? 'ring-2 ring-[var(--color-primary)]' : 'hover:shadow-lg hover:border-[var(--color-primary)]'}`}
-                                >
-                                    <div className="flex justify-between items-start gap-4">
-                                        <div className="flex-1 min-w-0">
-                                            <h3 className="font-semibold text-lg mb-1 text-[var(--color-text)]">
-                                                {savedJob.job?.title}
-                                            </h3>
-                                            <p className="text-[var(--color-text-muted)] text-sm mb-3">
-                                                {savedJob.job?.employer?.firstName} {savedJob.job?.employer?.lastName}
-                                            </p>
-                                            
-                                            <div className="flex flex-wrap gap-2">
-                                                <span className="px-2 py-1 rounded-lg text-xs bg-[var(--color-input)] text-[var(--color-text-mid)]">
-                                                    <svg className="w-3 h-3 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                                    </svg>
-                                                    {savedJob.job?.location}
-                                                </span>
-                                                <span className="px-2 py-1 rounded-lg text-xs bg-[var(--color-primary)]/20 text-[var(--color-primary)]">
-                                                    {savedJob.job?.jobType?.replace('_', ' ')}
-                                                </span>
-                                                {savedJob.job?.salaryMin && (
-                                                    <span className="px-2 py-1 rounded-lg text-xs bg-green-500/20 text-green-400">
-                                                        ₹{Number(savedJob.job.salaryMin).toLocaleString()}
-                                                    </span>
-                                                )}
-                                            </div>
-                                            
-                                            <p className="text-[var(--color-text-muted)] text-xs mt-3 flex items-center gap-1">
-                                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
-                                                </svg>
-                                                Saved on {formatDate(savedJob.savedAt)}
-                                            </p>
-                                        </div>
-
-                                        <div className="flex flex-col items-end gap-2 shrink-0">
-                                            <span className={`text-xs font-medium px-3 py-1 rounded-full
-                                                ${savedJob.job?.status === 'ACTIVE'
-                                                    ? 'bg-green-500/20 text-green-400'
-                                                    : 'bg-zinc-500/20 text-zinc-400'}`}>
-                                                {savedJob.job?.status}
-                                            </span>
-
-                                            <button
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    handleUnsave(savedJob.job.id);
-                                                }}
-                                                disabled={removing === savedJob.job.id}
-                                                className="text-xs text-red-400 hover:text-red-300 transition-colors disabled:opacity-50"
-                                            >
-                                                {removing === savedJob.job.id ? '...' : 'Remove'}
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <p className="text-[var(--color-text-muted)] text-sm mt-4 line-clamp-2">
-                                        {savedJob.job?.description}
-                                    </p>
-                                </motion.div>
-                            );
-                        })}
+                    <div className={`grid gap-4 ${selected ? 'lg:w-1/2' : 'w-full grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`}>
+                        {savedJobs.map((savedJob) => (
+                            <JobCard
+                                key={savedJob.id}
+                                job={savedJob.job}
+                                isSelected={selected?.id === savedJob.id}
+                                isApplied={appliedJobs.has(savedJob.job?.id)}
+                                isSaved={true}
+                                onSelect={() => setSelected(savedJob)}
+                                onToggleSave={(e) => {
+                                    e.stopPropagation();
+                                    handleUnsave(savedJob.job.id);
+                                }}
+                            />
+                        ))}
                     </div>
 
                     {selected && (
                         <motion.div
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="hidden lg:block lg:w-1/2 card p-6 h-fit sticky top-4"
+                            className="hidden lg:block lg:w-1/2 hp-card p-6 h-fit sticky top-4 overflow-hidden"
                         >
-                            <div className="flex justify-between items-start mb-6">
-                                <h2 className="text-xl font-semibold text-[var(--color-text)]">
+                            <div className="absolute top-0 right-0 w-32 h-32 pointer-events-none"
+                                style={{ background: 'radial-gradient(circle, rgba(var(--hp-accent-rgb),.05) 0%, transparent 70%)' }} />
+                            
+                            <div className="flex justify-between items-start mb-6 relative z-10">
+                                <h2 className="text-xl font-bold text-[var(--hp-text)]">
                                     {selected.job?.title}
                                 </h2>
                                 <button
                                     onClick={() => setSelected(null)}
-                                    className="w-8 h-8 rounded-full bg-[var(--color-input)] text-[var(--color-text-mid)] hover:bg-[var(--color-primary)] hover:text-zinc-900 transition-colors flex items-center justify-center"
+                                    className="w-8 h-8 rounded-xl bg-[var(--hp-surface-alt)] text-[var(--hp-muted)] border border-[var(--hp-border)] hover:text-[var(--hp-text)] transition-colors flex items-center justify-center"
                                 >
                                     ✕
                                 </button>
                             </div>
 
-                            <div className="flex flex-wrap gap-2 mb-6">
-                                <span className="px-3 py-1 rounded-lg text-xs bg-[var(--color-primary)]/20 text-[var(--color-primary)]">
+                            <div className="flex flex-wrap gap-2 mb-6 relative z-10">
+                                <span className="tag-pill" style={{ background: 'rgba(var(--hp-accent-rgb),.12)', color: 'var(--hp-accent)' }}>
                                     {selected.job?.jobType?.replace('_', ' ')}
                                 </span>
-                                <span className={`text-xs font-medium px-3 py-1 rounded-full
-                                    ${selected.job?.status === 'ACTIVE'
-                                        ? 'bg-green-500/20 text-green-400'
-                                        : 'bg-zinc-500/20 text-zinc-400'}`}>
+                                <span className={`tag-pill ${selected.job?.status === 'ACTIVE' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-zinc-500/15 text-zinc-400'}`}>
                                     {selected.job?.status}
                                 </span>
                             </div>
 
-                            <div className="space-y-3 text-sm mb-6 p-4 bg-[var(--color-hover-surface)] rounded-xl">
+                            <div className="space-y-3 text-sm mb-6 p-4 bg-[var(--hp-surface-alt)] rounded-xl border border-[var(--hp-border)] relative z-10">
                                 <p className="flex items-center gap-2">
-                                    <span className="text-[var(--color-text-muted)]">🏢</span> 
-                                    <span className="text-[var(--color-text)]">
-                                        {selected.job?.employer?.firstName} {selected.job?.employer?.lastName}
+                                    <span className="text-[var(--hp-muted)]">🏢</span> 
+                                    <span className="font-semibold text-[var(--hp-text)]">
+                                        {selected.job?.companyName || selected.job?.employer?.companyProfile?.companyName || 'Verified Employer'}
                                     </span>
                                 </p>
                                 <p className="flex items-center gap-2">
-                                    <svg className="w-4 h-4 text-[var(--color-text-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    </svg>
-                                    <span className="text-[var(--color-text)]">{selected.job?.location}</span>
+                                    <span className="text-[var(--hp-muted)]">📍</span>
+                                    <span className="text-[var(--hp-text-sub)]">{selected.job?.location}</span>
                                 </p>
                                 {selected.job?.salaryMin && (
                                     <p className="flex items-center gap-2">
-                                        <span className="text-green-400">💰</span> 
-                                        <span className="text-green-400">
+                                        <span className="text-emerald-400">💰</span> 
+                                        <span className="text-emerald-400 font-bold">
                                             ₹{Number(selected.job.salaryMin).toLocaleString()} — ₹{Number(selected.job.salaryMax).toLocaleString()}
                                         </span>
                                     </p>
                                 )}
-                                {selected.job?.experienceRequired && (
-                                    <p className="flex items-center gap-2">
-                                        <span className="text-[var(--color-text-muted)]">🧑‍💼</span> 
-                                        <span className="text-[var(--color-text)]">{selected.job.experienceRequired}</span>
-                                    </p>
-                                )}
-                                {selected.job?.positionsAvailable && (
-                                    <p className="flex items-center gap-2">
-                                        <span className="text-[var(--color-text-muted)]">👥</span> 
-                                        <span className="text-[var(--color-text)]">{selected.job.positionsAvailable} positions</span>
-                                    </p>
-                                )}
-                                <p className="text-[var(--color-primary)] flex items-center gap-2">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
+                                <p className="text-[var(--hp-accent)] font-bold text-[10px] uppercase tracking-widest flex items-center gap-2">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />
                                     </svg>
                                     Saved on {formatDate(selected.savedAt)}
                                 </p>
                             </div>
 
-                            <div className="mb-6">
-                                <h3 className="font-semibold mb-2 text-[var(--color-text)]">Description</h3>
-                                <p className="text-[var(--color-text-muted)] whitespace-pre-line leading-relaxed text-sm">
+                            <div className="mb-6 relative z-10">
+                                <h3 className="text-xs font-black uppercase tracking-widest mb-2 text-[var(--hp-muted)]">Description</h3>
+                                <p className="text-[var(--hp-text-sub)] text-sm leading-relaxed line-clamp-6">
                                     {selected.job?.description}
                                 </p>
                             </div>
 
-                            {selected.job?.requirements && (
-                                <div className="mb-6">
-                                    <h3 className="font-semibold mb-2 text-[var(--color-text)]">Requirements</h3>
-                                    <p className="text-[var(--color-text-muted)] whitespace-pre-line leading-relaxed text-sm p-4 bg-[var(--color-hover-surface)] rounded-xl">
-                                        {selected.job.requirements}
-                                    </p>
-                                </div>
-                            )}
-
-                            <div className="flex gap-4 pt-4 border-t border-[var(--color-border)]">
+                            <div className="flex gap-3 pt-5 border-t border-[var(--hp-border)] relative z-10">
                                 <button
                                     onClick={() => handleUnsave(selected.job.id)}
                                     disabled={removing === selected.job.id}
-                                    className="flex-1 btn-secondary py-2.5"
+                                    className="hp-btn-ghost flex-1 py-3 text-xs uppercase font-black"
                                 >
-                                    {removing === selected.job.id ? 'Removing...' : 'Remove'}
+                                    {removing === savedJob?.job?.id ? 'Removing...' : 'Remove'}
                                 </button>
-                                {selected.job?.status === 'ACTIVE' && !appliedJobs.has(selected.job.id) && (
-                                    <button className="flex-1 btn-primary py-2.5">
-                                        Apply Now
-                                    </button>
-                                )}
-                                {selected.job?.status === 'ACTIVE' && appliedJobs.has(selected.job.id) && (
-                                    <button disabled className="flex-1 py-2.5 bg-green-500/20 text-green-400 rounded-lg cursor-not-allowed">
-                                        Applied
+                                {selected.job?.status === 'ACTIVE' && (
+                                    <button 
+                                        onClick={() => navigate('/jobs')}
+                                        className="hp-btn-primary flex-1 py-3 text-xs uppercase font-black"
+                                    >
+                                        {appliedJobs.has(selected.job.id) ? 'Applied' : 'Apply Now'}
                                     </button>
                                 )}
                             </div>
