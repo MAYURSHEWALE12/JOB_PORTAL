@@ -262,20 +262,27 @@ function RadarBar() {
                             <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-[var(--hp-card)] animate-pulse"></div>
                         </div>
                         <div>
-                            <h4 className="text-xs font-black uppercase tracking-widest text-[var(--hp-text)]">Live Job Radar</h4>
-                            <div className="flex flex-wrap gap-2 mt-1.5">
-                                {loading ? (
-                                    <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">Calibrating...</span>
-                                ) : alerts.length === 0 ? (
-                                    <span className="text-[10px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">No active trackers</span>
-                                ) : (
-                                    alerts.map(a => (
-                                        <span key={a.id} className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[10px] font-bold text-[var(--hp-accent)]">
-                                            {a.keywords.split(',')[0]}
-                                            <button onClick={() => handleDelete(a.id)} className="hover:text-red-500 transition-colors">×</button>
-                                        </span>
-                                    ))
-                                )}
+                            <h4 className="text-xs font-black uppercase tracking-widest text-[var(--hp-text)]">Personal Job Alerts</h4>
+                            <div className="flex items-center gap-4 mt-1.5">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
+                                    <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Watching for new jobs...</span>
+                                </div>
+                                <div className="h-3 w-[1px] bg-[var(--hp-border)]"></div>
+                                <div className="flex flex-wrap gap-2">
+                                    {loading ? (
+                                        <span className="text-[9px] text-[var(--hp-muted)] font-bold uppercase tracking-widest">Loading...</span>
+                                    ) : alerts.length === 0 ? (
+                                        <span className="text-[9px] text-[var(--hp-muted)] font-bold uppercase tracking-widest italic">No alerts set yet</span>
+                                    ) : (
+                                        alerts.map(a => (
+                                            <span key={a.id} className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-[var(--hp-surface-alt)] border border-[var(--hp-border)] text-[9px] font-bold text-[var(--hp-accent)]">
+                                                🔔 {a.keywords.split(',')[0]}
+                                                <button onClick={() => handleDelete(a.id)} className="hover:text-red-500 transition-colors ml-1">×</button>
+                                            </span>
+                                        ))
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -284,7 +291,7 @@ function RadarBar() {
                         onClick={() => setShowForm(!showForm)}
                         className="hp-btn-primary !py-2 !px-5 text-[10px] uppercase font-black tracking-widest flex items-center gap-2"
                     >
-                        {showForm ? 'Close Settings' : '+ Add Radar Tracker'}
+                        {showForm ? 'Close' : 'Create New Job Alert'}
                         <svg className={`w-3 h-3 transition-transform ${showForm ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                         </svg>
@@ -302,9 +309,9 @@ function RadarBar() {
                         >
                             <form onSubmit={handleAdd} className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Keywords</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Job Keywords</label>
                                     <input 
-                                        required placeholder="React, Node..."
+                                        required placeholder="e.g. React, Manager..."
                                         value={newAlert.keywords}
                                         onChange={e => setNewAlert({...newAlert, keywords: e.target.value})}
                                         className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
@@ -313,7 +320,7 @@ function RadarBar() {
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Location</label>
                                     <input 
-                                        placeholder="Remote, Pune..."
+                                        placeholder="e.g. Remote, Mumbai..."
                                         value={newAlert.location}
                                         onChange={e => setNewAlert({...newAlert, location: e.target.value})}
                                         className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
@@ -334,7 +341,7 @@ function RadarBar() {
                                 </div>
                                 <div className="flex items-end gap-3">
                                     <div className="flex-1 space-y-1.5">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Min Salary ($)</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-[var(--hp-muted)] ml-1">Min Salary</label>
                                         <input 
                                             type="number"
                                             value={newAlert.salaryMin}
@@ -342,12 +349,22 @@ function RadarBar() {
                                             className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
                                         />
                                     </div>
-                                    <button className="hp-btn-primary !py-2.5 !px-4 text-[10px] uppercase font-black">Deploy</button>
+                                    <button className="hp-btn-primary !py-2.5 !px-4 text-[10px] uppercase font-black">Save Alert</button>
                                 </div>
                                 <div className="lg:col-span-4 pt-2">
                                     <label className="inline-flex items-center gap-2 cursor-pointer">
                                         <input 
                                             type="checkbox"
+                                            checked={newAlert.emailEnabled}
+                                            onChange={e => setNewAlert({...newAlert, emailEnabled: e.target.checked})}
+                                            className="w-3.5 h-3.5 accent-[var(--hp-accent)]"
+                                        />
+                                        <span className="text-[10px] font-bold text-[var(--hp-muted)] uppercase tracking-widest">Email me when a job matches</span>
+                                    </label>
+                                </div>
+                            </form>
+                        </motion.div>
+                    )}="checkbox"
                                             checked={newAlert.emailEnabled}
                                             onChange={e => setNewAlert({...newAlert, emailEnabled: e.target.checked})}
                                             className="w-3.5 h-3.5 accent-[var(--hp-accent)]"
