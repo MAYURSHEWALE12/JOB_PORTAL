@@ -205,7 +205,7 @@ function RadarBar() {
     const [alerts, setAlerts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
-    const [newAlert, setNewAlert] = useState({ keywords: '', location: '', jobType: 'FULL_TIME', salaryMin: 0, emailEnabled: true });
+    const [newAlert, setNewAlert] = useState({ keywords: '', location: '', jobType: '', salaryMin: 0, emailEnabled: true });
 
     useEffect(() => {
         fetchAlerts();
@@ -228,7 +228,7 @@ function RadarBar() {
                 isActive: true,
                 inAppEnabled: true
             });
-            setNewAlert({ keywords: '', location: '', jobType: 'FULL_TIME', salaryMin: 0, emailEnabled: true });
+            setNewAlert({ keywords: '', location: '', jobType: '', salaryMin: 0, emailEnabled: true });
             setShowForm(false);
             fetchAlerts();
         } catch (err) { /* ignore */ }
@@ -333,6 +333,7 @@ function RadarBar() {
                                         onChange={e => setNewAlert({...newAlert, jobType: e.target.value})}
                                         className="w-full px-3 py-2 text-xs rounded-lg border border-[var(--hp-border)] bg-[var(--hp-card)] outline-none focus:border-[var(--hp-accent)]"
                                     >
+                                        <option value="">Any Job Type</option>
                                         <option value="FULL_TIME">Full-Time</option>
                                         <option value="PART_TIME">Part-Time</option>
                                         <option value="CONTRACT">Contract</option>

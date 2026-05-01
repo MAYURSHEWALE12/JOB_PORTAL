@@ -138,11 +138,14 @@ public class JobAlertService {
 
         // Salary match
         if (alert.getSalaryMin() != null && alert.getSalaryMin() > 0) {
-            if (job.getSalaryMax() == null || job.getSalaryMax().compareTo(java.math.BigDecimal.valueOf(alert.getSalaryMin())) < 0) {
+            java.math.BigDecimal jobSalary = job.getSalaryMax() != null ? job.getSalaryMax() : job.getSalaryMin();
+            if (jobSalary == null || jobSalary.compareTo(java.math.BigDecimal.valueOf(alert.getSalaryMin())) < 0) {
+                log.info("Job {} salary ({}) too low for alert min ({})", job.getTitle(), jobSalary, alert.getSalaryMin());
                 return false;
             }
         }
 
+        log.info("MATCH FOUND: Job {} matches alert {}", job.getTitle(), alert.getId());
         return true;
     }
 
