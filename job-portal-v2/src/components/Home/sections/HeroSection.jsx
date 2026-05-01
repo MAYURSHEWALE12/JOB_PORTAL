@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { fadeUp, staggerContainer } from './variants';
+import AnimatedNumber from '../AnimatedNumber';
 
 export default function HeroSection({
     searchQuery, setSearchQuery,
@@ -128,15 +129,17 @@ export default function HeroSection({
                     className="flex flex-wrap items-center justify-center gap-3 mb-10 md:mb-12"
                 >
                     {[
-                        { label: 'Active Jobs', value: '12,400+' },
-                        { label: 'Verified Companies', value: '3,200+' },
-                        { label: 'Hired This Month', value: '2,400+' },
-                    ].map(({ label, value }) => (
+                        { label: 'Active Jobs', value: 12400, suffix: '+' },
+                        { label: 'Verified Companies', value: 3200, suffix: '+' },
+                        { label: 'Hired This Month', value: 2400, suffix: '+' },
+                    ].map(({ label, value, suffix }) => (
                         <div key={label}
                             className="flex items-center gap-2.5 px-4 py-2 rounded-full border"
                             style={{ borderColor: 'rgba(255,255,255,0.07)', background: 'rgba(255,255,255,0.03)' }}
                         >
-                            <span className="text-sm font-black" style={{ color: 'var(--hp-accent)' }}>{value}</span>
+                            <span className="text-sm font-black" style={{ color: 'var(--hp-accent)' }}>
+                                <AnimatedNumber value={value} suffix={suffix} />
+                            </span>
                             <span className="text-xs font-medium" style={{ color: 'var(--hp-muted)' }}>{label}</span>
                         </div>
                     ))}
