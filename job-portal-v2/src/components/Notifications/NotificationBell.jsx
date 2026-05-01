@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createPortal } from 'react-dom';
 import { notificationAPI } from '../../services/api';
@@ -7,6 +8,7 @@ import { useWebsocketStore } from '../../store/websocketStore';
 
 export default function NotificationBell() {
     const { user } = useAuthStore();
+    const navigate = useNavigate();
     const { notifications: wsNotifications } = useWebsocketStore();
     const [fetchedNotifications, setFetchedNotifications] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
@@ -47,6 +49,24 @@ export default function NotificationBell() {
             );
         } catch (err) {
             console.error('Failed to mark as read:', err);
+        }
+    };
+
+    const handleNotificationClick = (notif) => {
+        if (!notif.read) handleMarkAsRead(notif.id);
+        setIsOpen(false);
+
+        // Smart Redirection Logic
+        if (notif.type === 'JOB_ALERT') {
+            navigate(`/jobs?jobId=${notif.referenceId}`);
+        } else if (notif.type === 'MESSAGE' || notif.type === 'CHAT') {
+            navigate(`/dashboard?tab=messages&userId=${notif.referenceId}`);
+        } else if (notif.type === 'INTERVIEW') {
+            navigate('/dashboard?tab=interviews');
+        } else if (notif.type === 'APPLICATION_STATUS') {
+            navigate('/dashboard?tab=applications');
+        } else if (notif.type === 'APPLICATION_RECEIVED') {
+            navigate('/dashboard?tab=viewapps');
         }
     };
 
@@ -166,7 +186,7 @@ export default function NotificationBell() {
                                         allNotifications.map((notif) => (
                                             <div
                                                 key={notif.id}
-                                                onClick={() => !notif.read && handleMarkAsRead(notif.id)}
+                                                onClick={() => handleNotificationClick(notif)}
                                                 className={`hp-notif-item p-4 flex gap-4 cursor-pointer relative ${!notif.read ? 'hp-notif-unread' : ''}`}
                                             >
                                                 {!notif.read && (
