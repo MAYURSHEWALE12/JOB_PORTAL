@@ -38,29 +38,37 @@ export default function HeroSection({
                     </motion.p>
                 </motion.div>
 
-                {/* ── Search Bar (Mobile Responsive Unit) ── */}
+                {/* ── Search Bar (Polished Elite Unit) ── */}
                 <motion.form 
                     initial="hidden" animate="visible" variants={fadeUp}
                     onSubmit={handleSearch} 
-                    className="mb-10 md:mb-14 flex flex-col sm:flex-row items-stretch sm:items-center w-full max-w-3xl bg-[var(--hp-surface)]/50 backdrop-blur-2xl rounded-2xl md:rounded-[24px] border border-[var(--hp-border)] shadow-2xl overflow-hidden p-1 md:p-1.5 focus-within:border-[#2dd4bf]/40 transition-all duration-300"
+                    className="mb-10 md:mb-14 flex flex-col sm:flex-row items-stretch sm:items-center w-full max-w-3xl bg-[var(--hp-surface)]/40 backdrop-blur-3xl rounded-2xl md:rounded-[28px] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.4)] overflow-hidden p-1.5 focus-within:border-[#2dd4bf]/50 transition-all duration-500"
                 >
-                    <div className="flex-1 flex items-center gap-3 px-5 md:px-6 py-4 md:py-4 border-b sm:border-b-0 sm:border-r border-[var(--hp-border)]/50">
-                        <svg className="w-5 h-5 text-[#2dd4bf]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" /></svg>
+                    {/* Search Zone */}
+                    <div className="flex-1 flex items-center gap-4 px-6 py-4.5 border-b sm:border-b-0 sm:border-r border-white/5 hover:bg-white/[0.02] transition-colors group">
+                        <svg className="w-5 h-5 text-[#2dd4bf] group-focus-within:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}><circle cx="11" cy="11" r="8" /><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35" /></svg>
                         <input
                             type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Job title or keyword…"
-                            className="flex-1 bg-transparent text-sm md:text-base outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-medium"
+                            className="flex-1 bg-transparent text-base outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-semibold"
                         />
                     </div>
-                    <div className="flex items-center gap-3 px-5 md:px-6 py-4 md:py-4 sm:w-56 border-b sm:border-b-0 sm:border-r border-[var(--hp-border)]/50 text-left">
-                        <svg className="w-5 h-5 text-[var(--hp-muted)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+
+                    {/* Location Zone */}
+                    <div className="flex items-center gap-4 px-6 py-4.5 sm:w-64 border-b sm:border-b-0 sm:border-r border-white/5 hover:bg-white/[0.02] transition-colors group">
+                        <svg className="w-5 h-5 text-[#2dd4bf] group-focus-within:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
                         <input
                             type="text" value={searchLocation} onChange={e => setSearchLocation(e.target.value)}
                             placeholder="Location…"
-                            className="flex-1 bg-transparent text-sm outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-medium"
+                            className="flex-1 bg-transparent text-sm md:text-base outline-none text-[var(--hp-text)] placeholder:text-[var(--hp-muted)] font-semibold"
                         />
                     </div>
-                    <button type="submit" className="hp-btn-primary px-8 md:px-12 py-4 md:py-4 text-sm font-bold md:rounded-xl whitespace-nowrap">Find Jobs</button>
+
+                    {/* Action Button */}
+                    <button type="submit" className="hp-btn-primary px-10 md:px-14 py-4.5 text-sm font-black rounded-xl md:rounded-[20px] whitespace-nowrap m-1 shadow-2xl shadow-[#2dd4bf]/20">Find Jobs</button>
                 </motion.form>
 
                 {/* ── Quick Links (Mobile Centered) ── */}
