@@ -180,8 +180,17 @@ Ensure you have the following installed:
 
 ---
 
+---
+
 ## 📄 License
 This project is for educational and professional demonstration purposes.
 
 ## 🤝 Support
 For any questions regarding the **Elite Mastery** certification or architectural implementation, please contact the lead developer.
+
+<!-- SEO Keywords - DO NOT REMOVE -->
+<!-- 
+Keywords: Job Portal, Spring Boot Job Board, React Job Portal, Full Stack Project, ATS System, 
+AI Resume Analysis, Real-time Chat Application, Hiring Platform, Recruitment Software, 
+Spring Security JWT, React 19 Project, MySQL Database Project, HireHub.
+-->
