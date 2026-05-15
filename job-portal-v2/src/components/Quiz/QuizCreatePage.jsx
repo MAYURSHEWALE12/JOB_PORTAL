@@ -15,7 +15,8 @@ import {
     Info, 
     HelpCircle,
     GripVertical,
-    AlertCircle
+    AlertCircle,
+    Rocket
 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
@@ -408,7 +409,7 @@ export default function QuizCreatePage() {
                         </div>
                         
                         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                            <MdRocketLaunch className="text-primary" />
+                            <Rocket className="text-primary" />
                             Quiz Summary
                         </h3>
                         
