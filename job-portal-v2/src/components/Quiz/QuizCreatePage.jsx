@@ -409,7 +409,9 @@ export default function QuizCreatePage() {
                         </div>
                         
                         <h3 className="text-lg font-bold mb-6 flex items-center gap-2">
-                            <Rocket className="text-primary" />
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                                <Rocket className="text-primary" size={20} />
+                            </div>
                             Quiz Summary
                         </h3>
                         
