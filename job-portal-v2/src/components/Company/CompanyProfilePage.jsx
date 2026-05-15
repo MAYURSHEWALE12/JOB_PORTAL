@@ -259,11 +259,11 @@ export default function CompanyProfilePage() {
                         ) : (
                             <div className="w-full h-full" style={{ background: 'linear-gradient(135deg, var(--hp-accent), var(--hp-accent2))' }} />
                         )}
-                        <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%)' }} />
+                    <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 50%, transparent 100%)' }} />
                     </div>
 
-                    <div className="absolute bottom-0 left-0 w-full p-6 md:p-10 flex flex-col md:flex-row items-start md:items-end gap-6 translate-y-12 md:translate-y-10">
-                        <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl p-1.5 shadow-2xl flex-shrink-0" style={{ background: 'var(--hp-card)' }}>
+                    <div className="absolute bottom-0 left-0 w-full p-6 md:p-10 flex flex-col md:flex-row items-start md:items-end gap-6">
+                        <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl p-1.5 shadow-2xl flex-shrink-0 relative z-10" style={{ background: 'var(--hp-card)' }}>
                             {companyLogo ? (
                                 <img src={companyLogo} alt="Logo" className="w-full h-full object-contain rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff' }} />
                             ) : (
@@ -273,14 +273,14 @@ export default function CompanyProfilePage() {
                             )}
                         </div>
 
-                        <div className="flex-1 pb-12 md:pb-10 pt-2">
-                            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-2 drop-shadow-md">
+                        <div className="flex-1 pb-4 md:pb-2 pt-2 relative z-10">
+                            <h1 className="text-3xl md:text-5xl font-bold text-white tracking-tight mb-2" style={{ textShadow: '0 2px 10px rgba(0,0,0,0.5)' }}>
                                 {profile.companyName}
                             </h1>
-                            <p className="text-sm md:text-base text-white/90 font-medium tracking-wide flex items-center gap-2">
-                                <span className="px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-sm border border-white/30">{profile.industry || 'Company'}</span>
-                                {profile.location && <span>📍 {profile.location}</span>}
-                            </p>
+                            <div className="text-sm md:text-base text-white/90 font-medium tracking-wide flex flex-wrap items-center gap-3">
+                                <span className="px-2.5 py-1 rounded-md bg-white/20 backdrop-blur-md border border-white/30 shadow-lg">{profile.industry || 'Company'}</span>
+                                {profile.location && <span className="flex items-center gap-1 drop-shadow-md">📍 {profile.location}</span>}
+                            </div>
                         </div>
                     </div>
                 </motion.div>
