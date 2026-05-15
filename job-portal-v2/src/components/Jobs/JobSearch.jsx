@@ -816,12 +816,21 @@ export default function JobSearch() {
                             <div className="sticky top-0 p-6 flex items-start justify-between z-10 gap-4"
                                 style={{ background: 'var(--hp-card)', borderBottom: '1px solid var(--hp-border)' }}>
                                 <div className="flex items-center gap-4 min-w-0">
-                                    <CompanyAvatar job={selected} size="lg" />
+                                    <div 
+                                        className="cursor-pointer transition-transform hover:scale-105"
+                                        onClick={() => navigate(`/company/${selected.employer?.id}`)}
+                                    >
+                                        <CompanyAvatar job={selected} size="lg" />
+                                    </div>
                                     <div className="min-w-0">
                                         <h2 className="font-bold text-xl leading-snug truncate" style={{ color: 'var(--hp-text)' }}>
                                             {selected.title}
                                         </h2>
-                                        <p className="text-sm font-semibold mt-0.5 truncate" style={{ color: 'var(--hp-accent)' }}>
+                                        <p 
+                                            className="text-sm font-semibold mt-0.5 truncate cursor-pointer hover:underline" 
+                                            style={{ color: 'var(--hp-accent)' }}
+                                            onClick={() => navigate(`/company/${selected.employer?.id}`)}
+                                        >
                                             {selected.companyName || selected.employer?.companyProfile?.companyName
                                                 || `${selected.employer?.firstName || ''} ${selected.employer?.lastName || ''}`.trim()}
                                         </p>

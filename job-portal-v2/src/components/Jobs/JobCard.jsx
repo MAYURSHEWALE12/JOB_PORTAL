@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { formatSalary, timeAgo } from '../../utils/formatters';
 import CompanyAvatar from '../CompanyAvatar';
 import TiltCard from '../Home/TiltCard';
@@ -20,10 +21,18 @@ export default function JobCard({
     onSelect, 
     onToggleSave 
 }) {
+    const navigate = useNavigate();
     const salary = formatSalary(job.salaryMin, job.salaryMax);
     const companyName = job.companyName || job.employer?.companyProfile?.companyName
         || `${job.employer?.firstName || ''} ${job.employer?.lastName || ''}`.trim()
         || 'Verified Employer';
+
+    const handleCompanyClick = (e) => {
+        e.stopPropagation();
+        if (job.employer?.id) {
+            navigate(`/company/${job.employer.id}`);
+        }
+    };
 
     return (
         <TiltCard
@@ -33,7 +42,9 @@ export default function JobCard({
         >
             {/* Top row */}
             <div className="flex items-start justify-between mb-4 gap-2">
-                <CompanyAvatar job={job} />
+                <div onClick={handleCompanyClick} className="cursor-pointer">
+                    <CompanyAvatar job={job} />
+                </div>
                 <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                     {job.jobType && (
                         <span className={`tag-pill ${JOB_TYPE_STYLE[job.jobType] || ''}`}
@@ -64,7 +75,13 @@ export default function JobCard({
             >
                 {job.title}
             </h3>
-            <p className="text-sm font-medium mb-3" style={{ color: 'var(--hp-accent)' }}>{companyName}</p>
+            <p 
+                className="text-sm font-medium mb-3 cursor-pointer hover:underline inline-block" 
+                style={{ color: 'var(--hp-accent)' }}
+                onClick={handleCompanyClick}
+            >
+                {companyName}
+            </p>
 
             {/* Meta chips */}
             <div className="flex flex-wrap gap-1.5 mb-auto pb-4">
