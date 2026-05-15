@@ -274,13 +274,13 @@ p {
 
 /* Input with borders */
 .input {
-    background-color: var(--color-input);
+    background-color: var(--color-input) !important;
     border: 1px solid var(--color-border);
     border-radius: 8px;
     padding: 14px 16px;
     font-family: var(--font-sans);
     font-size: 14px;
-    color: var(--color-text);
+    color: var(--color-text-main) !important;
     transition: all 0.2s ease;
     width: 100%;
     box-sizing: border-box;

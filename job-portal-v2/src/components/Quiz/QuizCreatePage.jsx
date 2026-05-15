@@ -362,7 +362,7 @@ export default function QuizCreatePage() {
                                                     value={option.text}
                                                     onChange={(e) => updateOption(question.id, option.id, 'text', e.target.value)}
                                                     placeholder={`Option ${oIndex + 1}`}
-                                                    className="flex-1 bg-transparent border-none text-sm font-medium focus:ring-0 p-0"
+                                                    className="flex-1 bg-transparent border-none text-sm font-medium text-text-main placeholder:text-text-muted focus:ring-0 p-0"
                                                 />
                                                 {question.options.length > 2 && (
                                                     <button 
