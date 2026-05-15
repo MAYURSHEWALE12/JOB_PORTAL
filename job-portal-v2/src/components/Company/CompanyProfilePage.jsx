@@ -152,11 +152,15 @@ export default function CompanyProfilePage() {
                     --hp-shadow-card: 0 8px 40px rgba(0,0,0,.55);
                 }
                 html.light {
-                    --hp-bg: #f0f4fa; --hp-surface: #ffffff; --hp-surface-alt: rgba(0,0,0,.05);
-                    --hp-card: #ffffff; --hp-border: rgba(0,0,0,.09); --hp-accent: #0d9488;
-                    --hp-accent-rgb: 13,148,136; --hp-accent2: #7c3aed; --hp-text: #0c1220;
-                    --hp-text-sub: #374151; --hp-muted: #64748b; --hp-nav-bg: rgba(240,244,250,.9);
-                    --hp-shadow-card: 0 4px 24px rgba(0,0,0,.08);
+                    --hp-bg: #f8fafc; --hp-surface: #ffffff; --hp-surface-alt: rgba(0,0,0,.04);
+                    --hp-card: #ffffff; --hp-border: rgba(0,0,0,.08); --hp-accent: #0d9488;
+                    --hp-accent-rgb: 13,148,136; --hp-accent2: #7c3aed; --hp-text: #0f172a;
+                    --hp-text-sub: #334155; --hp-muted: #64748b; --hp-nav-bg: rgba(248,250,252,.9);
+                    --hp-shadow-card: 0 4px 20px rgba(0,0,0,.06);
+                }
+                
+                body {
+                    transition: background-color 0.3s ease, color 0.3s ease;
                 }
 
                 @keyframes hp-float-up {
@@ -261,7 +265,7 @@ export default function CompanyProfilePage() {
                     <div className="absolute bottom-0 left-0 w-full p-6 md:p-10 flex flex-col md:flex-row items-start md:items-end gap-6 translate-y-12 md:translate-y-10">
                         <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl p-1.5 shadow-2xl flex-shrink-0" style={{ background: 'var(--hp-card)' }}>
                             {companyLogo ? (
-                                <img src={companyLogo} alt="Logo" className="w-full h-full object-cover rounded-xl bg-white" />
+                                <img src={companyLogo} alt="Logo" className="w-full h-full object-contain rounded-xl" style={{ background: isDark ? 'rgba(255,255,255,0.05)' : '#ffffff' }} />
                             ) : (
                                 <div className="w-full h-full rounded-xl flex items-center justify-center text-5xl font-black text-white" style={{ background: 'linear-gradient(135deg, var(--hp-accent), var(--hp-accent2))' }}>
                                     {(profile.companyName || 'C').charAt(0).toUpperCase()}
