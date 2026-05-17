@@ -47,6 +47,7 @@ public class EmailService {
                mailPassword != null && !mailPassword.isBlank();
     }
 
+    @Async
     public void sendWelcomeEmail(String toEmail, String firstName, String role) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured (spring.mail.host is empty). Skipping welcome email to {}", toEmail);
@@ -150,6 +151,7 @@ public class EmailService {
     }
 
 
+    @Async
     public boolean sendJobAlertEmail(String toEmail, String userName, Job job) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured (spring.mail.host is empty). Skipping email to {}", toEmail);
@@ -262,6 +264,7 @@ public class EmailService {
         return "Unknown Company";
     }
 
+    @Async
     public boolean sendOfferLetterEmail(String toEmail, String candidateName, String jobTitle, String companyName, String offerContent, String subject) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping offer letter email to {}", toEmail);
@@ -370,6 +373,7 @@ public class EmailService {
     }
 
 
+    @Async
     public boolean sendOfferAcceptedEmail(String toEmail, String employerName, String candidateName, String jobTitle, String companyName) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping offer accepted email to {}", toEmail);
@@ -444,6 +448,7 @@ public class EmailService {
     }
 
 
+    @Async
     public boolean sendInterviewScheduledEmail(String toEmail, String name, String interviewTitle,
                                                 String jobTitle, String companyName,
                                                 java.time.LocalDateTime scheduledAt,
@@ -543,6 +548,7 @@ public class EmailService {
     }
 
 
+    @Async
     public boolean sendInterviewReminderEmail(String toEmail, String name, String interviewTitle,
                                               String jobTitle, String companyName,
                                               java.time.LocalDateTime scheduledAt,
@@ -617,6 +623,7 @@ public class EmailService {
             return false;
         }
     }
+    @Async
     public boolean sendPasswordResetEmail(String toEmail, String firstName, String token) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping password reset email to {}", toEmail);
@@ -696,6 +703,7 @@ public class EmailService {
             """.formatted(firstName, resetUrl);
     }
 
+    @Async
     public boolean sendOTPEmail(String toEmail, String firstName, String otp, String context) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping OTP email to {}", toEmail);

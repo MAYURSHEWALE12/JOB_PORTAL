@@ -47,16 +47,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     // Step 4: Extract user info and attach to request
                     Long userId = jwtUtil.extractUserId(token);
                     String email = jwtUtil.extractEmail(token);
+                    String role = jwtUtil.extractRole(token);
 
-                    Optional<User> userOpt = userRepository.findById(userId);
-                    if (userOpt.isPresent()) {
-                        User user = userOpt.get();
-                        
+                    if (userId != null && email != null && role != null) {
                         // Step 5: Create Spring Security Authentication object
                         UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                                user.getEmail(),
+                                email,
                                 null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + user.getRole().name()))
+                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role))
                         );
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
@@ -64,10 +62,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         SecurityContextHolder.getContext().setAuthentication(authentication);
 
                         // Store user details in request for backwards compatibility with controllers
-                        request.setAttribute("userId", user.getId());
-                        request.setAttribute("userEmail", user.getEmail());
-                        request.setAttribute("userRole", user.getRole());
-                        log.debug("Authenticated user in SecurityContext: {}", email);
+                        request.setAttribute("userId", userId);
+                        request.setAttribute("userEmail", email);
+                        request.setAttribute("userRole", com.jobportal.entity.UserRole.valueOf(role));
+                        log.debug("Authenticated user in SecurityContext from JWT claims: {}", email);
                     }
 
                 } else {

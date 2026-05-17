@@ -164,9 +164,10 @@ function NotificationHandler() {
 import { useWebsocketStore } from './store/websocketStore';
 
 function App() {
-    const { user, isLoggedIn, restoreUser } = useAuthStore();
-    const { connect, disconnect } = useWebsocketStore();
-    const { initTheme } = useThemeStore();
+    const user = useAuthStore(state => state.user);
+    const isLoggedIn = useAuthStore(state => state.isLoggedIn);
+    const restoreUser = useAuthStore(state => state.restoreUser);
+    const initTheme = useThemeStore(state => state.initTheme);
     const [isHydrating, setIsHydrating] = useState(true);
 
     useEffect(() => {
@@ -183,12 +184,14 @@ function App() {
 
     useEffect(() => {
         if (isLoggedIn && user?.id) {
-            connect(user.id);
+            useWebsocketStore.getState().connect(user.id);
         } else {
-            disconnect();
+            useWebsocketStore.getState().disconnect();
         }
-        return () => disconnect();
-    }, [isLoggedIn, user?.id, connect, disconnect]);
+        return () => {
+            useWebsocketStore.getState().disconnect();
+        };
+    }, [isLoggedIn, user?.id]);
 
     if (isHydrating) {
         return (
