@@ -64,6 +64,7 @@ public class SecurityConfig {
                                 "/swagger-resources/**", "/webjars/**").permitAll()
                         .requestMatchers("/login/oauth2/**", "/oauth2/**").permitAll()
                         .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/interviews/test-db").permitAll()
 
                         .anyRequest().authenticated()
                 )

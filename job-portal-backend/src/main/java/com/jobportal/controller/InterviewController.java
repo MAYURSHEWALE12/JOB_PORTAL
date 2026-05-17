@@ -27,6 +27,69 @@ public class InterviewController {
 
     private final InterviewService interviewService;
     private final SecurityUtil securityUtil;
+    private final org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
+    @GetMapping("/test-db")
+    public ResponseEntity<?> testDb() {
+        log.info("REST request to test Aiven DB from Render production environment");
+        try {
+            java.util.Map<String, Object> report = new java.util.HashMap<>();
+            report.put("timestamp", java.time.LocalDateTime.now().toString());
+            
+            try (java.sql.Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+                report.put("connection", "SUCCESS");
+                report.put("database", conn.getCatalog());
+                
+                java.sql.DatabaseMetaData meta = conn.getMetaData();
+                
+                java.util.List<String> tables = new java.util.ArrayList<>();
+                try (java.sql.ResultSet rs = meta.getTables(null, null, "%", new String[]{"TABLE"})) {
+                    while (rs.next()) {
+                        tables.add(rs.getString("TABLE_NAME"));
+                    }
+                }
+                report.put("tables", tables);
+                
+                java.util.List<java.util.Map<String, Object>> columns = new java.util.ArrayList<>();
+                try (java.sql.ResultSet rs = meta.getColumns(null, null, "interviews", null)) {
+                    while (rs.next()) {
+                        columns.add(java.util.Map.of(
+                            "name", rs.getString("COLUMN_NAME"),
+                            "type", rs.getString("TYPE_NAME"),
+                            "size", rs.getInt("COLUMN_SIZE"),
+                            "nullable", rs.getString("IS_NULLABLE")
+                        ));
+                    }
+                }
+                
+                if (columns.isEmpty()) {
+                    try (java.sql.ResultSet rs = meta.getColumns(null, null, "INTERVIEWS", null)) {
+                        while (rs.next()) {
+                            columns.add(java.util.Map.of(
+                                "name", rs.getString("COLUMN_NAME"),
+                                "type", rs.getString("TYPE_NAME"),
+                                "size", rs.getInt("COLUMN_SIZE"),
+                                "nullable", rs.getString("IS_NULLABLE")
+                            ));
+                        }
+                    }
+                }
+                
+                report.put("interviews_columns", columns);
+                
+            } catch (Exception ex) {
+                report.put("connection", "FAILED");
+                report.put("error", ex.getClass().getSimpleName() + ": " + ex.getMessage());
+                java.io.StringWriter sw = new java.io.StringWriter();
+                ex.printStackTrace(new java.io.PrintWriter(sw));
+                report.put("stacktrace", sw.toString());
+            }
+            
+            return ResponseEntity.ok(report);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body(e.getMessage());
+        }
+    }
 
     @PostMapping("/schedule")
     @PreAuthorize("hasRole('EMPLOYER')")
