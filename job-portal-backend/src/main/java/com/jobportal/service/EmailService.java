@@ -152,10 +152,10 @@ public class EmailService {
 
 
     @Async
-    public boolean sendJobAlertEmail(String toEmail, String userName, Job job) {
+    public void sendJobAlertEmail(String toEmail, String userName, Job job) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured (spring.mail.host is empty). Skipping email to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -178,14 +178,11 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Job alert email sent to {} for job: {}", toEmail, job.getTitle());
-            return true;
 
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.warn("Failed to send job alert email to {}: {}", toEmail, e.getMessage());
-            return false;
         } catch (MailException e) {
             log.warn("Mail server error for {}: {}. In-browser notification will still work.", toEmail, e.getRootCause() != null ? e.getRootCause().getMessage() : e.getMessage());
-            return false;
         }
     }
 
@@ -265,10 +262,10 @@ public class EmailService {
     }
 
     @Async
-    public boolean sendOfferLetterEmail(String toEmail, String candidateName, String jobTitle, String companyName, String offerContent, String subject) {
+    public void sendOfferLetterEmail(String toEmail, String candidateName, String jobTitle, String companyName, String offerContent, String subject) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping offer letter email to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -289,14 +286,11 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Offer letter email sent to {} for job: {}", toEmail, jobTitle);
-            return true;
 
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.warn("Failed to send offer letter email to {}: {}", toEmail, e.getMessage());
-            return false;
         } catch (MailException e) {
             log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
-            return false;
         }
     }
 
@@ -374,10 +368,10 @@ public class EmailService {
 
 
     @Async
-    public boolean sendOfferAcceptedEmail(String toEmail, String employerName, String candidateName, String jobTitle, String companyName) {
+    public void sendOfferAcceptedEmail(String toEmail, String employerName, String candidateName, String jobTitle, String companyName) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping offer accepted email to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -397,14 +391,11 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Offer accepted email sent to {} for candidate: {}", toEmail, candidateName);
-            return true;
 
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.warn("Failed to send offer accepted email to {}: {}", toEmail, e.getMessage());
-            return false;
         } catch (MailException e) {
             log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
-            return false;
         }
     }
 
@@ -449,14 +440,14 @@ public class EmailService {
 
 
     @Async
-    public boolean sendInterviewScheduledEmail(String toEmail, String name, String interviewTitle,
+    public void sendInterviewScheduledEmail(String toEmail, String name, String interviewTitle,
                                                 String jobTitle, String companyName,
                                                 java.time.LocalDateTime scheduledAt,
                                                 int durationMinutes, String location,
                                                 String meetingLink, String description) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping interview email to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -477,14 +468,11 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Interview email sent to {} for: {}", toEmail, interviewTitle);
-            return true;
 
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.warn("Failed to send interview email to {}: {}", toEmail, e.getMessage());
-            return false;
         } catch (MailException e) {
             log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
-            return false;
         }
     }
 
@@ -549,13 +537,13 @@ public class EmailService {
 
 
     @Async
-    public boolean sendInterviewReminderEmail(String toEmail, String name, String interviewTitle,
+    public void sendInterviewReminderEmail(String toEmail, String name, String interviewTitle,
                                               String jobTitle, String companyName,
                                               java.time.LocalDateTime scheduledAt,
                                               String location, String meetingLink) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping reminder to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -613,21 +601,18 @@ public class EmailService {
             helper.setText(html, true);
             mailSender.send(message);
             log.info("Interview reminder sent to {}", toEmail);
-            return true;
 
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.warn("Failed to send interview reminder to {}: {}", toEmail, e.getMessage());
-            return false;
         } catch (MailException e) {
             log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
-            return false;
         }
     }
     @Async
-    public boolean sendPasswordResetEmail(String toEmail, String firstName, String token) {
+    public void sendPasswordResetEmail(String toEmail, String firstName, String token) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping password reset email to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -648,14 +633,11 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("Password reset email sent to {}", toEmail);
-            return true;
 
         } catch (MessagingException | java.io.UnsupportedEncodingException e) {
             log.warn("Failed to send password reset email to {}: {}", toEmail, e.getMessage());
-            return false;
         } catch (MailException e) {
             log.warn("Mail server error for {}: {}", toEmail, e.getMessage());
-            return false;
         }
     }
 
@@ -704,10 +686,10 @@ public class EmailService {
     }
 
     @Async
-    public boolean sendOTPEmail(String toEmail, String firstName, String otp, String context) {
+    public void sendOTPEmail(String toEmail, String firstName, String otp, String context) {
         if (!isEmailConfigured()) {
             log.debug("Email not configured. Skipping OTP email to {}", toEmail);
-            return false;
+            return;
         }
 
         try {
@@ -727,11 +709,9 @@ public class EmailService {
 
             mailSender.send(message);
             log.info("OTP email sent to {} for context: {}", toEmail, context);
-            return true;
 
         } catch (Exception e) {
             log.error("OTP email delivery failed to {}", toEmail, e);
-            throw new RuntimeException("Email delivery failed: " + e.getMessage());
         }
     }
 

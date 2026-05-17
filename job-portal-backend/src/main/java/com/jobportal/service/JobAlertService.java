@@ -96,12 +96,8 @@ public class JobAlertService {
             // Attempt email if enabled (graceful failure)
             if (Boolean.TRUE.equals(alert.getEmailEnabled())) {
                 log.info("Attempting to send email to {} for job {}", user.getEmail(), job.getTitle());
-                boolean sent = emailService.sendJobAlertEmail(user.getEmail(), user.getFirstName(), job);
-                if (sent) {
-                    log.info("Email sent successfully to {}", user.getEmail());
-                } else {
-                    log.warn("Email NOT sent for user {} (SMTP issue or failed). In-app notification delivered.", user.getEmail());
-                }
+                emailService.sendJobAlertEmail(user.getEmail(), user.getFirstName(), job);
+                log.info("Email alert task dispatched asynchronously for {}", user.getEmail());
             } else {
                 log.info("Email disabled for alert {}, skipping email", alert.getId());
             }
