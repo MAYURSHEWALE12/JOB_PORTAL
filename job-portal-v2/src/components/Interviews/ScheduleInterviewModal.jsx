@@ -25,7 +25,7 @@ export default function ScheduleInterviewModal({ application, onClose, onSchedul
             onClose();
         } catch (err) {
             console.error('Failed to schedule interview:', err);
-            setError(err.response?.data?.message || 'Failed to schedule interview');
+            setError(err.response?.data?.error || err.response?.data?.details || err.response?.data?.message || 'Failed to schedule interview');
         } finally {
             setSubmitting(false);
         }
