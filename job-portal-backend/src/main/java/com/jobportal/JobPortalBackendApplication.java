@@ -10,6 +10,9 @@ import io.github.cdimascio.dotenv.Dotenv;
 public class JobPortalBackendApplication {
 
     public static void main(String[] args) {
+        // Set JVM default TimeZone to Asia/Kolkata (Indian Standard Time)
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Kolkata"));
+
         // Load .env file
         Dotenv dotenv = Dotenv.configure()
                 .ignoreIfMissing()
