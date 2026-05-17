@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
+import { useCachingStore } from '../../store/cachingStore';
 import { useWebsocketStore } from '../../store/websocketStore';
 import { useThemeStore } from '../../store/themeStore';
 import { messageAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
@@ -77,7 +78,11 @@ export default function Dashboard() {
         } catch (err) { console.error('Failed to fetch unread count:', err); }
     };
 
-    const handleLogout = () => { navigate('/', { replace: true }); logout(); };
+    const handleLogout = () => { 
+        useCachingStore.getState().clearCache();
+        navigate('/', { replace: true }); 
+        logout(); 
+    };
 
     const handleTabChange = (key) => {
         if (key === 'resume') { navigate('/resume-builder'); return; }

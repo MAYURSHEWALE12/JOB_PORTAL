@@ -5,6 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import apiClient, { jobAPI, applicationAPI, savedJobAPI, resumeAnalysisAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { useCachingStore } from '../../store/cachingStore';
 import { formatSalary, timeAgo } from '../../utils/formatters';
 import ApplyResumePicker from '../Resume/ApplyResumePicker';
 import { SkeletonJobCard, SkeletonAlertBar } from '../Skeleton';
@@ -52,13 +53,22 @@ function RadarBar() {
     const [newAlert, setNewAlert] = useState({ keywords: '', location: '', jobType: '', salaryMin: 0, emailEnabled: true });
 
     useEffect(() => {
-        fetchAlerts();
+        const hasCachedAlerts = !!useCachingStore.getState().alerts;
+        fetchAlerts(hasCachedAlerts);
     }, []);
 
-    const fetchAlerts = async () => {
+    const fetchAlerts = async (silent = false) => {
+        const cached = useCachingStore.getState().alerts;
+        if (cached && !silent) {
+            setAlerts(cached);
+            setLoading(false);
+        } else if (!silent) {
+            setLoading(true);
+        }
         try {
             const res = await apiClient.get('/job-alerts/user');
             setAlerts(res.data);
+            useCachingStore.getState().setCache('alerts', res.data);
         } catch (err) { console.error(err); }
         finally { setLoading(false); }
     };
@@ -74,14 +84,16 @@ function RadarBar() {
             });
             setNewAlert({ keywords: '', location: '', jobType: '', salaryMin: 0, emailEnabled: true });
             setShowForm(false);
-            fetchAlerts();
+            fetchAlerts(true);
         } catch (err) { /* ignore */ }
     };
 
     const handleDelete = async (id) => {
         try {
             await apiClient.delete(`/job-alerts/${id}`);
-            setAlerts(prev => prev.filter(a => a.id !== id));
+            const updated = alerts.filter(a => a.id !== id);
+            setAlerts(updated);
+            useCachingStore.getState().setCache('alerts', updated);
         } catch (err) { /* ignore */ }
     };
 
@@ -268,20 +280,25 @@ export default function JobSearch() {
         const q = params.get('q') || '';
         const loc = params.get('location') || '';
 
+        const hasCachedJobs = !!useCachingStore.getState().jobs;
         if (q || loc) {
             const newFilters = { keyword: q, location: loc, jobType: '', salaryMin: '' };
             setFilters(newFilters);
             // Trigger search with the URL filters directly
-            runSearch(newFilters);
+            runSearch(newFilters, hasCachedJobs);
         } else {
-            fetchJobs();
+            fetchJobs(hasCachedJobs);
         }
 
         // User-dependent data
         if (user) {
-            fetchSavedJobIds();
-            fetchAppliedJobIds();
-            fetchPrimaryResume();
+            const hasCachedSaved = !!useCachingStore.getState().savedJobs;
+            const hasCachedApplied = !!useCachingStore.getState().appliedJobs;
+            const hasCachedResume = !!useCachingStore.getState().primaryResume;
+
+            fetchSavedJobIds(hasCachedSaved);
+            fetchAppliedJobIds(hasCachedApplied);
+            fetchPrimaryResume(hasCachedResume);
         }
 
         // Recent searches from localStorage
@@ -295,9 +312,9 @@ export default function JobSearch() {
     /* ── Re-fetch user-dependent data when user changes ── */
     useEffect(() => {
         if (!user || !hasInitialized.current) return;
-        fetchSavedJobIds();
-        fetchAppliedJobIds();
-        fetchPrimaryResume();
+        fetchSavedJobIds(true);
+        fetchAppliedJobIds(true);
+        fetchPrimaryResume(true);
     }, [user?.id]);
 
     /* ── AI match on job / resume change ── */
@@ -322,26 +339,37 @@ export default function JobSearch() {
     }, [showModal, selected]);
 
     /* ── API calls ── */
-    const fetchJobs = async () => {
-        setLoading(true);
+    const fetchJobs = async (silent = false) => {
+        const cached = useCachingStore.getState().jobs;
+        if (cached && !silent) {
+            setJobs(cached);
+            setResultCount(cached.length);
+        } else if (!silent) {
+            setLoading(true);
+        }
         setError('');
         try {
             const res = await jobAPI.getAll();
             const data = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
             setJobs(data);
             setResultCount(data.length);
+            useCachingStore.getState().setCache('jobs', data);
             if (data.length === 0) setError('No jobs available yet.');
         } catch {
-            setError('Failed to load jobs. Make sure the backend is running.');
+            if (!cached) {
+                setError('Failed to load jobs. Make sure the backend is running.');
+            }
         } finally {
             setLoading(false);
         }
     };
 
-    const runSearch = async (f = filters) => {
-        setLoading(true);
+    const runSearch = async (f = filters, silent = false) => {
+        if (!silent) {
+            setLoading(true);
+            setSelected(null);
+        }
         setError('');
-        setSelected(null);
 
         const term = f.keyword.trim();
         if (term) {
@@ -372,27 +400,44 @@ export default function JobSearch() {
         }
     };
 
-    const fetchSavedJobIds = async () => {
+    const fetchSavedJobIds = async (silent = false) => {
+        const cached = useCachingStore.getState().savedJobs;
+        if (cached && !silent) {
+            setSavedJobs(new Set(cached.map(s => s.job?.id).filter(Boolean)));
+        }
         try {
             const res = await savedJobAPI.getSaved(user.id);
             const data = Array.isArray(res.data) ? res.data : [];
             setSavedJobs(new Set(data.map(s => s.job?.id).filter(Boolean)));
+            useCachingStore.getState().setCache('savedJobs', data);
         } catch { /* silently fail */ }
     };
 
-    const fetchAppliedJobIds = async () => {
+    const fetchAppliedJobIds = async (silent = false) => {
+        const cached = useCachingStore.getState().appliedJobs;
+        if (cached && !silent) {
+            setAppliedJobs(new Set(cached.map(a => a.job?.id).filter(Boolean)));
+        }
         try {
             const res = await applicationAPI.getMyApplications(user.id);
             const data = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
             setAppliedJobs(new Set(data.map(a => a.job?.id).filter(Boolean)));
+            useCachingStore.getState().setCache('appliedJobs', data);
         } catch { /* silently fail */ }
     };
 
-    const fetchPrimaryResume = async () => {
+    const fetchPrimaryResume = async (silent = false) => {
+        const cached = useCachingStore.getState().primaryResume;
+        if (cached && !silent) {
+            setPrimaryResume(cached);
+        }
         try {
             const res = await resumeAPI.list(user.id);
             const data = Array.isArray(res.data) ? res.data : [];
-            if (data.length > 0) setPrimaryResume(data[0]);
+            if (data.length > 0) {
+                setPrimaryResume(data[0]);
+                useCachingStore.getState().setCache('primaryResume', data[0]);
+            }
         } catch { /* silently fail */ }
     };
 
@@ -453,9 +498,11 @@ export default function JobSearch() {
             if (savedJobs.has(jobId)) {
                 await savedJobAPI.unsave(user.id, jobId);
                 setSavedJobs(prev => { const s = new Set(prev); s.delete(jobId); return s; });
+                useCachingStore.getState().setCache('savedJobs', null);
             } else {
                 await savedJobAPI.save(user.id, jobId);
                 setSavedJobs(prev => new Set([...prev, jobId]));
+                useCachingStore.getState().setCache('savedJobs', null);
             }
         } catch { /* silently fail */ }
         finally { setSavingJobId(null); }
@@ -480,6 +527,8 @@ export default function JobSearch() {
             
             setApplySuccess('Application submitted successfully!');
             setAppliedJobs(prev => new Set([...prev, selected.id]));
+            useCachingStore.getState().setCache('appliedJobs', null);
+            useCachingStore.getState().setCache('applications', null);
 
             // Check if there is a quiz for this job
             try {

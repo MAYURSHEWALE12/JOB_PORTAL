@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { savedJobAPI, applicationAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { useCachingStore } from '../../store/cachingStore';
 import { SkeletonJobCard } from '../Skeleton';
 import JobCard from './JobCard';
 
@@ -25,50 +26,66 @@ export default function SavedJobs() {
     const [removing, setRemoving]   = useState(null);
     const [appliedJobs, setAppliedJobs] = useState(new Set());
 
-    const fetchAppliedJobIds = useCallback(async () => {
+    const fetchAppliedJobIds = useCallback(async (silent = false) => {
         if (!user?.id) return;
+        const cached = useCachingStore.getState().appliedJobs;
+        if (cached && !silent) {
+            setAppliedJobs(new Set(cached.map(a => a.job?.id).filter(Boolean)));
+        }
         try {
             const res = await applicationAPI.getMyApplications(user.id);
             const data = Array.isArray(res.data) ? res.data : (res.data?.content ?? []);
             setAppliedJobs(new Set(data.map(a => a.job?.id).filter(Boolean)));
+            useCachingStore.getState().setCache('appliedJobs', data);
         } catch (err) {
             console.error('Failed to load applied jobs in SavedJobs:', err);
         }
     }, [user?.id]);
 
-    const fetchSavedJobs = useCallback(async () => {
+    const fetchSavedJobs = useCallback(async (silent = false) => {
         if (!user?.id) return;
-        setLoading(true);
+        const cached = useCachingStore.getState().savedJobs;
+        if (cached && !silent) {
+            setSavedJobs(cached);
+            setLoading(false);
+        } else if (!silent) {
+            setLoading(true);
+        }
         setError('');
         try {
             const res = await savedJobAPI.getSaved(user.id);
             const data = Array.isArray(res.data) ? res.data : [];
             setSavedJobs(data);
+            useCachingStore.getState().setCache('savedJobs', data);
         } catch (err) {
             console.error(err);
-            setError('Failed to load saved jobs.');
+            if (!cached) {
+                setError('Failed to load saved jobs.');
+            }
         } finally {
             setLoading(false);
         }
     }, [user?.id]);
 
     useEffect(() => {
-        fetchSavedJobs();
+        const hasCachedSaved = !!useCachingStore.getState().savedJobs;
+        fetchSavedJobs(hasCachedSaved);
     }, [fetchSavedJobs]);
 
     useEffect(() => {
         if (user?.id) {
-            fetchAppliedJobIds();
+            const hasCachedApplied = !!useCachingStore.getState().appliedJobs;
+            fetchAppliedJobIds(hasCachedApplied);
         }
     }, [user?.id, fetchAppliedJobIds]);
-
-
 
     const handleUnsave = async (jobId) => {
         setRemoving(jobId);
         try {
             await savedJobAPI.unsave(user.id, jobId);
-            setSavedJobs(prev => prev.filter(s => s.job.id !== jobId));
+            const updated = savedJobs.filter(s => s.job.id !== jobId);
+            setSavedJobs(updated);
+            useCachingStore.getState().setCache('savedJobs', updated);
             if (selected?.job?.id === jobId) setSelected(null);
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to remove saved job.');

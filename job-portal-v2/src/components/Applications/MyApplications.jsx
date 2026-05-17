@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { applicationAPI, quizAPI, resumeAnalysisAPI, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import { useCachingStore } from '../../store/cachingStore';
 import { SkeletonList } from '../Skeleton';
 import QuizTakePage from '../Quiz/QuizTakePage';
 import ApplicationFilter from './ApplicationFilter';
@@ -39,7 +40,8 @@ export default function MyApplications() {
     const [matchAnalysis, setMatchAnalysis] = useState({ data: null, loading: false });
 
     useEffect(() => {
-        fetchApplications();
+        const hasCachedApps = !!useCachingStore.getState().applications;
+        fetchApplications(hasCachedApps);
     }, []);
 
     useEffect(() => {
@@ -53,16 +55,25 @@ export default function MyApplications() {
         }
     }, [selected]);
 
-    const fetchApplications = async () => {
-        setLoading(true);
+    const fetchApplications = async (silent = false) => {
+        const cached = useCachingStore.getState().applications;
+        if (cached && !silent) {
+            setApplications(cached);
+            setLoading(false);
+        } else if (!silent) {
+            setLoading(true);
+        }
         setError('');
         try {
             const res = await applicationAPI.getMyApplications(user.id);
             const data = Array.isArray(res.data) ? res.data : (res.data?.content || []);
             setApplications(data);
+            useCachingStore.getState().setCache('applications', data);
         } catch (err) {
             console.error('Failed to load applications:', err);
-            setError('Failed to load applications. Please try again.');
+            if (!cached) {
+                setError('Failed to load applications. Please try again.');
+            }
         } finally {
             setLoading(false);
         }
@@ -99,9 +110,10 @@ export default function MyApplications() {
         setWithdrawing(applicationId);
         try {
             await applicationAPI.withdraw(applicationId, user.id);
-            setApplications(prev =>
-                prev.map(app => app.id === applicationId ? { ...app, status: 'WITHDRAWN' } : app)
-            );
+            const updated = applications.map(app => app.id === applicationId ? { ...app, status: 'WITHDRAWN' } : app);
+            setApplications(updated);
+            useCachingStore.getState().setCache('applications', updated);
+            useCachingStore.getState().setCache('appliedJobs', null);
             if (selected?.id === applicationId) setSelected(null);
         } catch (err) {
             alert(err.response?.data?.error || 'Failed to withdraw application.');
@@ -139,7 +151,9 @@ export default function MyApplications() {
     };
 
     const updateAppLocally = (id, status) => {
-        setApplications(prev => prev.map(app => app.id === id ? { ...app, status } : app));
+        const updated = applications.map(app => app.id === id ? { ...app, status } : app);
+        setApplications(updated);
+        useCachingStore.getState().setCache('applications', updated);
         if (selected?.id === id) setSelected(prev => ({ ...prev, status }));
     };
 
