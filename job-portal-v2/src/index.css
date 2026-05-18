@@ -2157,33 +2157,51 @@ p {
 /* --- Global HireHub Design System --- */
 :root,
 html.dark {
-    --hp-bg: #07090f;
-    --hp-surface: #0d1117;
-    --hp-surface-alt: rgba(255, 255, 255, .06);
-    --hp-card: #111520;
-    --hp-border: rgba(255, 255, 255, .07);
-    --hp-accent: #2dd4bf;
-    --hp-accent-rgb: 45, 212, 191;
-    --hp-accent2: #a78bfa;
-    --hp-text: #eef2ff;
-    --hp-muted: #6b7799;
-    --hp-nav-bg: rgba(7, 9, 15, .85);
-    --hp-shadow-card: 0 8px 40px rgba(0, 0, 0, .55);
+    --hp-bg:           #07090f;
+    --hp-surface:      #0d1117;
+    --hp-surface-alt:  rgba(255,255,255,.06);
+    --hp-card:         #111520;
+    --hp-card-hover:   #151b2a;
+    --hp-border:       rgba(255,255,255,.07);
+    --hp-border-hover: rgba(45,212,191,.3);
+    --hp-accent:       #2dd4bf;
+    --hp-accent-rgb:   45,212,191;
+    --hp-accent2:      #a78bfa;
+    --hp-accent2-rgb:  167,139,250;
+    --hp-text:         #eef2ff;
+    --hp-text-sub:     #c7d0e8;
+    --hp-muted:        #6b7799;
+    --hp-subtle:       #2e3650;
+    --hp-nav-bg:       rgba(7,9,15,.88);
+    --hp-orb1:         rgba(45,212,191,.10);
+    --hp-orb2:         rgba(167,139,250,.07);
+    --hp-shadow-card:  0 8px 40px rgba(0,0,0,.55);
+    --hp-tab-active-bg:linear-gradient(135deg, rgba(45,212,191,.18), rgba(167,139,250,.12));
+    --hp-tab-active-border: rgba(45,212,191,.45);
 }
 
 html.light {
-    --hp-bg: #f0f4fa;
-    --hp-surface: #ffffff;
-    --hp-surface-alt: rgba(0, 0, 0, .05);
-    --hp-card: #ffffff;
-    --hp-border: rgba(0, 0, 0, .09);
-    --hp-accent: #0d9488;
-    --hp-accent-rgb: 13, 148, 136;
-    --hp-accent2: #7c3aed;
-    --hp-text: #0c1220;
-    --hp-muted: #64748b;
-    --hp-nav-bg: rgba(240, 244, 250, .9);
-    --hp-shadow-card: 0 4px 24px rgba(0, 0, 0, .08);
+    --hp-bg:           #f0f4fa;
+    --hp-surface:      #ffffff;
+    --hp-surface-alt:  rgba(0,0,0,.05);
+    --hp-card:         #ffffff;
+    --hp-card-hover:   #f7faff;
+    --hp-border:       rgba(0,0,0,.09);
+    --hp-border-hover: rgba(13,148,136,.35);
+    --hp-accent:       #0d9488;
+    --hp-accent-rgb:   13,148,136;
+    --hp-accent2:      #7c3aed;
+    --hp-accent2-rgb:  124,58,237;
+    --hp-text:         #0c1220;
+    --hp-text-sub:     #374151;
+    --hp-muted:        #64748b;
+    --hp-subtle:       #cbd5e1;
+    --hp-nav-bg:       rgba(240,244,250,.92);
+    --hp-orb1:         rgba(13,148,136,.07);
+    --hp-orb2:         rgba(124,58,237,.05);
+    --hp-shadow-card:  0 4px 24px rgba(0,0,0,.08);
+    --hp-tab-active-bg:linear-gradient(135deg, rgba(13,148,136,.12), rgba(124,58,237,.08));
+    --hp-tab-active-border: rgba(13,148,136,.4);
 }
 
 /* Base resets to fix layout breakage */
