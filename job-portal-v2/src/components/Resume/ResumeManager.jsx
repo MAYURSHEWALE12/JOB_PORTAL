@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import axios from 'axios';
 import { resumeAPI } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import UploadProgress from '../UploadProgress';
 import PDFPreviewModal from './PDFPreviewModal';
 import Loader from '../Loader';
 
@@ -16,6 +17,7 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
     const [renaming, setRenaming]       = useState(null);
     const [newName, setNewName]         = useState('');
     const [uploading, setUploading]     = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(null);
     const [uploadName, setUploadName]   = useState('');
     const [error, setError]             = useState('');
     const [success, setSuccess]         = useState('');
@@ -106,10 +108,11 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
         }
 
         setUploading(true);
+        setUploadProgress(0);
         setError('');
         try {
             const name = uploadName.trim() || file.name.replace('.pdf', '');
-            await resumeAPI.uploadWithUserId(user.id, file, name);
+            await resumeAPI.uploadWithUserId(user.id, file, name, (p) => setUploadProgress(p));
             await fetchResumes();
             setUploadName('');
             setSuccess('Resume uploaded!');
@@ -118,6 +121,7 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
             setError(err.response?.data?.error || 'Upload failed.');
         } finally {
             setUploading(false);
+            setUploadProgress(null);
         }
     };
 
@@ -173,14 +177,20 @@ export default function ResumeManager({ onSelect, selectionMode = false }) {
                             onChange={(e) => setUploadName(e.target.value)}
                             placeholder="Resume name (optional)"
                             className="warm-input flex-1"
-                        />
-                        <button
-                            onClick={() => fileInputRef.current?.click()}
                             disabled={uploading}
-                            className="warm-btn text-sm whitespace-nowrap"
-                        >
-                            {uploading ? 'Uploading...' : 'Upload PDF'}
-                        </button>
+                        />
+                        {uploading ? (
+                            <div className="flex-1 min-w-0 sm:min-w-[200px]">
+                                <UploadProgress progress={uploadProgress !== null ? uploadProgress * 100 : null} fileName={uploadName || 'Resume'} />
+                            </div>
+                        ) : (
+                            <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="warm-btn text-sm whitespace-nowrap"
+                            >
+                                Upload PDF
+                            </button>
+                        )}
                     </div>
                     <input
                         type="file"

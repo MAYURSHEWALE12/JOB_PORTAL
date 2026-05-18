@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { companyAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
+import UploadProgress from '../UploadProgress';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 
@@ -34,6 +35,8 @@ export default function CompanyBranding() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploadingImage, setUploadingImage] = useState(null);
+    const [logoProgress, setLogoProgress] = useState(null);
+    const [bannerProgress, setBannerProgress] = useState(null);
     const [previewMarkdown, setPreviewMarkdown] = useState(false);
     const [activeTab, setActiveTab] = useState('profile');
 
@@ -124,14 +127,16 @@ export default function CompanyBranding() {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploadingImage('logo');
+        setLogoProgress(0);
         try {
-            const res = await companyAPI.uploadLogo(file);
+            const res = await companyAPI.uploadLogo(file, (p) => setLogoProgress(p));
             setProfile(res.data);
             showSuccess('Logo updated successfully!');
         } catch (err) {
             showError('Failed to upload logo. Ensure it is a valid image file.');
         } finally {
             setUploadingImage(null);
+            setLogoProgress(null);
         }
     };
 
@@ -139,14 +144,16 @@ export default function CompanyBranding() {
         const file = e.target.files?.[0];
         if (!file) return;
         setUploadingImage('banner');
+        setBannerProgress(0);
         try {
-            const res = await companyAPI.uploadBanner(file);
+            const res = await companyAPI.uploadBanner(file, (p) => setBannerProgress(p));
             setProfile(res.data);
             showSuccess('Banner updated successfully!');
         } catch (err) {
             showError('Failed to upload banner. Ensure it is a valid image file.');
         } finally {
             setUploadingImage(null);
+            setBannerProgress(null);
         }
     };
 
@@ -285,10 +292,16 @@ export default function CompanyBranding() {
                                             />
                                         )}
                                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.4)' }}>
-                                            <span className="text-white font-bold tracking-wider text-sm flex items-center gap-2 bg-black/40 px-4 py-2 rounded-lg">
-                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                                                {uploadingImage === 'banner' ? 'Uploading...' : 'Update Cover Image'}
-                                            </span>
+                                            {uploadingImage === 'banner' && bannerProgress !== null ? (
+                                                <div className="w-48">
+                                                    <UploadProgress progress={bannerProgress * 100} fileName="Cover image" />
+                                                </div>
+                                            ) : (
+                                                <span className="text-white font-bold tracking-wider text-sm flex items-center gap-2 bg-black/40 px-4 py-2 rounded-lg">
+                                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                                    Update Cover Image
+                                                </span>
+                                            )}
                                         </div>
                                         <input ref={bannerInputRef} type="file" accept="image/*" onChange={handleBannerUpload} className="hidden" />
                                     </div>
@@ -312,9 +325,13 @@ export default function CompanyBranding() {
                                                     </div>
                                                 )}
                                                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm" style={{ background: 'rgba(0,0,0,0.5)' }}>
-                                                    <span className="text-white text-xs font-bold tracking-wider uppercase">
-                                                        {uploadingImage === 'logo' ? '...' : 'Upload'}
-                                                    </span>
+                                                    {uploadingImage === 'logo' && logoProgress !== null ? (
+                                                        <div className="w-20">
+                                                            <UploadProgress progress={logoProgress * 100} fileName="Logo" />
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-white text-xs font-bold tracking-wider uppercase">Upload</span>
+                                                    )}
                                                 </div>
                                                 <input ref={logoInputRef} type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
                                             </div>

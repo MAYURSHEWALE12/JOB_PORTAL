@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore } from '../../store/authStore';
 import { userAPI, authAPI, resumeAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
+import UploadProgress from '../UploadProgress';
 import toast from 'react-hot-toast';
 
 
@@ -59,10 +60,13 @@ export default function ProfilePage() {
     const [resumeSuccess, setResumeSuccess] = useState('');
     const [resumeError, setResumeError] = useState('');
     const [dragOver, setDragOver] = useState(false);
+    const [uploadFileName, setUploadFileName] = useState('');
 
     const fileInputRef = useRef(null);
     const avatarInputRef = useRef(null);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
+    const [avatarProgress, setAvatarProgress] = useState(null);
+    const [resumeProgress, setResumeProgress] = useState(null);
 
     // FIX: Clear all success/error messages and reset sensitive data when switching tabs
     useEffect(() => {
@@ -113,11 +117,12 @@ export default function ProfilePage() {
         if (file.size > 5 * 1024 * 1024) { setProfileError('Image must be less than 5MB'); return; }
 
         setUploadingAvatar(true);
+        setAvatarProgress(0);
         setProfileError('');
         setProfileSuccess('');
 
         try {
-            const res = await userAPI.uploadAvatar(user.id, file);
+            const res = await userAPI.uploadAvatar(user.id, file, (p) => setAvatarProgress(p));
             const updatedUser = { ...user, profileImageUrl: res.data.profileImageUrl };
             setUser(updatedUser, token);
             setProfileSuccess('Profile photo updated successfully!');
@@ -126,6 +131,7 @@ export default function ProfilePage() {
             setProfileError(err.response?.data?.error || 'Failed to upload photo');
         } finally {
             setUploadingAvatar(false);
+            setAvatarProgress(null);
         }
     };
 
@@ -213,12 +219,14 @@ export default function ProfilePage() {
         if (!file.name.toLowerCase().endsWith('.pdf')) { setResumeError('Only PDF format is supported.'); return; }
         if (file.size > 10 * 1024 * 1024) { setResumeError('File is too large (Max 10MB).'); return; }
 
+        setUploadFileName(file.name);
         setUploading(true);
+        setResumeProgress(0);
         setResumeError('');
         setResumeSuccess('');
 
         try {
-            await resumeAPI.uploadWithUserId(user.id, file, file.name);
+            await resumeAPI.uploadWithUserId(user.id, file, file.name, (p) => setResumeProgress(p));
             await checkResume();
             setResumeSuccess('Resume uploaded to your profile!');
             setTimeout(() => setResumeSuccess(''), 3000);
@@ -226,6 +234,7 @@ export default function ProfilePage() {
             setResumeError(err.response?.data?.error || 'Upload failed.');
         } finally {
             setUploading(false);
+            setResumeProgress(null);
         }
     };
 
@@ -277,11 +286,13 @@ export default function ProfilePage() {
         if (file.type !== 'application/pdf') { setResumeError('Please select a PDF file'); return; }
         if (file.size > 10 * 1024 * 1024) { setResumeError('File must be less than 10MB'); return; }
 
+        setUploadFileName(file.name);
         setUploading(true);
+        setResumeProgress(0);
         setResumeError('');
 
         try {
-            const res = await resumeAPI.uploadWithUserId(user.id, file, file.name);
+            const res = await resumeAPI.uploadWithUserId(user.id, file, file.name, (p) => setResumeProgress(p));
             setHasResume(true);
             setResumeId(res.data.id);
             setResumeSuccess('Resume uploaded successfully!');
@@ -290,6 +301,7 @@ export default function ProfilePage() {
             setResumeError(err.response?.data?.error || 'Upload failed.');
         } finally {
             setUploading(false);
+            setResumeProgress(null);
         }
     };
 
@@ -321,6 +333,11 @@ export default function ProfilePage() {
                                     {uploadingAvatar ? <svg className="w-6 h-6 animate-spin text-white" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> : <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
                                 </button>
                                 <input type="file" ref={avatarInputRef} accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+                                {avatarProgress !== null && (
+                                    <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-32">
+                                        <UploadProgress progress={avatarProgress * 100} fileName="Profile photo" />
+                                    </div>
+                                )}
                             </div>
                             <div className="text-center sm:text-left">
                                 <h3 className="text-2xl font-bold text-[var(--hp-text)] tracking-tight">{user?.firstName} {user?.lastName}</h3>
@@ -421,9 +438,8 @@ export default function ProfilePage() {
                                 }}
                             >
                                 {uploading ? (
-                                    <div className="flex flex-col items-center gap-3">
-                                        <svg className="w-10 h-10 animate-spin" style={{ color: 'var(--hp-accent)' }} fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        <p className="font-bold text-[var(--hp-muted)]">Uploading documents...</p>
+                                    <div className="w-full max-w-xs mx-auto">
+                                        <UploadProgress progress={resumeProgress !== null ? resumeProgress * 100 : null} fileName={uploadFileName || 'Resume.pdf'} />
                                     </div>
                                 ) : (
                                     <div className="space-y-4">

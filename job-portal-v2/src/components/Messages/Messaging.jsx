@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { messageAPI, presenceAPI, API_BASE_URL, resolvePublicUrl } from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { useWebsocketStore } from '../../store/websocketStore';
+import UploadProgress from '../UploadProgress';
 import { toast } from 'react-hot-toast';
 
 
@@ -51,6 +52,7 @@ export default function Messaging() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [filePreview, setFilePreview] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(null);
     const [previewFile, setPreviewFile] = useState(null);
     const [editingMsgId, setEditingMsgId] = useState(null);
     const [editContent, setEditContent] = useState('');
@@ -234,6 +236,7 @@ export default function Messaging() {
         typingTimeoutRef.current = null;
 
         setSending(true);
+        setUploadProgress(0);
         setError('');
 
         try {
@@ -241,7 +244,7 @@ export default function Messaging() {
             let fileName = null;
 
             if (selectedFile) {
-                const uploadRes = await messageAPI.uploadFile(selectedFile, selectedPartner.id);
+                const uploadRes = await messageAPI.uploadFile(selectedFile, selectedPartner.id, (p) => setUploadProgress(p));
                 fileUrl = uploadRes.data?.fileUrl;
                 fileName = uploadRes.data?.fileName || selectedFile.name;
             }
@@ -263,6 +266,7 @@ export default function Messaging() {
             setError(err.response?.data?.error || 'Failed to send message');
         } finally {
             setSending(false);
+            setUploadProgress(null);
         }
     };
 
@@ -785,17 +789,25 @@ export default function Messaging() {
                             <form onSubmit={handleSend} className="p-4 sm:p-5 border-t relative z-10" style={{ borderColor: 'var(--hp-border)', background: 'var(--hp-surface)' }}>
                                 {selectedFile && (
                                     <div className="flex items-center gap-3 p-3 mb-3 rounded-xl border" style={{ background: 'var(--hp-surface-alt)', borderColor: 'var(--hp-border)' }}>
-                                        {filePreview ? (
-                                            <img src={filePreview} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-[var(--hp-border)]" />
-                                        ) : (
-                                            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(var(--hp-accent-rgb), 0.1)' }}>
-                                                <svg className="w-5 h-5" style={{ color: 'var(--hp-accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                        {uploadProgress !== null ? (
+                                            <div className="flex-1">
+                                                <UploadProgress progress={uploadProgress * 100} fileName={selectedFile.name} />
                                             </div>
+                                        ) : (
+                                            <>
+                                                {filePreview ? (
+                                                    <img src={filePreview} alt="Preview" className="w-10 h-10 object-cover rounded-lg border border-[var(--hp-border)]" />
+                                                ) : (
+                                                    <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: 'rgba(var(--hp-accent-rgb), 0.1)' }}>
+                                                        <svg className="w-5 h-5" style={{ color: 'var(--hp-accent)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" /></svg>
+                                                    </div>
+                                                )}
+                                                <span className="text-sm font-bold truncate flex-1" style={{ color: 'var(--hp-text)' }}>{selectedFile.name}</span>
+                                                <button type="button" onClick={() => { setSelectedFile(null); setFilePreview(null); }} className="p-1.5 rounded-md hover:bg-red-500/10 text-[var(--hp-muted)] hover:text-red-400 transition-colors">
+                                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                </button>
+                                            </>
                                         )}
-                                        <span className="text-sm font-bold truncate flex-1" style={{ color: 'var(--hp-text)' }}>{selectedFile.name}</span>
-                                        <button type="button" onClick={() => { setSelectedFile(null); setFilePreview(null); }} className="p-1.5 rounded-md hover:bg-red-500/10 text-[var(--hp-muted)] hover:text-red-400 transition-colors">
-                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                        </button>
                                     </div>
                                 )}
                                 <div className="flex gap-2 sm:gap-3">

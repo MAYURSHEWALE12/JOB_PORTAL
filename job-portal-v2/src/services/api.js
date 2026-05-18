@@ -151,17 +151,21 @@ export const savedJobAPI = {
 };
 
 export const resumeAPI = {
-    upload: (file, name) => {
+    upload: (file, name, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('name', name || 'My Resume');
-        return apiClient.post('/resume/upload', formData);
+        return apiClient.post('/resume/upload', formData, {
+            onUploadProgress: onProgress ? (e) => onProgress(e.loaded / e.total) : undefined,
+        });
     },
-    uploadWithUserId: (userId, file, name) => {
+    uploadWithUserId: (userId, file, name, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('name', name || 'My Resume');
-        return apiClient.post(`/resume/upload`, formData);
+        return apiClient.post(`/resume/upload`, formData, {
+            onUploadProgress: onProgress ? (e) => onProgress(e.loaded / e.total) : undefined,
+        });
     },
     check: (userId) => apiClient.get(`/resume/check?userId=${userId}`),
     list: (userId) => apiClient.get(`/resume/list?userId=${userId}`),
@@ -194,12 +198,13 @@ export const messageAPI = {
         apiClient.get(`/messages/unread-count?userId=${userId}`),
     getUsers: (userId) =>
         apiClient.get(`/messages/users?userId=${userId}`),
-    uploadFile: (file, receiverId) => {
+    uploadFile: (file, receiverId, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('receiverId', receiverId);
         return apiClient.post('/messages/upload', formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: onProgress ? (e) => onProgress(e.loaded / e.total) : undefined,
         });
     },
     editMessage: (id, content) =>
@@ -221,11 +226,12 @@ export const userAPI = {
     getById: (id) => apiClient.get(`/users/${id}`),
     update: (id, data) => apiClient.put(`/users/${id}`, data),
     changePassword: (id, data) => apiClient.post(`/auth/change-password/${id}`, data),
-    uploadAvatar: (id, file) => {
+    uploadAvatar: (id, file, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         return apiClient.post(`/users/${id}/avatar`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: onProgress ? (e) => onProgress(e.loaded / e.total) : undefined,
         });
     },
 };
@@ -267,18 +273,20 @@ export const companyAPI = {
     getByUser: (userId) => apiClient.get(`/companies/user/${userId}`),
     getAll: () => apiClient.get('/companies'),
     update: (data) => apiClient.put('/companies/user', data),
-    uploadLogo: (file) => {
+    uploadLogo: (file, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         return apiClient.post('/companies/user/upload-logo', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: onProgress ? (e) => onProgress(e.loaded / e.total) : undefined,
         });
     },
-    uploadBanner: (file) => {
+    uploadBanner: (file, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         return apiClient.post('/companies/user/upload-banner', formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
+            onUploadProgress: onProgress ? (e) => onProgress(e.loaded / e.total) : undefined,
         });
     },
 };
